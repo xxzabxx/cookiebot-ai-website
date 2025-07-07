@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cookiebot.ai/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /.git/
+
+# Allow important pages
+Allow: /
+Allow: /docs
+Allow: /dashboard
+Allow: /scan
+Allow: /src/cookiebot-ai.js
+Allow: /examples/
+
+# Crawl delay
+Crawl-delay: 1
+

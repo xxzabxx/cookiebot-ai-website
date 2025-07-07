@@ -1,0 +1,9 @@
+# Netlify redirects for SPA routing
+/*    /index.html   200
+
+# API redirects (if needed for future backend integration)
+/api/*  https://api.cookiebot.ai/:splat  200
+
+# CDN for cookie script
+/v1/cookiebot-ai.js  /cookiebot-ai.js  200
+
