@@ -1,0 +1,50 @@
+{
+  "name": "cookiebot-ai-enhanced",
+  "version": "2.0.0",
+  "description": "Advanced Cookie Consent Management Platform with Professional Customization",
+  "main": "src/cookiebot-ai.js",
+  "scripts": {
+    "dev": "cd dashboard && npm run dev",
+    "build": "cd dashboard && npm run build",
+    "preview": "cd dashboard && npm run preview",
+    "install-deps": "cd dashboard && npm install",
+    "test": "cd dashboard && npm run test",
+    "lint": "cd dashboard && npm run lint",
+    "deploy": "npm run build && netlify deploy --prod --dir=dashboard/dist",
+    "start-api": "cd api && python src/main.py",
+    "demo": "cd examples && python -m http.server 8000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/cookiebot-ai.git"
+  },
+  "keywords": [
+    "cookie",
+    "consent",
+    "gdpr",
+    "ccpa",
+    "privacy",
+    "compliance",
+    "banner",
+    "customization",
+    "saas",
+    "dashboard"
+  ],
+  "author": "CookieBot.ai Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/cookiebot-ai/issues"
+  },
+  "homepage": "https://cookiebot.ai",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "dashboard"
+  ],
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
+

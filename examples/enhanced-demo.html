@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CookieBot.ai Enhanced Demo - Advanced Customization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .demo-header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .demo-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .demo-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .demo-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-button.secondary {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .demo-button.secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .config-display {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #495057;
+            border-left: 4px solid #667eea;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .current-config {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .current-config h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .config-value {
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .demo-header h1 {
+                font-size: 2rem;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .current-config {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+                max-width: none;
+            }
+        }
+
+        /* Sample content for testing */
+        .sample-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sample-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .sample-content p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🍪 CookieBot.ai Enhanced</h1>
+            <p>Advanced Cookie Consent Management with Professional Customization</p>
+            <span class="version-badge">Version 2.0.0 - Enhanced Edition</span>
+        </div>
+
+        <div class="current-config">
+            <h4>Current Configuration</h4>
+            <div class="config-item">
+                <span class="config-label">Layout:</span>
+                <span class="config-value" id="current-layout">dialog</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Position:</span>
+                <span class="config-value" id="current-position">bottom</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Theme:</span>
+                <span class="config-value" id="current-theme">light</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Buttons:</span>
+                <span class="config-value" id="current-buttons">default</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Type:</span>
+                <span class="config-value" id="current-type">multilevel</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Overlay:</span>
+                <span class="config-value" id="current-overlay">true</span>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">Advanced Themes</div>
+                <div class="feature-description">Light, Dark, and Custom color schemes</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📱</div>
+                <div class="feature-title">Responsive Layouts</div>
+                <div class="feature-description">Dialog and Bar layouts with smart responsive behavior</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-title">Button Styles</div>
+                <div class="feature-description">Default, Solid, and Outline button variations</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⚖️</div>
+                <div class="feature-title">Compliance Options</div>
+                <div class="feature-description">GDPR, CCPA, and custom compliance modes</div>
+            </div>
+        </div>
+
+        <div class="demo-grid">
+            <!-- Layout Demos -->
+            <div class="demo-card">
+                <h3>🎯 Layout Options</h3>
+                <p>Test different banner layouts and positioning options.</p>
+                
+                <button class="demo-button" onclick="showBanner({layout: 'dialog', position: 'bottom', overlay: true})">
+                    Dialog - Bottom with Overlay
+                </button>
+                <button class="demo-button" onclick="showBanner({layout: 'dialog', position: 'center', overlay: true})">
+                    Dialog - Center with Overlay
+                </button>
+                <button class="demo-button" onclick="showBanner({layout: 'bar', position: 'bottom', overlay: false})">
+                    Bar - Bottom
+                </button>
+                <button class="demo-button" onclick="showBanner({layout: 'bar', position: 'top', overlay: false})">
+                    Bar - Top
+                </button>
+                
+                <div class="config-display">
+                    Layout: Dialog/Bar<br>
+                    Position: Top/Bottom/Center<br>
+                    Overlay: True/False
+                </div>
+            </div>
+
+            <!-- Theme Demos -->
+            <div class="demo-card">
+                <h3>🎨 Theme System</h3>
+                <p>Experience different visual themes and color schemes.</p>
+                
+                <button class="demo-button" onclick="showBanner({theme: 'light', layout: 'dialog'})">
+                    Light Theme
+                </button>
+                <button class="demo-button" onclick="showBanner({theme: 'dark', layout: 'dialog'})">
+                    Dark Theme
+                </button>
+                <button class="demo-button" onclick="showBanner({theme: 'custom', customColors: {background: '#f8f9fa', text: '#495057', accent: '#28a745'}})">
+                    Custom Green Theme
+                </button>
+                <button class="demo-button" onclick="showBanner({theme: 'custom', customColors: {background: '#fff3cd', text: '#856404', accent: '#ffc107'}})">
+                    Custom Yellow Theme
+                </button>
+                
+                <div class="config-display">
+                    Themes: Light, Dark, Custom<br>
+                    Custom Colors: Background, Text, Accent<br>
+                    Button Colors: Primary, Secondary
+                </div>
+            </div>
+
+            <!-- Button Style Demos -->
+            <div class="demo-card">
+                <h3>🔘 Button Styles</h3>
+                <p>Test different button styling approaches.</p>
+                
+                <button class="demo-button" onclick="showBanner({buttonStyle: 'default', theme: 'light'})">
+                    Default Style (CTA)
+                </button>
+                <button class="demo-button" onclick="showBanner({buttonStyle: 'solid', theme: 'light'})">
+                    Solid Style (Equal Weight)
+                </button>
+                <button class="demo-button" onclick="showBanner({buttonStyle: 'outline', theme: 'light'})">
+                    Outline Style (Minimal)
+                </button>
+                <button class="demo-button" onclick="showBanner({buttonStyle: 'default', theme: 'dark'})">
+                    Default + Dark Theme
+                </button>
+                
+                <div class="config-display">
+                    Default: Solid primary, outlined secondary<br>
+                    Solid: All buttons solid background<br>
+                    Outline: All buttons outlined only
+                </div>
+            </div>
+
+            <!-- Banner Type Demos -->
+            <div class="demo-card">
+                <h3>📋 Banner Types</h3>
+                <p>Different consent collection approaches.</p>
+                
+                <button class="demo-button" onclick="showBanner({bannerType: 'multilevel', granularConsent: true})">
+                    Multilevel (Full Options)
+                </button>
+                <button class="demo-button" onclick="showBanner({bannerType: 'accept-only'})">
+                    Accept Only
+                </button>
+                <button class="demo-button" onclick="showBanner({bannerType: 'accept-decline'})">
+                    Accept/Decline Binary
+                </button>
+                <button class="demo-button" onclick="showBanner({bannerType: 'ccpa'})">
+                    CCPA "Do Not Sell"
+                </button>
+                
+                <div class="config-display">
+                    Multilevel: Full granular control<br>
+                    Accept-only: Notification style<br>
+                    Accept/Decline: Binary choice<br>
+                    CCPA: California compliance
+                </div>
+            </div>
+
+            <!-- Advanced Features -->
+            <div class="demo-card">
+                <h3>⚙️ Advanced Features</h3>
+                <p>Professional customization options.</p>
+                
+                <button class="demo-button" onclick="showBanner({showCloseIcon: true, layout: 'dialog'})">
+                    With Close Icon
+                </button>
+                <button class="demo-button" onclick="showBanner({slideIn: true, layout: 'bar', position: 'bottom'})">
+                    Slide-in Animation
+                </button>
+                <button class="demo-button" onclick="showBanner({logoUrl: 'https://via.placeholder.com/120x40/667eea/ffffff?text=LOGO', companyName: 'Demo Corp'})">
+                    With Company Logo
+                </button>
+                <button class="demo-button" onclick="showBanner({enableAffiliateAds: true, affiliateAds: getDemoAds()})">
+                    With Affiliate Ads
+                </button>
+                
+                <div class="config-display">
+                    Close Icon: Optional X button<br>
+                    Animations: Slide-in effects<br>
+                    Logo: Company branding<br>
+                    Affiliate Ads: Revenue generation
+                </div>
+            </div>
+
+            <!-- Responsive Demo -->
+            <div class="demo-card">
+                <h3>📱 Responsive Behavior</h3>
+                <p>Test how banners adapt to different screen sizes.</p>
+                
+                <button class="demo-button" onclick="simulateDevice('mobile')">
+                    Simulate Mobile View
+                </button>
+                <button class="demo-button" onclick="simulateDevice('tablet')">
+                    Simulate Tablet View
+                </button>
+                <button class="demo-button" onclick="simulateDevice('desktop')">
+                    Simulate Desktop View
+                </button>
+                <button class="demo-button secondary" onclick="resetViewport()">
+                    Reset Viewport
+                </button>
+                
+                <div class="config-display">
+                    Mobile: &lt; 600px (Optimized layout)<br>
+                    Tablet: &lt; 1280px (Bar → Dialog)<br>
+                    Desktop: Full features
+                </div>
+            </div>
+        </div>
+
+        <div class="sample-content">
+            <h2>Sample Website Content</h2>
+            <p>This is sample content to demonstrate how the cookie consent banner appears over real website content. The banner should overlay this content appropriately based on the selected configuration.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </div>
+    </div>
+
+    <!-- Load the enhanced CookieBot.ai script -->
+    <script src="../src/cookiebot-ai-enhanced.js"></script>
+
+    <script>
+        let currentInstance = null;
+
+        // Demo affiliate ads
+        function getDemoAds() {
+            return [
+                {
+                    id: 'demo-1',
+                    title: 'Privacy Tools Pro',
+                    description: 'Advanced privacy protection',
+                    image: 'https://via.placeholder.com/48x48/28a745/ffffff?text=P',
+                    url: '#demo-ad-1'
+                },
+                {
+                    id: 'demo-2',
+                    title: 'Security Suite',
+                    description: 'Complete security solution',
+                    image: 'https://via.placeholder.com/48x48/dc3545/ffffff?text=S',
+                    url: '#demo-ad-2'
+                }
+            ];
+        }
+
+        // Show banner with specific configuration
+        function showBanner(config = {}) {
+            // Remove existing banner if any
+            const existingBanner = document.getElementById('cookiebot-ai-banner');
+            const existingOverlay = document.getElementById('cookiebot-ai-overlay');
+            if (existingBanner) existingBanner.remove();
+            if (existingOverlay) existingOverlay.remove();
+
+            // Default configuration
+            const defaultConfig = {
+                layout: 'dialog',
+                position: 'bottom',
+                theme: 'light',
+                buttonStyle: 'default',
+                bannerType: 'multilevel',
+                overlay: true,
+                slideIn: true,
+                showLogo: true,
+                logoUrl: null,
+                companyName: 'CookieBot.ai',
+                enableAffiliateAds: false,
+                affiliateAds: [],
+                showCloseIcon: false,
+                granularConsent: true,
+                showDeclineButton: true,
+                autoBlock: false, // Disable for demo
+                consentExpiry: 1, // Short expiry for demo
+                customColors: {
+                    background: '#ffffff',
+                    text: '#333333',
+                    accent: '#667eea',
+                    buttonPrimary: '#667eea',
+                    buttonSecondary: '#6c757d',
+                    overlayColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            };
+
+            // Merge with provided config
+            const finalConfig = Object.assign({}, defaultConfig, config);
+
+            // Update current config display
+            updateConfigDisplay(finalConfig);
+
+            // Clear any existing consent to force banner display
+            localStorage.removeItem('cookiebot-ai-consent');
+            document.cookie = 'cookiebot-ai-consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+
+            // Create new instance
+            currentInstance = new window.CookieBotAI(finalConfig);
+        }
+
+        // Update the configuration display
+        function updateConfigDisplay(config) {
+            document.getElementById('current-layout').textContent = config.layout;
+            document.getElementById('current-position').textContent = config.position;
+            document.getElementById('current-theme').textContent = config.theme;
+            document.getElementById('current-buttons').textContent = config.buttonStyle;
+            document.getElementById('current-type').textContent = config.bannerType;
+            document.getElementById('current-overlay').textContent = config.overlay.toString();
+        }
+
+        // Simulate different device viewports
+        function simulateDevice(device) {
+            const body = document.body;
+            body.classList.remove('mobile-sim', 'tablet-sim', 'desktop-sim');
+            
+            if (device === 'mobile') {
+                body.classList.add('mobile-sim');
+                body.style.maxWidth = '375px';
+                body.style.margin = '0 auto';
+                body.style.border = '2px solid #333';
+            } else if (device === 'tablet') {
+                body.classList.add('tablet-sim');
+                body.style.maxWidth = '768px';
+                body.style.margin = '0 auto';
+                body.style.border = '2px solid #666';
+            } else {
+                body.classList.add('desktop-sim');
+                body.style.maxWidth = '1200px';
+                body.style.margin = '0 auto';
+                body.style.border = '2px solid #999';
+            }
+        }
+
+        // Reset viewport simulation
+        function resetViewport() {
+            const body = document.body;
+            body.classList.remove('mobile-sim', 'tablet-sim', 'desktop-sim');
+            body.style.maxWidth = '';
+            body.style.margin = '';
+            body.style.border = '';
+        }
+
+        // Initialize with default banner on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show a default banner after a short delay
+            setTimeout(() => {
+                showBanner({
+                    layout: 'dialog',
+                    position: 'bottom',
+                    theme: 'light',
+                    buttonStyle: 'default',
+                    overlay: true,
+                    enableAffiliateAds: true,
+                    affiliateAds: getDemoAds()
+                });
+            }, 1000);
+        });
+
+        // Add some demo tracking scripts for cookie detection
+        document.head.innerHTML += `
+            <script src="https://www.google-analytics.com/analytics.js" type="text/plain" data-cookiebot="statistics"></script>
+            <script src="https://connect.facebook.net/en_US/fbevents.js" type="text/plain" data-cookiebot="marketing"></script>
+        `;
+
+        // Set some demo cookies
+        document.cookie = "demo_analytics=ga123; path=/";
+        document.cookie = "demo_marketing=fb456; path=/";
+        document.cookie = "demo_preferences=theme_dark; path=/";
+    </script>
+</body>
+</html>
+
