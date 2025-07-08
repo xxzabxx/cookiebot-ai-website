@@ -54,7 +54,34 @@ import {
   ArrowRight
 } from 'lucide-react'
 
-// Mock data for demonstration
+// API Configuration - Updated to use live backend
+const API_BASE_URL = 'https://cookiebot-ai-backend.vercel.app'
+
+// API Helper Functions
+const apiCall = async (endpoint, options = {}) => {
+  try {
+    const token = localStorage.getItem('authToken')
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers
+      },
+      ...options
+    })
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`)
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.error('API call failed:', error)
+    throw error
+  }
+}
+
+// Mock data for demonstration (will be replaced with real API data)
 const mockAnalytics = {
   totalVisitors: 125430,
   consentRate: 78.5,
@@ -79,6 +106,12 @@ const mockAnalytics = {
 
 const EnhancedDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [user, setUser] = useState(null)
+  const [websites, setWebsites] = useState([])
+  const [analytics, setAnalytics] = useState(mockAnalytics)
+  
   const [config, setConfig] = useState({
     companyName: 'Your Company',
     companyLogo: '',
@@ -103,6 +136,79 @@ const EnhancedDashboard = () => {
   })
 
   const [previewDevice, setPreviewDevice] = useState('desktop')
+
+  // Load user data and websites on component mount
+  useEffect(() => {
+    loadUserData()
+    loadWebsites()
+    loadAnalytics()
+  }, [])
+
+  const loadUserData = async () => {
+    try {
+      setLoading(true)
+      const userData = await apiCall('/api/user/profile')
+      setUser(userData)
+      if (userData.company) {
+        setConfig(prev => ({ ...prev, companyName: userData.company }))
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error)
+      setError('Failed to load user data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadWebsites = async () => {
+    try {
+      const websitesData = await apiCall('/api/websites')
+      setWebsites(websitesData)
+    } catch (error) {
+      console.error('Failed to load websites:', error)
+    }
+  }
+
+  const loadAnalytics = async () => {
+    try {
+      const analyticsData = await apiCall('/api/analytics/dashboard')
+      setAnalytics(prev => ({
+        ...prev,
+        totalVisitors: analyticsData.events_today || prev.totalVisitors,
+        activeWebsites: analyticsData.website_count || prev.activeWebsites,
+        affiliateRevenue: analyticsData.revenue_balance || prev.affiliateRevenue
+      }))
+    } catch (error) {
+      console.error('Failed to load analytics:', error)
+    }
+  }
+
+  const addWebsite = async (websiteData) => {
+    try {
+      setLoading(true)
+      const newWebsite = await apiCall('/api/websites', {
+        method: 'POST',
+        body: JSON.stringify(websiteData)
+      })
+      setWebsites(prev => [...prev, newWebsite])
+      return newWebsite
+    } catch (error) {
+      console.error('Failed to add website:', error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Test API connection
+  const testConnection = async () => {
+    try {
+      const health = await apiCall('/api/health')
+      alert(`✅ Backend Connected!\nStatus: ${health.status}\nDatabase: ${health.database}`)
+    } catch (error) {
+      alert(`❌ Connection Failed!\nError: ${error.message}`)
+    }
+  }
 
   // Live Preview Component
   const LivePreview = () => {
@@ -262,12 +368,38 @@ const EnhancedDashboard = () => {
               <p className="text-gray-600">
                 Manage your cookie consent platform with advanced customization and analytics
               </p>
+              {user && (
+                <p className="text-sm text-blue-600 mt-1">
+                  Welcome back, {user.first_name || user.email}!
+                </p>
+              )}
             </div>
-            <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              Enhanced v2.0
-            </Badge>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={testConnection}
+                className="text-xs"
+              >
+                <Zap className="h-3 w-3 mr-1" />
+                Test API
+              </Button>
+              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                Enhanced v2.0
+              </Badge>
+            </div>
           </div>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+              <span className="text-red-700">{error}</span>
+            </div>
+          </div>
+        )}
 
         {/* Main Dashboard */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -308,7 +440,7 @@ const EnhancedDashboard = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockAnalytics.totalVisitors.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{analytics.totalVisitors.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     <TrendingUp className="h-3 w-3 inline mr-1" />
                     +12.5% from last month
@@ -322,7 +454,7 @@ const EnhancedDashboard = () => {
                   <CheckCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockAnalytics.consentRate}%</div>
+                  <div className="text-2xl font-bold">{analytics.consentRate}%</div>
                   <p className="text-xs text-muted-foreground">
                     <TrendingUp className="h-3 w-3 inline mr-1" />
                     +2.1% from last month
@@ -336,7 +468,7 @@ const EnhancedDashboard = () => {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${mockAnalytics.affiliateRevenue.toFixed(2)}</div>
+                  <div className="text-2xl font-bold">${analytics.affiliateRevenue.toFixed(2)}</div>
                   <p className="text-xs text-muted-foreground">
                     <TrendingUp className="h-3 w-3 inline mr-1" />
                     +18.7% from last month
@@ -350,7 +482,7 @@ const EnhancedDashboard = () => {
                   <Globe className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockAnalytics.activeWebsites}</div>
+                  <div className="text-2xl font-bold">{analytics.activeWebsites}</div>
                   <p className="text-xs text-muted-foreground">
                     <TrendingUp className="h-3 w-3 inline mr-1" />
                     +2 new this month
@@ -368,7 +500,7 @@ const EnhancedDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={mockAnalytics.dailyConsents}>
+                    <LineChart data={analytics.dailyConsents}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis yAxisId="left" />
@@ -390,7 +522,7 @@ const EnhancedDashboard = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={mockAnalytics.consentCategories}
+                        data={analytics.consentCategories}
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
@@ -398,7 +530,7 @@ const EnhancedDashboard = () => {
                         dataKey="value"
                         label={({ name, value }) => `${name}: ${value}%`}
                       >
-                        {mockAnalytics.consentCategories.map((entry, index) => (
+                        {analytics.consentCategories.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -750,15 +882,39 @@ const EnhancedDashboard = () => {
                 <CardDescription>Manage websites using CookieBot.ai Enhanced</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No websites added yet</h3>
-                  <p className="text-gray-600 mb-6">Add your first website to start tracking consent and revenue</p>
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    <Globe className="h-4 w-4 mr-2" />
-                    Add Website
-                  </Button>
-                </div>
+                {websites.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No websites added yet</h3>
+                    <p className="text-gray-600 mb-6">Add your first website to start tracking consent and revenue</p>
+                    <Button 
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      onClick={() => {
+                        const domain = prompt('Enter your website domain (e.g., example.com):')
+                        if (domain) {
+                          addWebsite({ domain, name: domain })
+                        }
+                      }}
+                    >
+                      <Globe className="h-4 w-4 mr-2" />
+                      Add Website
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {websites.map((website) => (
+                      <div key={website.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{website.name}</h4>
+                          <p className="text-sm text-gray-600">{website.domain}</p>
+                        </div>
+                        <Badge variant={website.status === 'active' ? 'default' : 'secondary'}>
+                          {website.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -787,4 +943,5 @@ const EnhancedDashboard = () => {
 }
 
 export default EnhancedDashboard
+
 
