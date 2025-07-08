@@ -46,11 +46,16 @@ import {
   Layers,
   Sliders,
   Target,
-  Calendar
+  Calendar,
+  LogOut,
+  User
 } from 'lucide-react'
 import Documentation from './components/Documentation.jsx'
 import EnhancedDashboard from './components/EnhancedDashboard.jsx'
 import ComplianceScanner from './components/ComplianceScanner.jsx'
+import AuthProvider, { useAuth } from './components/AuthContext.jsx'
+import AuthModal from './components/AuthModal.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 import './App.css'
 
 // Import assets
@@ -133,10 +138,12 @@ const SEOHead = ({
   </Helmet>
 )
 
-// Navigation Component
+// Navigation Component with Authentication
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { user, logout, isAuthenticated } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -146,127 +153,243 @@ const Navigation = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const handleAuthClick = () => {
+    if (isAuthenticated()) {
+      // User is logged in, show user menu or logout
+      logout()
+    } else {
+      // User is not logged in, show auth modal
+      setShowAuthModal(true)
+    }
+  }
+
+  const handleGetStarted = () => {
+    if (isAuthenticated()) {
+      // Redirect to dashboard
+      window.location.href = '/dashboard'
+    } else {
+      // Show registration modal
+      setShowAuthModal(true)
+    }
+  }
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
-    }`}>
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <img src={logoImg} alt="CookieBot.ai Logo" className="h-8 w-8" />
-            <span className="text-xl font-bold text-gray-900">CookieBot.ai</span>
-          </Link>
-          
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="/#features" className="text-gray-700 hover:text-blue-600 transition-colors">Features</a>
-            <a href="/#customization" className="text-gray-700 hover:text-blue-600 transition-colors">Customization</a>
-            <a href="/#pricing" className="text-gray-700 hover:text-blue-600 transition-colors">Pricing</a>
-            <Link to="/scan" className="text-gray-700 hover:text-blue-600 transition-colors">Scan</Link>
-            <Link to="/docs" className="text-gray-700 hover:text-blue-600 transition-colors">Documentation</Link>
-            <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">Dashboard</Link>
-            <a href="/#contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
-            <Button variant="outline" size="sm">Sign In</Button>
-            <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Get Started Free
-            </Button>
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
+      }`}>
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center space-x-2">
+              <img src={logoImg} alt="CookieBot.ai Logo" className="h-8 w-8" />
+              <span className="text-xl font-bold text-gray-900">CookieBot.ai</span>
+            </Link>
+            
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="/#features" className="text-gray-700 hover:text-blue-600 transition-colors">Features</a>
+              <a href="/#customization" className="text-gray-700 hover:text-blue-600 transition-colors">Customization</a>
+              <a href="/#pricing" className="text-gray-700 hover:text-blue-600 transition-colors">Pricing</a>
+              <Link to="/scan" className="text-gray-700 hover:text-blue-600 transition-colors">Scan</Link>
+              <Link to="/docs" className="text-gray-700 hover:text-blue-600 transition-colors">Documentation</Link>
+              <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">Dashboard</Link>
+              <a href="/#contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+              
+              {/* Authentication Buttons */}
+              {isAuthenticated() ? (
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2 text-gray-700">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm">
+                      {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.email}
+                    </span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleAuthClick}
+                    className="flex items-center space-x-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleAuthClick}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={handleGetStarted}
+                  >
+                    Get Started Free
+                  </Button>
+                </>
+              )}
+            </div>
+
+            <button 
+              className="md:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
 
-          <button 
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle mobile menu"
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <a href="/#features" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Features</a>
-              <a href="/#customization" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Customization</a>
-              <a href="/#pricing" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Pricing</a>
-              <Link to="/scan" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Scan</Link>
-              <Link to="/docs" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Documentation</Link>
-              <Link to="/dashboard" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Dashboard</Link>
-              <a href="/#contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</a>
-              <div className="px-3 py-2 space-y-2">
-                <Button variant="outline" size="sm" className="w-full">Sign In</Button>
-                <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600">Get Started Free</Button>
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden bg-white border-t border-gray-200">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <a href="/#features" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Features</a>
+                <a href="/#customization" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Customization</a>
+                <a href="/#pricing" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Pricing</a>
+                <Link to="/scan" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Scan</Link>
+                <Link to="/docs" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Documentation</Link>
+                <Link to="/dashboard" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Dashboard</Link>
+                <a href="/#contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</a>
+                
+                <div className="px-3 py-2 space-y-2">
+                  {isAuthenticated() ? (
+                    <>
+                      <div className="text-sm text-gray-600 mb-2">
+                        Welcome, {user?.first_name || user?.email}
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={handleAuthClick}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={handleAuthClick}
+                      >
+                        Sign In
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
+                        onClick={handleGetStarted}
+                      >
+                        Get Started Free
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </nav>
+          )}
+        </div>
+      </nav>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode="login"
+      />
+    </>
   )
 }
 
-// Hero Section
+// Hero Section with Authentication
 const HeroSection = ({ onWatchDemo }) => {
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { isAuthenticated } = useAuth()
+
+  const handleStartTrial = () => {
+    if (isAuthenticated()) {
+      window.location.href = '/dashboard'
+    } else {
+      setShowAuthModal(true)
+    }
+  }
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBgImg})` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 to-purple-900/80" />
-      
-      <div className="relative z-10 container mx-auto px-4 text-center text-white">
-        <div className="max-w-4xl mx-auto">
-          <Badge className="mb-6 bg-white/20 text-white border-white/30">
-            🚀 Enhanced v2.0 - Advanced Customization + Revenue System
-          </Badge>
-          
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Cookie Consent
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              {" "}That Pays
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 leading-relaxed">
-            The only cookie consent platform with built-in monetization and advanced customization. 
-            GDPR compliant, fully customizable themes, and revenue-generating affiliate system.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4"
-            >
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-gray-900 text-lg px-8 py-4"
-              onClick={onWatchDemo}
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Watch Demo
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
-              <div className="text-3xl font-bold mb-2">60%</div>
-              <div className="text-gray-300">Revenue Share</div>
+    <>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBgImg})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 to-purple-900/80" />
+        
+        <div className="relative z-10 container mx-auto px-4 text-center text-white">
+          <div className="max-w-4xl mx-auto">
+            <Badge className="mb-6 bg-white/20 text-white border-white/30">
+              🚀 Enhanced v2.0 - Advanced Customization + Revenue System
+            </Badge>
+            
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              Cookie Consent
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                {" "}That Pays
+              </span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl mb-8 text-gray-200 leading-relaxed">
+              The only cookie consent platform with built-in monetization and advanced customization. 
+              GDPR compliant, fully customizable themes, and revenue-generating affiliate system.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4"
+                onClick={handleStartTrial}
+              >
+                {isAuthenticated() ? 'Go to Dashboard' : 'Start Free Trial'}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-gray-900 text-lg px-8 py-4"
+                onClick={onWatchDemo}
+              >
+                <Play className="mr-2 h-5 w-5" />
+                Watch Demo
+              </Button>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
-              <div className="text-3xl font-bold mb-2">100%</div>
-              <div className="text-gray-300">GDPR Compliant</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
-              <div className="text-3xl font-bold mb-2">∞</div>
-              <div className="text-gray-300">Customization Options</div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                <div className="text-3xl font-bold mb-2">60%</div>
+                <div className="text-gray-300">Revenue Share</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                <div className="text-3xl font-bold mb-2">100%</div>
+                <div className="text-gray-300">GDPR Compliant</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                <div className="text-3xl font-bold mb-2">∞</div>
+                <div className="text-gray-300">Customization Options</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode="register"
+      />
+    </>
   )
 }
 
@@ -555,8 +678,6 @@ const DashboardSection = () => {
   )
 }
 
-
-
 // Enhanced Pricing Section
 const PricingSection = () => {
   const plans = [
@@ -770,53 +891,73 @@ const TestimonialsSection = () => {
 
 // CTA Section
 const CTASection = () => {
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { isAuthenticated } = useAuth()
+
+  const handleStartTrial = () => {
+    if (isAuthenticated()) {
+      window.location.href = '/dashboard'
+    } else {
+      setShowAuthModal(true)
+    }
+  }
+
   return (
-    <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-      <div className="container mx-auto px-4 text-center">
-        <div className="max-w-4xl mx-auto text-white">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">
-            Join thousands of websites already earning revenue with CookieBot.ai Enhanced. 
-            Start your free trial today and see the difference advanced customization makes.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
-            >
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4"
-            >
-              Schedule Demo
-              <Calendar className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center justify-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-300" />
-              <span>14-day free trial</span>
+    <>
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto text-white">
+            <h2 className="text-4xl md:text-6xl font-bold mb-6">
+              Ready to Get Started?
+            </h2>
+            <p className="text-xl md:text-2xl mb-8 text-blue-100">
+              Join thousands of websites already earning revenue with CookieBot.ai Enhanced. 
+              Start your free trial today and see the difference advanced customization makes.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
+                onClick={handleStartTrial}
+              >
+                {isAuthenticated() ? 'Go to Dashboard' : 'Start Free Trial'}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4"
+              >
+                Schedule Demo
+                <Calendar className="ml-2 h-5 w-5" />
+              </Button>
             </div>
-            <div className="flex items-center justify-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-300" />
-              <span>No credit card required</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-300" />
-              <span>Setup in 5 minutes</span>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-300" />
+                <span>14-day free trial</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-300" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-300" />
+                <span>Setup in 5 minutes</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode="register"
+      />
+    </>
   )
 }
 
@@ -1041,39 +1182,51 @@ const Footer = () => {
   )
 }
 
-// Main App Component
-const App = () => {
+// Main App Component with Authentication
+const AppContent = () => {
   const [showDemo, setShowDemo] = useState(false)
 
   return (
-    <Router>
-      <div className="min-h-screen bg-white">
-        <SEOHead />
-        <Navigation />
-        
-        <Routes>
-          <Route path="/" element={
-            <>
-              <HeroSection onWatchDemo={() => setShowDemo(true)} />
-              <FeaturesSection />
-              <CustomizationSection />
-              <DashboardSection />
-              <PricingSection />
-              <TestimonialsSection />
-              <CTASection />
-              <ContactSection />
-            </>
-          } />
-          <Route path="/docs" element={<Documentation />} />
-          <Route path="/dashboard" element={<EnhancedDashboard />} />
-          <Route path="/scan" element={<ComplianceScanner />} />
-        </Routes>
-        
-        <Footer />
-      </div>
-    </Router>
+    <div className="min-h-screen bg-white">
+      <SEOHead />
+      <Navigation />
+      
+      <Routes>
+        <Route path="/" element={
+          <>
+            <HeroSection onWatchDemo={() => setShowDemo(true)} />
+            <FeaturesSection />
+            <CustomizationSection />
+            <DashboardSection />
+            <PricingSection />
+            <TestimonialsSection />
+            <CTASection />
+            <ContactSection />
+          </>
+        } />
+        <Route path="/docs" element={<Documentation />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <EnhancedDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/scan" element={<ComplianceScanner />} />
+      </Routes>
+      
+      <Footer />
+    </div>
+  )
+}
+
+// Main App Component with AuthProvider
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   )
 }
 
 export default App
-
