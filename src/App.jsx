@@ -55,7 +55,6 @@ import EnhancedDashboard from './components/EnhancedDashboard.jsx'
 import ComplianceScanner from './components/ComplianceScanner.jsx'
 import AuthProvider, { useAuth } from './components/AuthContext.jsx'
 import AuthModal from './components/AuthModal.jsx'
-import ProtectedRoute from './components/ProtectedRoute.jsx'
 import './App.css'
 
 // Import assets
@@ -1205,11 +1204,7 @@ const AppContent = () => {
           </>
         } />
         <Route path="/docs" element={<Documentation />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <EnhancedDashboard />
-          </ProtectedRoute>
-        } />
+        <Route path="/dashboard" element={<EnhancedDashboard />} />
         <Route path="/scan" element={<ComplianceScanner />} />
       </Routes>
       
