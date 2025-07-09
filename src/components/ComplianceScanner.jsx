@@ -46,7 +46,7 @@ const ComplianceScanner = () => {
       }
 
       // Call real backend API
-      const response = await fetch('/api/compliance/demo-scan', {
+      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/compliance/demo-scan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
