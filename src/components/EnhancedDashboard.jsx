@@ -268,13 +268,13 @@ const EnhancedDashboard = () => {
 
         {/* Main Dashboard */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="websites">Websites</TabsTrigger>
-            <TabsTrigger value="configuration">Configuration</TabsTrigger>
-            <TabsTrigger value="compliance">Compliance</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+            <TabsTrigger value="analytics" className="text-xs md:text-sm">Analytics</TabsTrigger>
+            <TabsTrigger value="revenue" className="text-xs md:text-sm">Revenue</TabsTrigger>
+            <TabsTrigger value="websites" className="text-xs md:text-sm">Websites</TabsTrigger>
+            <TabsTrigger value="configuration" className="text-xs md:text-sm">Config</TabsTrigger>
+            <TabsTrigger value="compliance" className="text-xs md:text-sm">Compliance</TabsTrigger>
+            <TabsTrigger value="preview" className="text-xs md:text-sm">Preview</TabsTrigger>
           </TabsList>
 
           {/* Analytics Tab */}
@@ -804,4 +804,6 @@ const EnhancedDashboard = () => {
 }
 
 export default EnhancedDashboard
+
+
 
