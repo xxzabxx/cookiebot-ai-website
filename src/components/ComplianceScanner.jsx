@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
 import { AlertTriangle, CheckCircle, XCircle, Search, Globe, Shield, Eye, Cookie, Zap, RefreshCw } from 'lucide-react'
-import { useAuth } from './AuthContext'
 
 const ComplianceScanner = () => {
   const [url, setUrl] = useState('')
@@ -17,11 +16,39 @@ const ComplianceScanner = () => {
   const [error, setError] = useState(null)
   const [scanId, setScanId] = useState(null)
 
-  const { apiCall, user } = useAuth()
+  // Simple API call function with manual token handling
+  const makeApiCall = async (endpoint, options = {}) => {
+    try {
+      const token = localStorage.getItem('authToken')
+      const response = await fetch(`https://cookiebot-ai-backend.vercel.app${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+          ...options.headers
+        },
+        ...options
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}`)
+      }
+      
+      return await response.json()
+    } catch (error) {
+      console.error('API call failed:', error)
+      throw error
+    }
+  }
+
+  // Check if user is logged in
+  const isLoggedIn = () => {
+    return !!localStorage.getItem('authToken')
+  }
 
   const pollScanStatus = async (scanId) => {
     try {
-      const statusData = await apiCall(`/api/compliance/real-scan/${scanId}/status`)
+      const statusData = await makeApiCall(`/api/compliance/real-scan/${scanId}/status`)
       
       setScanProgress(statusData.progress || 0)
       setScanMessage(statusData.message || 'Processing...')
@@ -50,7 +77,7 @@ const ComplianceScanner = () => {
     }
 
     // Check if user is logged in
-    if (!user) {
+    if (!isLoggedIn()) {
       setError('Please log in to use the compliance scanner')
       return
     }
@@ -65,7 +92,7 @@ const ComplianceScanner = () => {
     try {
       // Start the real scan
       setScanMessage('Starting compliance analysis...')
-      const scanResponse = await apiCall('/api/compliance/real-scan', {
+      const scanResponse = await makeApiCall('/api/compliance/real-scan', {
         method: 'POST',
         body: JSON.stringify({ url, email })
       })
@@ -266,95 +293,6 @@ const ComplianceScanner = () => {
               </CardContent>
             </Card>
 
-            {/* Issues Found */}
-            {scanResults.issues && scanResults.issues.length > 0 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    Issues Found ({scanResults.issues.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {scanResults.issues.map((issue, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold">{issue.title}</h3>
-                          <Badge className={getSeverityColor(issue.severity)}>
-                            {issue.severity}
-                          </Badge>
-                        </div>
-                        <p className="text-gray-600 mb-2">{issue.description}</p>
-                        <p className="text-sm text-blue-600 font-medium">
-                          Recommendation: {issue.recommendation}
-                        </p>
-                        {issue.regulation && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Regulation: {issue.regulation.toUpperCase()} {issue.article && `- ${issue.article}`}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Cookies Found */}
-            {scanResults.cookies && scanResults.cookies.length > 0 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Cookie className="h-5 w-5" />
-                    Cookies Detected ({scanResults.cookies.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {scanResults.cookies.map((cookie, index) => (
-                      <div key={index} className="border rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold">{cookie.name}</h4>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{cookie.category}</Badge>
-                            {cookie.requires_consent && (
-                              <Badge className="bg-orange-100 text-orange-800">Requires Consent</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600">{cookie.purpose}</p>
-                        <div className="flex gap-4 mt-2 text-xs text-gray-500">
-                          <span>Domain: {cookie.domain}</span>
-                          <span>Secure: {cookie.secure ? 'Yes' : 'No'}</span>
-                          <span>HttpOnly: {cookie.http_only ? 'Yes' : 'No'}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recommendations */}
-            {scanResults.recommendations && scanResults.recommendations.length > 0 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle>Recommendations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {scanResults.recommendations.map((rec, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Action Buttons */}
             <div className="text-center">
               <Button 
@@ -423,12 +361,12 @@ const ComplianceScanner = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={isScanning || !user}
+                  disabled={isScanning || !isLoggedIn()}
                 >
                   <Search className="h-4 w-4 mr-2" />
                   Start Compliance Scan
                 </Button>
-                {!user && (
+                {!isLoggedIn() && (
                   <p className="text-sm text-red-600">
                     Please log in to use the compliance scanner
                   </p>
@@ -482,6 +420,5 @@ const ComplianceScanner = () => {
 }
 
 export default ComplianceScanner
-
 
 
