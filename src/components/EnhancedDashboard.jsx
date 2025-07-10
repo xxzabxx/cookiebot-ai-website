@@ -244,7 +244,7 @@ const EnhancedDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 pt-24">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -268,13 +268,13 @@ const EnhancedDashboard = () => {
 
         {/* Main Dashboard */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
-            <TabsTrigger value="analytics" className="text-xs md:text-sm">Analytics</TabsTrigger>
-            <TabsTrigger value="revenue" className="text-xs md:text-sm">Revenue</TabsTrigger>
-            <TabsTrigger value="websites" className="text-xs md:text-sm">Websites</TabsTrigger>
-            <TabsTrigger value="configuration" className="text-xs md:text-sm">Config</TabsTrigger>
-            <TabsTrigger value="compliance" className="text-xs md:text-sm">Compliance</TabsTrigger>
-            <TabsTrigger value="preview" className="text-xs md:text-sm">Preview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1">
+            <TabsTrigger value="analytics" className="text-xs md:text-sm px-2">Analytics</TabsTrigger>
+            <TabsTrigger value="revenue" className="text-xs md:text-sm px-2">Revenue</TabsTrigger>
+            <TabsTrigger value="websites" className="text-xs md:text-sm px-2">Websites</TabsTrigger>
+            <TabsTrigger value="configuration" className="text-xs md:text-sm px-2">Config</TabsTrigger>
+            <TabsTrigger value="compliance" className="text-xs md:text-sm px-2">Compliance</TabsTrigger>
+            <TabsTrigger value="preview" className="text-xs md:text-sm px-2">Preview</TabsTrigger>
           </TabsList>
 
           {/* Analytics Tab */}
