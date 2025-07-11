@@ -1,13 +1,13 @@
 /**
  * CookieBot.ai - Advanced Cookie Consent Management Platform
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: Manus AI
  * License: MIT
  * 
  * Features:
  * - Automatic cookie detection and categorization
  * - GDPR, CCPA, LGPD compliance
- * - Affiliate advertising integration
+ * - Privacy Insights widget with post-consent monetization
  * - Company logo customization
  * - Real-time analytics
  */
@@ -25,7 +25,7 @@
      */
     class CookieBotAI {
         constructor(config = {}) {
-            this.version = '1.0.0';
+            this.version = '2.0.0';
             this.config = this.mergeConfig(config);
             this.consent = {
                 necessary: true,
@@ -39,6 +39,8 @@
             this.isInitialized = false;
             this.bannerVisible = false;
             this.affiliateAds = [];
+            this.privacyInsights = [];
+            this.privacyWidgetVisible = false;
             
             // Event system
             this.events = {};
@@ -70,8 +72,14 @@
                 showDeclineButton: true,
                 granularConsent: true,
                 
-                // Affiliate advertising
-                enableAffiliateAds: true,
+                // Privacy Insights Widget (NEW)
+                enablePrivacyInsights: true,
+                privacyWidgetDelay: 3000, // 3 seconds after consent
+                privacyWidgetDuration: 15000, // 15 seconds display
+                revenueShare: 0.6, // 60% to website owner
+                
+                // Legacy affiliate advertising (kept for compatibility)
+                enableAffiliateAds: false, // Disabled by default in favor of Privacy Insights
                 maxAffiliateAds: 2,
                 affiliateRevShare: 0.6,
                 
@@ -89,7 +97,9 @@
                 onConsentGiven: null,
                 onConsentChanged: null,
                 onBannerShown: null,
-                onBannerHidden: null
+                onBannerHidden: null,
+                onPrivacyInsightsShown: null,
+                onPrivacyInsightsClicked: null
             };
 
             return Object.assign({}, defaultConfig, userConfig);
@@ -108,14 +118,22 @@
                 // Detect cookies on the page
                 await this.detectCookies();
                 
-                // Load affiliate ads if enabled
+                // Load affiliate ads if enabled (legacy support)
                 if (this.config.enableAffiliateAds) {
                     await this.loadAffiliateAds();
+                }
+                
+                // Load privacy insights content
+                if (this.config.enablePrivacyInsights) {
+                    await this.loadPrivacyInsights();
                 }
                 
                 // Check if consent is needed
                 if (this.shouldShowBanner()) {
                     await this.showConsentBanner();
+                } else if (this.consent.timestamp && this.config.enablePrivacyInsights) {
+                    // If consent already exists, potentially show privacy insights
+                    this.schedulePrivacyInsights();
                 }
                 
                 // Apply consent preferences
@@ -260,7 +278,7 @@
         }
 
         /**
-         * Load affiliate advertisements
+         * Load affiliate advertisements (legacy support)
          */
         async loadAffiliateAds() {
             if (!this.config.enableAffiliateAds || !this.config.clientId) {
@@ -291,6 +309,98 @@
             } catch (error) {
                 console.warn('Failed to load affiliate ads:', error);
             }
+        }
+
+        /**
+         * Load Privacy Insights content (NEW)
+         */
+        async loadPrivacyInsights() {
+            if (!this.config.enablePrivacyInsights || !this.config.clientId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${this.config.apiEndpoint}/privacy-insights`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        clientId: this.config.clientId,
+                        domain: this.config.domain,
+                        language: this.detectLanguage(),
+                        context: {
+                            url: window.location.href,
+                            title: document.title,
+                            userAgent: navigator.userAgent
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    this.privacyInsights = await response.json();
+                } else {
+                    // Fallback to default privacy insights
+                    this.privacyInsights = this.getDefaultPrivacyInsights();
+                }
+            } catch (error) {
+                console.warn('Failed to load privacy insights, using defaults:', error);
+                this.privacyInsights = this.getDefaultPrivacyInsights();
+            }
+        }
+
+        /**
+         * Get default privacy insights content (NEW)
+         */
+        getDefaultPrivacyInsights() {
+            const language = this.detectLanguage();
+            const langCode = language.split('-')[0];
+            
+            const insights = {
+                en: [
+                    {
+                        id: 'password-security',
+                        title: 'Strengthen Your Password Security',
+                        description: 'Use unique passwords for each account and enable two-factor authentication.',
+                        category: 'security',
+                        sponsored: true
+                    },
+                    {
+                        id: 'privacy-settings',
+                        title: 'Review Your Social Media Privacy',
+                        description: 'Check your privacy settings on social platforms to control who sees your data.',
+                        category: 'privacy',
+                        sponsored: true
+                    },
+                    {
+                        id: 'data-backup',
+                        title: 'Backup Your Important Data',
+                        description: 'Regular backups protect against data loss from cyber attacks or hardware failure.',
+                        category: 'security',
+                        sponsored: true
+                    }
+                ],
+                es: [
+                    {
+                        id: 'password-security',
+                        title: 'Fortalece la Seguridad de tus Contraseñas',
+                        description: 'Usa contraseñas únicas para cada cuenta y activa la autenticación de dos factores.',
+                        category: 'security',
+                        sponsored: true
+                    }
+                ],
+                fr: [
+                    {
+                        id: 'password-security',
+                        title: 'Renforcez la Sécurité de vos Mots de Passe',
+                        description: 'Utilisez des mots de passe uniques et activez l\'authentification à deux facteurs.',
+                        category: 'security',
+                        sponsored: true
+                    }
+                ]
+            };
+
+            return insights[langCode] || insights.en;
         }
 
         /**
@@ -397,8 +507,9 @@
                 `;
             }
 
+            // Legacy affiliate ads support (only if Privacy Insights is disabled)
             let affiliateHTML = '';
-            if (this.affiliateAds.length > 0) {
+            if (this.config.enableAffiliateAds && !this.config.enablePrivacyInsights && this.affiliateAds.length > 0) {
                 affiliateHTML = `
                     <div class="cba-affiliate-section">
                         <div class="cba-affiliate-header">${texts.affiliateHeader}</div>
@@ -497,7 +608,11 @@
                     decline: 'Decline',
                     savePreferences: 'Save Preferences',
                     affiliateHeader: 'Recommended for you',
-                    learnMore: 'Learn More'
+                    learnMore: 'Learn More',
+                    privacyInsightsTitle: 'Privacy Insights',
+                    privacyInsightsSubtitle: 'Tips to protect your online privacy',
+                    sponsored: 'Sponsored',
+                    closeWidget: 'Close'
                 },
                 es: {
                     title: 'Valoramos tu privacidad',
@@ -510,7 +625,11 @@
                     decline: 'Rechazar',
                     savePreferences: 'Guardar Preferencias',
                     affiliateHeader: 'Recomendado para ti',
-                    learnMore: 'Saber Más'
+                    learnMore: 'Saber Más',
+                    privacyInsightsTitle: 'Consejos de Privacidad',
+                    privacyInsightsSubtitle: 'Tips para proteger tu privacidad online',
+                    sponsored: 'Patrocinado',
+                    closeWidget: 'Cerrar'
                 },
                 fr: {
                     title: 'Nous respectons votre vie privée',
@@ -523,7 +642,11 @@
                     decline: 'Refuser',
                     savePreferences: 'Sauvegarder',
                     affiliateHeader: 'Recommandé pour vous',
-                    learnMore: 'En Savoir Plus'
+                    learnMore: 'En Savoir Plus',
+                    privacyInsightsTitle: 'Conseils Confidentialité',
+                    privacyInsightsSubtitle: 'Conseils pour protéger votre vie privée',
+                    sponsored: 'Sponsorisé',
+                    closeWidget: 'Fermer'
                 }
             };
 
@@ -757,7 +880,7 @@
                 saveBtn.addEventListener('click', () => this.savePreferences());
             }
 
-            // Track affiliate ad clicks
+            // Track affiliate ad clicks (legacy support)
             const affiliateAds = banner.querySelectorAll('.cba-affiliate-ad');
             affiliateAds.forEach(ad => {
                 const link = ad.querySelector('.cba-ad-link');
@@ -787,6 +910,11 @@
             this.applyConsent();
             this.hideBanner();
             this.trigger('consentGiven', this.consent);
+            
+            // Schedule Privacy Insights widget (NEW)
+            if (this.config.enablePrivacyInsights) {
+                this.schedulePrivacyInsights();
+            }
         }
 
         /**
@@ -806,6 +934,11 @@
             this.applyConsent();
             this.hideBanner();
             this.trigger('consentGiven', this.consent);
+            
+            // Schedule Privacy Insights widget (NEW)
+            if (this.config.enablePrivacyInsights) {
+                this.schedulePrivacyInsights();
+            }
         }
 
         /**
@@ -827,6 +960,283 @@
             this.applyConsent();
             this.hideBanner();
             this.trigger('consentGiven', this.consent);
+            
+            // Schedule Privacy Insights widget (NEW)
+            if (this.config.enablePrivacyInsights) {
+                this.schedulePrivacyInsights();
+            }
+        }
+
+        /**
+         * Schedule Privacy Insights widget to appear after consent (NEW)
+         */
+        schedulePrivacyInsights() {
+            if (this.privacyWidgetVisible || !this.config.enablePrivacyInsights) {
+                return;
+            }
+
+            setTimeout(() => {
+                this.showPrivacyInsightsWidget();
+            }, this.config.privacyWidgetDelay);
+        }
+
+        /**
+         * Show Privacy Insights widget (NEW)
+         */
+        showPrivacyInsightsWidget() {
+            if (this.privacyWidgetVisible || this.privacyInsights.length === 0) {
+                return;
+            }
+
+            const widget = this.createPrivacyInsightsWidget();
+            document.body.appendChild(widget);
+            
+            // Animate widget appearance
+            setTimeout(() => {
+                widget.classList.add('cba-privacy-widget-visible');
+            }, 100);
+
+            this.privacyWidgetVisible = true;
+            this.trigger('privacyInsightsShown');
+
+            // Auto-hide after duration
+            setTimeout(() => {
+                this.hidePrivacyInsightsWidget();
+            }, this.config.privacyWidgetDuration);
+        }
+
+        /**
+         * Create Privacy Insights widget element (NEW)
+         */
+        createPrivacyInsightsWidget() {
+            const widget = document.createElement('div');
+            widget.id = 'cookiebot-ai-privacy-widget';
+            widget.className = 'cba-privacy-widget';
+            
+            const language = this.detectLanguage();
+            const texts = this.getLocalizedTexts(language);
+            
+            // Select a random insight to display
+            const insight = this.privacyInsights[Math.floor(Math.random() * this.privacyInsights.length)];
+            
+            widget.innerHTML = `
+                <div class="cba-privacy-widget-content">
+                    <div class="cba-privacy-widget-header">
+                        <div class="cba-privacy-widget-title">
+                            <span class="cba-privacy-icon">🔒</span>
+                            ${texts.privacyInsightsTitle}
+                        </div>
+                        <button class="cba-privacy-widget-close" id="cba-privacy-close">×</button>
+                    </div>
+                    <div class="cba-privacy-widget-body">
+                        <h4 class="cba-insight-title">${insight.title}</h4>
+                        <p class="cba-insight-description">${insight.description}</p>
+                        <div class="cba-insight-footer">
+                            <span class="cba-sponsored-label">${texts.sponsored}</span>
+                            <span class="cba-powered-by">Powered by CookieBot.ai</span>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    ${this.generatePrivacyWidgetCSS()}
+                </style>
+            `;
+
+            this.attachPrivacyWidgetEvents(widget, insight);
+            
+            return widget;
+        }
+
+        /**
+         * Generate CSS for Privacy Insights widget (NEW)
+         */
+        generatePrivacyWidgetCSS() {
+            return `
+                #cookiebot-ai-privacy-widget {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 999998;
+                    background: #ffffff;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 320px;
+                    opacity: 0;
+                    transform: translateX(100%);
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: 1px solid rgba(0,0,0,0.08);
+                }
+                
+                #cookiebot-ai-privacy-widget.cba-privacy-widget-visible {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                
+                .cba-privacy-widget-content {
+                    padding: 0;
+                }
+                
+                .cba-privacy-widget-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 16px 20px 12px 20px;
+                    border-bottom: 1px solid rgba(0,0,0,0.06);
+                }
+                
+                .cba-privacy-widget-title {
+                    display: flex;
+                    align-items: center;
+                    font-weight: 600;
+                    font-size: 14px;
+                    color: #1a1a1a;
+                }
+                
+                .cba-privacy-icon {
+                    margin-right: 8px;
+                    font-size: 16px;
+                }
+                
+                .cba-privacy-widget-close {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    color: #666;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 4px;
+                    transition: background-color 0.2s ease;
+                }
+                
+                .cba-privacy-widget-close:hover {
+                    background-color: rgba(0,0,0,0.05);
+                }
+                
+                .cba-privacy-widget-body {
+                    padding: 16px 20px 20px 20px;
+                }
+                
+                .cba-insight-title {
+                    margin: 0 0 8px 0;
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: #1a1a1a;
+                    line-height: 1.3;
+                }
+                
+                .cba-insight-description {
+                    margin: 0 0 16px 0;
+                    font-size: 13px;
+                    color: #666;
+                    line-height: 1.4;
+                }
+                
+                .cba-insight-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 11px;
+                }
+                
+                .cba-sponsored-label {
+                    background: #f0f0f0;
+                    color: #666;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-weight: 500;
+                }
+                
+                .cba-powered-by {
+                    color: #999;
+                    font-weight: 400;
+                }
+                
+                @media (max-width: 600px) {
+                    #cookiebot-ai-privacy-widget {
+                        left: 20px;
+                        right: 20px;
+                        top: auto;
+                        bottom: 20px;
+                        max-width: none;
+                        transform: translateY(100%);
+                    }
+                    
+                    #cookiebot-ai-privacy-widget.cba-privacy-widget-visible {
+                        transform: translateY(0);
+                    }
+                }
+            `;
+        }
+
+        /**
+         * Attach event listeners to Privacy Insights widget (NEW)
+         */
+        attachPrivacyWidgetEvents(widget, insight) {
+            const closeBtn = widget.querySelector('#cba-privacy-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => this.hidePrivacyInsightsWidget());
+            }
+
+            // Track widget interaction
+            widget.addEventListener('click', (e) => {
+                if (e.target !== closeBtn) {
+                    this.trackPrivacyInsightClick(insight.id);
+                }
+            });
+        }
+
+        /**
+         * Hide Privacy Insights widget (NEW)
+         */
+        hidePrivacyInsightsWidget() {
+            const widget = document.getElementById('cookiebot-ai-privacy-widget');
+            if (widget) {
+                widget.classList.remove('cba-privacy-widget-visible');
+                setTimeout(() => {
+                    widget.remove();
+                }, 400);
+            }
+            
+            this.privacyWidgetVisible = false;
+        }
+
+        /**
+         * Track Privacy Insights click for revenue sharing (NEW)
+         */
+        async trackPrivacyInsightClick(insightId) {
+            if (!this.config.clientId) return;
+
+            try {
+                const response = await fetch(`${this.config.apiEndpoint}/privacy-insight-click`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        clientId: this.config.clientId,
+                        insightId: insightId,
+                        domain: this.config.domain,
+                        timestamp: new Date().toISOString(),
+                        revenueShare: this.config.revenueShare
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    this.trigger('privacyInsightsClicked', {
+                        insightId: insightId,
+                        revenue: result.revenue
+                    });
+                }
+            } catch (error) {
+                console.warn('Failed to track privacy insight click:', error);
+            }
         }
 
         /**
@@ -927,7 +1337,7 @@
         }
 
         /**
-         * Track affiliate ad clicks
+         * Track affiliate ad clicks (legacy support)
          */
         async trackAffiliateClick(adId) {
             if (!this.config.clientId) return;
@@ -1026,6 +1436,22 @@
         getCookies() {
             return [...this.cookies];
         }
+
+        /**
+         * Show Privacy Insights widget manually (NEW)
+         */
+        showPrivacyInsights() {
+            if (this.config.enablePrivacyInsights && !this.privacyWidgetVisible) {
+                this.showPrivacyInsightsWidget();
+            }
+        }
+
+        /**
+         * Hide Privacy Insights widget manually (NEW)
+         */
+        hidePrivacyInsights() {
+            this.hidePrivacyInsightsWidget();
+        }
     }
 
     // Auto-initialize if configuration is provided
@@ -1041,6 +1467,8 @@
         if (script.dataset.logoUrl) config.logoUrl = script.dataset.logoUrl;
         if (script.dataset.companyName) config.companyName = script.dataset.companyName;
         if (script.dataset.enableAffiliateAds) config.enableAffiliateAds = script.dataset.enableAffiliateAds === 'true';
+        if (script.dataset.enablePrivacyInsights) config.enablePrivacyInsights = script.dataset.enablePrivacyInsights !== 'false';
+        if (script.dataset.revenueShare) config.revenueShare = parseFloat(script.dataset.revenueShare);
         
         // Initialize CookieBot.ai
         window.CookieBotAI = new CookieBotAI(config);
