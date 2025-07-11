@@ -28,12 +28,12 @@ const ComplianceScanner = () => {
         },
         ...options
       })
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
-      
+
       return await response.json()
     } catch (error) {
       console.error('API call failed:', error)
@@ -55,16 +55,15 @@ const ComplianceScanner = () => {
       
       if (statusData.status === 'completed') {
         setScanResults(statusData)
-        setIsScanning(false)
         return true
       } else if (statusData.status === 'failed') {
         throw new Error(statusData.error || 'Scan failed')
       }
       
       return false
-    } catch (error) {
-      console.error('Status check error:', error)
-      throw error
+    } catch (statusError) {
+      console.error('Status polling error:', statusError)
+      throw statusError
     }
   }
 
@@ -88,9 +87,8 @@ const ComplianceScanner = () => {
     setError(null)
     setScanResults(null)
     setScanId(null)
-    
+
     try {
-      // Start the real scan
       setScanMessage('Starting compliance analysis...')
       const scanResponse = await makeApiCall('/api/compliance/real-scan', {
         method: 'POST',
@@ -110,7 +108,7 @@ const ComplianceScanner = () => {
       while (!completed && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 2000)) // Wait 2 seconds
         attempts++
-        
+
         try {
           completed = await pollScanStatus(newScanId)
         } catch (statusError) {
@@ -125,7 +123,7 @@ const ComplianceScanner = () => {
       if (!completed) {
         throw new Error('Scan timeout - please try again')
       }
-      
+
     } catch (error) {
       console.error('Scan error:', error)
       setError(error.message || 'Scan failed')
@@ -157,29 +155,27 @@ const ComplianceScanner = () => {
     }
   }
 
-  if (isScanning) {
-    return (
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="mb-8">
-              <RefreshCw className="h-16 w-16 mx-auto text-blue-600 animate-spin mb-4" />
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Analyzing Your Website</h2>
-              <p className="text-gray-600 mb-6">{scanMessage}</p>
-              
-              <div className="bg-white rounded-lg p-6 shadow-lg">
-                <Progress value={scanProgress} className="mb-4" />
-                <p className="text-sm text-gray-500">{scanProgress}% Complete</p>
-                {scanId && (
-                  <p className="text-xs text-gray-400 mt-2">Scan ID: {scanId}</p>
-                )}
-              </div>
-            </div>
+  return (
+    <section className="py-20 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="mb-8">
+            <RefreshCw className="h-16 w-16 mx-auto text-blue-600 animate-spin-slow mb-4" />
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Analyzing</h2>
+            <p className="text-gray-600">{scanMessage}</p>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 shadow-lg">
+            <Progress value={scanProgress} className="mb-4" />
+            <p className="text-sm text-gray-500">{scanProgress}% Complete</p>
+            {scanId && (
+              <p className="text-xs text-gray-400 mt-2">Scan ID: {scanId}</p>
+            )}
           </div>
         </div>
-      </section>
-    )
-  }
+      </div>
+    </section>
+  )
 
   if (error) {
     return (
@@ -189,8 +185,8 @@ const ComplianceScanner = () => {
             <div className="bg-white rounded-lg p-8 shadow-lg">
               <XCircle className="h-16 w-16 mx-auto text-red-600 mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Scan Failed</h2>
-              <p className="text-red-600 mb-6">{error}</p>
-              <Button 
+              <p className="text-gray-600 mb-6">{error}</p>
+              <Button
                 onClick={() => {
                   setError(null)
                   setScanResults(null)
@@ -217,25 +213,25 @@ const ComplianceScanner = () => {
             <div className="text-center mb-12">
               <CheckCircle className="h-16 w-16 mx-auto text-green-600 mb-4" />
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Compliance Report Complete</h2>
-              <p className="text-gray-600">Analysis for <span className="font-semibold">{scanResults.domain}</span></p>
+              <p className="text-gray-600">Analysis for <span className="font-semibold">{scanResults.results?.domain}</span></p>
             </div>
 
             {/* Overall Score */}
             <Card className="mb-8">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Overall Compliance Score</CardTitle>
-                <div className={`text-6xl font-bold ${getScoreColor(scanResults.compliance_score)}`}>
-                  {scanResults.compliance_score}/100
+                <div className={`text-6xl font-bold ${getScoreColor(scanResults.results?.compliance_score)}`}>
+                  {scanResults.results?.compliance_score}/100
                 </div>
-                <Badge className={getScoreBadgeColor(scanResults.compliance_score)}>
-                  {scanResults.compliance_score >= 80 ? 'Compliant' : 
-                   scanResults.compliance_score >= 60 ? 'Partially Compliant' : 'Non-Compliant'}
+                <Badge className={getScoreBadgeColor(scanResults.results?.compliance_score)}>
+                  {scanResults.results?.compliance_score >= 80 ? 'Compliant' : 
+                   scanResults.results?.compliance_score >= 60 ? 'Partially Compliant' : 'Non-Compliant'}
                 </Badge>
               </CardHeader>
             </Card>
 
             {/* Framework Breakdown */}
-            {scanResults.compliance_breakdown && (
+            {scanResults.results?.compliance_breakdown && (
               <Card className="mb-8">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -245,7 +241,7 @@ const ComplianceScanner = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4">
-                    {Object.entries(scanResults.compliance_breakdown).map(([framework, data]) => (
+                    {Object.entries(scanResults.results.compliance_breakdown).map(([framework, data]) => (
                       <div key={framework} className="text-center p-4 border rounded-lg">
                         <h3 className="font-semibold text-lg mb-2">{framework.toUpperCase()}</h3>
                         <div className={`text-3xl font-bold ${getScoreColor(data.score)}`}>
@@ -269,9 +265,9 @@ const ComplianceScanner = () => {
                   <Zap className="h-5 w-5" />
                   Revenue Potential
                 </CardTitle>
-                {scanResults.revenue_note && (
+                {scanResults.results?.revenue_note && (
                   <CardDescription className="text-sm text-gray-500 italic">
-                    {scanResults.revenue_note}
+                    {scanResults.results.revenue_note}
                   </CardDescription>
                 )}
               </CardHeader>
@@ -280,13 +276,13 @@ const ComplianceScanner = () => {
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <h3 className="font-semibold text-lg mb-2">Monthly Potential</h3>
                     <div className="text-3xl font-bold text-green-600">
-                      ${scanResults.potential_earnings}
+                      ${scanResults.results?.monthly_revenue}
                     </div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <h3 className="font-semibold text-lg mb-2">Annual Potential</h3>
                     <div className="text-3xl font-bold text-blue-600">
-                      ${scanResults.annual_earnings}
+                      ${scanResults.results?.annual_revenue}
                     </div>
                   </div>
                 </div>
@@ -295,7 +291,7 @@ const ComplianceScanner = () => {
 
             {/* Action Buttons */}
             <div className="text-center">
-              <Button 
+              <Button
                 onClick={() => {
                   setScanResults(null)
                   setUrl('')
@@ -358,8 +354,8 @@ const ComplianceScanner = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full"
                 />
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={isScanning || !isLoggedIn()}
                 >
@@ -371,47 +367,48 @@ const ComplianceScanner = () => {
                     Please log in to use the compliance scanner
                   </p>
                 )}
-                <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4" />
-                    Free scan
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4" />
-                    No credit card required
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4" />
-                    Real results
-                  </span>
-                </div>
               </form>
             </CardContent>
           </Card>
 
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <Shield className="h-12 w-12 mx-auto text-blue-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">GDPR Compliance</h3>
-              <p className="text-gray-600">
-                Comprehensive analysis of your website's compliance with GDPR, CCPA, and LGPD regulations.
-              </p>
-            </div>
-            <div className="text-center">
-              <Eye className="h-12 w-12 mx-auto text-green-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Cookie Analysis</h3>
-              <p className="text-gray-600">
-                Detailed breakdown of all cookies and tracking scripts found on your website.
-              </p>
-            </div>
-            <div className="text-center">
-              <Zap className="h-12 w-12 mx-auto text-purple-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Revenue Potential</h3>
-              <p className="text-gray-600">
-                See how much you could earn by turning your cookie consent into a revenue stream.
-              </p>
-            </div>
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+            <span className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4" />
+              Free scan
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4" />
+              No credit card required
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4" />
+              Real results
+            </span>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center">
+            <Shield className="h-12 w-12 mx-auto text-blue-600 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">GDPR Compliance</h3>
+            <p className="text-gray-600">
+              Comprehensive analysis of your website's compliance with GDPR, CCPA, and LGPD regulations.
+            </p>
+          </div>
+          <div className="text-center">
+            <Eye className="h-12 w-12 mx-auto text-green-600 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Cookie Analysis</h3>
+            <p className="text-gray-600">
+              Detailed breakdown of all cookies and tracking scripts found on your website.
+            </p>
+          </div>
+          <div className="text-center">
+            <Zap className="h-12 w-12 mx-auto text-purple-600 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Revenue Potential</h3>
+            <p className="text-gray-600">
+              See how much you could earn by turning your cookie consent into a revenue stream.
+            </p>
           </div>
         </div>
       </div>
@@ -420,5 +417,4 @@ const ComplianceScanner = () => {
 }
 
 export default ComplianceScanner
-
 
