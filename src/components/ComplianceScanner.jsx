@@ -155,27 +155,30 @@ const ComplianceScanner = () => {
     }
   }
 
-  return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="mb-8">
-            <RefreshCw className="h-16 w-16 mx-auto text-blue-600 animate-spin-slow mb-4" />
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Analyzing</h2>
-            <p className="text-gray-600">{scanMessage}</p>
-          </div>
+  // FIXED: Added proper conditional rendering for scanning state
+  if (isScanning) {
+    return (
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="mb-8">
+              <RefreshCw className="h-16 w-16 mx-auto text-blue-600 animate-spin-slow mb-4" />
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Analyzing</h2>
+              <p className="text-gray-600">{scanMessage}</p>
+            </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-lg">
-            <Progress value={scanProgress} className="mb-4" />
-            <p className="text-sm text-gray-500">{scanProgress}% Complete</p>
-            {scanId && (
-              <p className="text-xs text-gray-400 mt-2">Scan ID: {scanId}</p>
-            )}
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <Progress value={scanProgress} className="mb-4" />
+              <p className="text-sm text-gray-500">{scanProgress}% Complete</p>
+              {scanId && (
+                <p className="text-xs text-gray-400 mt-2">Scan ID: {scanId}</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </section>
-  )
+      </section>
+    )
+  }
 
   if (error) {
     return (
@@ -314,6 +317,7 @@ const ComplianceScanner = () => {
     )
   }
 
+  // DEFAULT: Show the scan form
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
