@@ -241,13 +241,13 @@ const ComplianceScanner = () => {
                   <div className="text-center p-6 bg-green-50 rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Monthly Potential</h3>
                     <p className="text-3xl font-bold text-green-600">
-                      ${scanResults?.monthly_revenue || 0}
+                      ${scanResults?.potential_earnings || 0}
                     </p>
                   </div>
                   <div className="text-center p-6 bg-blue-50 rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Annual Potential</h3>
                     <p className="text-3xl font-bold text-blue-600">
-                      ${scanResults?.annual_revenue || 0}
+                      ${scanResults?.annual_earnings || 0}
                     </p>
                   </div>
                 </div>
@@ -266,8 +266,8 @@ const ComplianceScanner = () => {
                 <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-2">
-                      <span className={getScoreColor(scanResults?.gdpr_score || 0)}>
-                        {scanResults?.gdpr_score || 0}
+                      <span className={getScoreColor(scanResults?.compliance_breakdown?.gdpr?.score || 0)}>
+                        {scanResults?.compliance_breakdown?.gdpr?.score || 0}
                       </span>
                       <span className="text-lg text-gray-400">/100</span>
                     </div>
@@ -288,8 +288,8 @@ const ComplianceScanner = () => {
                 <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-2">
-                      <span className={getScoreColor(scanResults?.cookie_score || 0)}>
-                        {scanResults?.cookie_score || 0}
+                      <span className={getScoreColor(scanResults?.compliance_breakdown?.ccpa?.score || 0)}>
+                        {scanResults?.compliance_breakdown?.ccpa?.score || 0}
                       </span>
                       <span className="text-lg text-gray-400">/100</span>
                     </div>
@@ -310,8 +310,8 @@ const ComplianceScanner = () => {
                 <CardContent>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-2">
-                      <span className={getScoreColor(scanResults?.revenue_score || 0)}>
-                        {scanResults?.revenue_score || 0}
+                      <span className={getScoreColor(scanResults?.compliance_breakdown?.lgpd?.score || 0)}>
+                        {scanResults?.compliance_breakdown?.lgpd?.score || 0}
                       </span>
                       <span className="text-lg text-gray-400">/100</span>
                     </div>
@@ -411,7 +411,7 @@ const ComplianceScanner = () => {
                   Website URL
                 </label>
                 <Input
-                  type="url"
+                  type="text"
                   id="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
