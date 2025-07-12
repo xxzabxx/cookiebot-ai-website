@@ -1,7 +1,16 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Scale, AlertTriangle, DollarSign, Shield, FileText, Gavel, Globe } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
+import { 
+  ArrowLeft, 
+  Scale, 
+  AlertTriangle, 
+  DollarSign, 
+  Shield, 
+  FileText, 
+  Gavel, 
+  Globe 
+} from 'lucide-react'
 
 const TermsOfService = () => {
   return (
@@ -338,109 +347,6 @@ const TermsOfService = () => {
                 </div>
               </section>
 
-              <section id="indemnification" className="mb-12">
-                <h2 className="text-2xl font-bold text-foreground mb-6">9. Indemnification</h2>
-                
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-red-900 mb-3">Customer Indemnification Obligation</h3>
-                  <p className="text-red-800 font-semibold mb-3">
-                    YOU AGREE TO INDEMNIFY, DEFEND, AND HOLD HARMLESS COOKIEBOT.AI, ITS OFFICERS, 
-                    DIRECTORS, EMPLOYEES, AND AGENTS FROM ANY CLAIMS, DAMAGES, LOSSES, OR EXPENSES ARISING FROM:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-red-800">
-                    <ul className="space-y-2">
-                      <li>• Your use of our services</li>
-                      <li>• Your violation of these Terms</li>
-                      <li>• Your violation of applicable laws</li>
-                    </ul>
-                    <ul className="space-y-2">
-                      <li>• Your privacy practices or data handling</li>
-                      <li>• Content you provide or display</li>
-                      <li>• Third-party claims related to your website</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-muted rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-3">Scope of Indemnification</h3>
-                  <p className="text-muted-foreground">
-                    This indemnification includes reasonable attorney fees, court costs, and other expenses 
-                    incurred in defending against claims. You will cooperate fully in the defense of any claim.
-                  </p>
-                </div>
-              </section>
-
-              <section id="modifications" className="mb-12">
-                <h2 className="text-2xl font-bold text-foreground mb-6">11. Modifications to Terms</h2>
-                
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-3">Right to Modify</h3>
-                  <p className="text-blue-800 font-semibold mb-3">
-                    WE RESERVE THE RIGHT TO MODIFY THESE TERMS AT ANY TIME AT OUR SOLE DISCRETION. 
-                    Changes may include:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-800">
-                    <ul className="space-y-2">
-                      <li>• Service features and functionality</li>
-                      <li>• Pricing and billing terms</li>
-                    </ul>
-                    <ul className="space-y-2">
-                      <li>• Legal requirements and compliance</li>
-                      <li>• Business model adjustments</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-muted rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-3">Notice of Changes</h3>
-                  <p className="text-muted-foreground mb-3">We will provide notice of material changes through:</p>
-                  <ul className="space-y-2 text-muted-foreground">
-                    <li>• Email notification to registered users</li>
-                    <li>• Prominent notice on our website</li>
-                    <li>• In-app notifications</li>
-                    <li>• Updated "Last Modified" date</li>
-                  </ul>
-                </div>
-
-                <div className="bg-muted rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-3">Acceptance of Changes</h3>
-                  <p className="text-muted-foreground">
-                    Continued use of our services after changes constitutes acceptance of the modified Terms. 
-                    If you disagree with changes, you must discontinue use of our services.
-                  </p>
-                </div>
-              </section>
-
-              <section id="dispute-resolution" className="mb-12">
-                <h2 className="text-2xl font-bold text-foreground mb-6">12. Dispute Resolution</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Governing Law</h3>
-                    <p className="text-muted-foreground">
-                      These Terms are governed by the laws of [Jurisdiction to be determined], 
-                      without regard to conflict of law principles.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Jurisdiction</h3>
-                    <p className="text-muted-foreground">
-                      Any disputes arising from these Terms shall be resolved exclusively in the 
-                      courts of [Jurisdiction to be determined].
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-red-900 mb-3">Class Action Waiver</h3>
-                  <p className="text-red-800 font-semibold">
-                    YOU WAIVE ANY RIGHT TO PARTICIPATE IN CLASS ACTION LAWSUITS OR CLASS-WIDE 
-                    ARBITRATION AGAINST COOKIEBOT.AI. All disputes must be resolved individually.
-                  </p>
-                </div>
-              </section>
-
               <section id="contact" className="mb-12">
                 <h2 className="text-2xl font-bold text-foreground mb-6">14. Contact Information</h2>
                 
@@ -504,8 +410,8 @@ const TermsOfService = () => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default TermsOfService;
+export default TermsOfService
 
