@@ -1,7 +1,16 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Shield, Eye, Database, Globe, Lock, Users, FileText } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
+import { 
+  ArrowLeft, 
+  Shield, 
+  Eye, 
+  Database, 
+  Globe, 
+  Lock, 
+  Users, 
+  FileText 
+} from 'lucide-react'
 
 const PrivacyPolicy = () => {
   return (
@@ -271,116 +280,6 @@ const PrivacyPolicy = () => {
                 </div>
               </section>
 
-              <section id="data-retention" className="mb-12">
-                <h2 className="text-2xl font-bold text-foreground mb-6">5. Data Retention</h2>
-                
-                <div className="bg-muted rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-3">Retention Periods</h3>
-                  <ul className="space-y-2">
-                    <li><strong>Account Data:</strong> Retained while your account is active plus 3 years</li>
-                    <li><strong>Usage Data:</strong> Retained for 2 years for analytics purposes</li>
-                    <li><strong>Support Communications:</strong> Retained for 5 years</li>
-                    <li><strong>Financial Records:</strong> Retained for 7 years for tax/legal compliance</li>
-                    <li><strong>Consent Records:</strong> Retained for 3 years after consent withdrawal</li>
-                  </ul>
-                </div>
-
-                <p className="text-muted-foreground">
-                  We retain personal information only as long as necessary to fulfill the purposes outlined in this policy, 
-                  comply with legal obligations, resolve disputes, and enforce our agreements.
-                </p>
-              </section>
-
-              <section id="data-security" className="mb-12">
-                <h2 className="text-2xl font-bold text-foreground mb-6">6. Data Security</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Technical Safeguards</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>• SSL/TLS encryption in transit</li>
-                      <li>• AES-256 encryption at rest</li>
-                      <li>• Regular security audits</li>
-                      <li>• Secure cloud infrastructure</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Administrative Safeguards</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>• Access controls and authentication</li>
-                      <li>• Employee training programs</li>
-                      <li>• Incident response procedures</li>
-                      <li>• Regular backup and recovery testing</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <p className="text-yellow-800">
-                    <strong>Security Disclaimer:</strong> While we implement industry-standard security measures, 
-                    no method of transmission over the internet or electronic storage is 100% secure. 
-                    We cannot guarantee absolute security of your information.
-                  </p>
-                </div>
-              </section>
-
-              <section id="your-rights" className="mb-12">
-                <h2 className="text-2xl font-bold text-foreground mb-6">7. Your Rights</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Access & Portability</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>• Request access to your personal data</li>
-                      <li>• Receive a copy of your data</li>
-                      <li>• Export data in portable format</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Correction & Deletion</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>• Correct inaccurate information</li>
-                      <li>• Request deletion of your data</li>
-                      <li>• Withdraw consent where applicable</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Processing Restrictions</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>• Object to certain processing</li>
-                      <li>• Restrict processing activities</li>
-                      <li>• Opt-out of marketing communications</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-3">Complaints</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>• File complaints with supervisory authorities</li>
-                      <li>• Contact our Data Protection Officer</li>
-                      <li>• Seek legal remedies</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Exercise Your Rights</h3>
-                  <p className="text-blue-800 mb-3">
-                    To exercise any of these rights, please contact us at <strong>privacy@cookiebot.ai</strong> 
-                    or use the contact information provided at the end of this policy.
-                  </p>
-                  <p className="text-blue-800 text-sm">
-                    We will respond to your request within 30 days (or as required by applicable law) 
-                    and may require verification of your identity before processing your request.
-                  </p>
-                </div>
-              </section>
-
-              {/* Additional sections would continue here... */}
-              
               <section id="contact-us" className="mb-12">
                 <h2 className="text-2xl font-bold text-foreground mb-6">15. Contact Information</h2>
                 
@@ -431,8 +330,8 @@ const PrivacyPolicy = () => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default PrivacyPolicy;
+export default PrivacyPolicy
 
