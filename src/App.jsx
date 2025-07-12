@@ -73,9 +73,9 @@ import featuresIcon4 from './assets/features-icon-4.png'
 
 // SEO Component for different pages
 const SEOHead = ({ 
-  title = "CookieBot.ai - Advanced Cookie Consent Management with Revenue Generation",
-  description = "The only GDPR-compliant cookie consent platform with built-in monetization. Advanced customization, affiliate revenue system, and professional dashboard. Get 60% revenue share.",
-  keywords = "cookie consent, GDPR compliance, cookie banner, privacy compliance, affiliate revenue, cookie management, CCPA, data privacy, consent management platform",
+  title = "Cookie Consent Management Platform | CookieBot.ai - AI-Powered GDPR Compliance",
+  description = "The first and only AI-powered cookie consent platform with built-in monetization. Advanced GDPR compliance, intelligent optimization, and Privacy Insights revenue system. Get 60% revenue share.",
+  keywords = "AI cookie consent, GDPR compliance, cookie management platform, consent management system, privacy compliance software, automated consent management, AI-powered privacy, cookie banner, CCPA compliance, LGPD compliance, privacy insights, revenue generating consent, intelligent consent management, machine learning privacy, automated compliance",
   canonical = "https://cookiebot.ai",
   ogImage = "https://cookiebot.ai/og-image.png"
 }) => (
@@ -99,6 +99,7 @@ const SEOHead = ({
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:site_name" content="CookieBot.ai" />
+    <meta property="og:locale" content="en_US" />
     
     {/* Twitter */}
     <meta property="twitter:card" content="summary_large_image" />
@@ -106,10 +107,12 @@ const SEOHead = ({
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={ogImage} />
+    <meta property="twitter:creator" content="@CookieBotAI" />
     
     {/* Additional SEO */}
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#667eea" />
+    <meta name="msapplication-TileColor" content="#667eea" />
     
     {/* Structured Data */}
     <script type="application/ld+json">
@@ -121,6 +124,14 @@ const SEOHead = ({
         "url": "https://cookiebot.ai",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
+        "featureList": [
+          "AI-powered consent optimization",
+          "Privacy Insights revenue system",
+          "GDPR/CCPA/LGPD compliance",
+          "Advanced customization",
+          "Real-time analytics",
+          "Automated compliance detection"
+        ],
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -135,7 +146,11 @@ const SEOHead = ({
         "publisher": {
           "@type": "Organization",
           "name": "CookieBot.ai",
-          "url": "https://cookiebot.ai"
+          "url": "https://cookiebot.ai",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://cookiebot.ai/logo.png"
+          }
         }
       })}
     </script>
@@ -335,7 +350,7 @@ const HeroSection = ({ onWatchDemo }) => {
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <div className="max-w-4xl mx-auto">
             <Badge className="mb-6 bg-white/20 text-white border-white/30">
-              🚀 Enhanced v2.0 - Advanced Customization + Revenue System
+              🤖 Your AI-Powered Cookie Consent Robot
             </Badge>
             
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -346,8 +361,8 @@ const HeroSection = ({ onWatchDemo }) => {
             </h1>
             
             <p className="text-xl md:text-2xl mb-8 text-gray-200 leading-relaxed">
-              The only cookie consent platform with built-in monetization and advanced customization. 
-              GDPR compliant, fully customizable themes, and revenue-generating affiliate system.
+              The first and only AI-powered cookie consent platform with built-in monetization. 
+              GDPR compliant, intelligent optimization, and Privacy Insights revenue system.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -414,9 +429,9 @@ const FeaturesSection = () => {
     },
     {
       icon: featuresIcon3,
-      title: "Affiliate Revenue System",
-      description: "Unique monetization through contextual advertisements. Earn 60% revenue share from every consent interaction with real-time tracking.",
-      highlights: ["60% Revenue Share", "Contextual Ads", "Real-time Tracking", "Monthly Payouts"]
+      title: "Privacy Insights Revenue System",
+      description: "Unique monetization through educational privacy content. Earn 60% revenue share from every consent interaction with real-time tracking.",
+      highlights: ["60% Revenue Share", "Educational Content", "Real-time Tracking", "Monthly Payouts"]
     },
     {
       icon: featuresIcon4,
@@ -430,7 +445,7 @@ const FeaturesSection = () => {
     <section id="features" className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <Badge className="mb-4">Enhanced Features v2.0</Badge>
+          <Badge className="mb-4">AI-Powered Features</Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Everything You Need to
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -438,7 +453,7 @@ const FeaturesSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            CookieBot.ai Enhanced v2.0 goes beyond traditional consent management with innovative features 
+            CookieBot.ai goes beyond traditional consent management with AI-powered features 
             that help you comply, customize, and monetize like never before.
           </p>
         </div>
@@ -539,7 +554,7 @@ const CustomizationSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            CookieBot.ai Enhanced offers the most comprehensive customization options in the industry. 
+            CookieBot.ai offers the most comprehensive customization options in the industry. 
             Match your brand perfectly with our advanced theming and layout system.
           </p>
         </div>
@@ -599,7 +614,7 @@ const DashboardSection = () => {
     {
       icon: <DollarSign className="h-6 w-6" />,
       title: "Revenue Tracking",
-      description: "Track affiliate revenue, performance metrics, and automated payout processing."
+      description: "Track Privacy Insights revenue, performance metrics, and automated payout processing."
     },
     {
       icon: <Settings className="h-6 w-6" />,
@@ -628,7 +643,7 @@ const DashboardSection = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <Badge className="mb-4">Enhanced Dashboard v2.0</Badge>
+            <Badge className="mb-4">AI-Powered Dashboard</Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Powerful Analytics
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -636,7 +651,7 @@ const DashboardSection = () => {
               </span>
             </h2>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Monitor your consent performance, track revenue, and optimize your setup 
+              Monitor your consent performance, track Privacy Insights revenue, and optimize your setup 
               with our comprehensive 6-tab analytics dashboard featuring live preview and advanced customization controls.
             </p>
             
@@ -673,7 +688,7 @@ const DashboardSection = () => {
             <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
               <img 
                 src={dashboardPreviewImg} 
-                alt="CookieBot.ai Enhanced Dashboard v2.0 with 6-tab interface" 
+                alt="CookieBot.ai AI-Powered Dashboard with 6-tab interface" 
                 className="w-full h-auto"
               />
             </div>
@@ -712,7 +727,7 @@ const PricingSection = () => {
         "Up to 50,000 page views/month",
         "Advanced customization",
         "All theme options + custom colors",
-        "Affiliate revenue system (60% share)",
+        "Privacy Insights revenue system (60% share)",
         "Live preview dashboard",
         "Priority support",
         "Advanced analytics",
@@ -755,8 +770,8 @@ const PricingSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Start free and scale as you grow. All plans include our enhanced customization features 
-            and GDPR compliance. Professional plans include revenue sharing.
+            Start free and scale as you grow. All plans include our AI-powered customization features 
+            and GDPR compliance. Professional plans include Privacy Insights revenue sharing.
           </p>
         </div>
 
@@ -835,21 +850,21 @@ const TestimonialsSection = () => {
       name: "Sarah Johnson",
       role: "Marketing Director",
       company: "TechCorp",
-      content: "CookieBot.ai Enhanced has transformed our compliance strategy. The revenue sharing feature actually makes our cookie consent profitable!",
+      content: "CookieBot.ai has transformed our compliance strategy. The Privacy Insights revenue feature actually makes our cookie consent profitable!",
       rating: 5
     },
     {
       name: "Michael Chen",
       role: "Web Developer",
       company: "Digital Agency",
-      content: "The customization options are incredible. We can match any client's brand perfectly with the advanced theming system.",
+      content: "The AI-powered customization options are incredible. We can match any client's brand perfectly with the advanced theming system.",
       rating: 5
     },
     {
       name: "Emma Rodriguez",
       role: "Compliance Officer",
       company: "E-commerce Plus",
-      content: "Finally, a solution that handles GDPR, CCPA, and LGPD automatically. The dashboard makes compliance monitoring effortless.",
+      content: "Finally, a solution that handles GDPR, CCPA, and LGPD automatically. The AI optimization makes compliance monitoring effortless.",
       rating: 5
     }
   ]
@@ -866,8 +881,8 @@ const TestimonialsSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Join thousands of businesses who trust CookieBot.ai Enhanced for their 
-            cookie consent management and revenue generation.
+            Join thousands of businesses who trust CookieBot.ai for their 
+            AI-powered cookie consent management and Privacy Insights revenue generation.
           </p>
         </div>
 
@@ -917,8 +932,8 @@ const CTASection = () => {
               Ready to Get Started?
             </h2>
             <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Join thousands of websites already earning revenue with CookieBot.ai Enhanced. 
-              Start your free trial today and see the difference advanced customization makes.
+              Join thousands of websites already earning revenue with CookieBot.ai. 
+              Start your free trial today and see the difference AI-powered customization makes.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -1050,8 +1065,8 @@ const ContactSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Have questions about CookieBot.ai Enhanced? Our team is here to help you 
-            get started with advanced cookie consent management and revenue generation.
+            Have questions about CookieBot.ai? Our team is here to help you 
+            get started with AI-powered cookie consent management and Privacy Insights revenue generation.
           </p>
         </div>
 
@@ -1244,7 +1259,7 @@ const Footer = () => {
               <span className="text-xl font-bold">CookieBot.ai</span>
             </div>
             <p className="text-gray-400 mb-4">
-              The most advanced cookie consent platform with built-in revenue generation 
+              The most advanced AI-powered cookie consent platform with built-in Privacy Insights revenue generation 
               and comprehensive customization options.
             </p>
             <div className="flex space-x-4">
@@ -1295,7 +1310,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 CookieBot.ai Enhanced. All rights reserved.</p>
+          <p>&copy; 2025 CookieBot.ai. All rights reserved.</p>
         </div>
       </div>
     </footer>
