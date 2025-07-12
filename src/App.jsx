@@ -55,6 +55,8 @@ import EnhancedDashboard from './components/EnhancedDashboard.jsx'
 import ComplianceScanner from './components/ComplianceScanner.jsx'
 import AuthProvider, { useAuth } from './components/AuthContext.jsx'
 import AuthModal from './components/AuthModal.jsx'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 import './App.css'
 
 // Import assets
@@ -1166,8 +1168,8 @@ const Footer = () => {
             <ul className="space-y-2 text-gray-400">
               <li><a href="#" className="hover:text-white transition-colors">About</a></li>
               <li><a href="/#contact" className="hover:text-white transition-colors">Contact</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link></li>
               <li><a href="#" className="hover:text-white transition-colors">GDPR</a></li>
             </ul>
           </div>
@@ -1206,6 +1208,8 @@ const AppContent = () => {
         <Route path="/docs" element={<Documentation />} />
         <Route path="/dashboard" element={<EnhancedDashboard />} />
         <Route path="/scan" element={<ComplianceScanner />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
       </Routes>
       
       <Footer />
@@ -1225,3 +1229,4 @@ const App = () => {
 }
 
 export default App
+
