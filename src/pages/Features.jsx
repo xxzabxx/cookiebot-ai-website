@@ -49,327 +49,286 @@ const Features = () => {
     {
       icon: <Shield className="h-8 w-8" />,
       title: "Multi-Jurisdiction Compliance",
-      description: "Automatically complies with GDPR, CCPA, LGPD, and emerging privacy laws with intelligent geo-detection and adaptive consent flows.",
-      features: ["GDPR compliance", "CCPA support", "LGPD coverage", "Auto geo-detection"],
-      category: "Legal Compliance"
+      description: "Automatic compliance with GDPR, CCPA, LGPD, and emerging privacy laws. Our AI detects user location and applies appropriate regulations.",
+      features: ["GDPR compliance", "CCPA support", "LGPD coverage", "Auto-jurisdiction detection"],
+      category: "Compliance"
     },
     {
       icon: <Palette className="h-8 w-8" />,
       title: "Advanced Customization Engine",
-      description: "Industry-leading customization with unlimited themes, layouts, and branding options. Match any brand perfectly with our visual editor.",
-      features: ["Unlimited themes", "Custom CSS support", "Brand matching", "Live preview editor"],
+      description: "Unlimited theme options, custom branding, and granular control over every aspect of your consent banner's appearance and behavior.",
+      features: ["Unlimited themes", "Custom branding", "Logo integration", "Color customization"],
       category: "Customization"
     },
     {
       icon: <BarChart3 className="h-8 w-8" />,
       title: "Professional Analytics Dashboard",
-      description: "Comprehensive 6-tab dashboard with real-time analytics, revenue tracking, compliance monitoring, and performance optimization tools.",
-      features: ["Real-time analytics", "Revenue tracking", "Compliance reports", "Performance insights"],
+      description: "Comprehensive 6-tab dashboard with real-time analytics, revenue tracking, configuration management, and live preview capabilities.",
+      features: ["Real-time analytics", "Revenue tracking", "Live preview", "Configuration management"],
       category: "Analytics"
     },
     {
       icon: <Zap className="h-8 w-8" />,
       title: "Lightning-Fast Performance",
-      description: "Optimized for speed with <50KB bundle size, lazy loading, CDN delivery, and minimal impact on your website's performance.",
-      features: ["<50KB bundle size", "CDN delivery", "Lazy loading", "99.9% uptime"],
+      description: "Optimized for speed with <50KB bundle size, 99.9% uptime, and edge-cached delivery for instant loading worldwide.",
+      features: ["<50KB bundle size", "99.9% uptime", "Edge caching", "Global CDN"],
       category: "Performance"
     }
   ]
 
   const frontendFeatures = [
     {
-      icon: <Layers className="h-8 w-8" />,
-      title: "Layout & Positioning",
-      description: "Complete control over banner appearance and positioning",
-      items: ["Dialog & Bar layouts", "Top/Bottom/Center positioning", "Overlay effects", "Slide-in animations", "Responsive design"]
+      icon: <Layers className="h-6 w-6" />,
+      title: "Layout Control",
+      description: "Dialog and Bar layouts with flexible positioning",
+      features: ["Dialog layout", "Bar layout", "Position control", "Overlay effects"]
     },
     {
-      icon: <Sparkles className="h-8 w-8" />,
+      icon: <Palette className="h-6 w-6" />,
       title: "Theme System",
-      description: "Professional themes with unlimited customization",
-      items: ["Light, Dark, Custom themes", "Unlimited color options", "Custom fonts & typography", "Logo integration", "CSS override support"]
+      description: "Light, Dark, and Custom themes with color control",
+      features: ["3 theme options", "Custom colors", "Brand integration", "Logo support"]
     },
     {
-      icon: <Target className="h-8 w-8" />,
+      icon: <Settings className="h-6 w-6" />,
       title: "Button Styles",
-      description: "Multiple button variations for optimal user experience",
-      items: ["Default (CTA) style", "Solid (Equal) buttons", "Outline (Minimal) design", "Custom color schemes", "Hover effects"]
+      description: "Multiple button variations for optimal UX",
+      features: ["Default CTA", "Solid equal", "Outline minimal", "Custom styling"]
     },
     {
-      icon: <Globe className="h-8 w-8" />,
-      title: "Banner Types",
-      description: "Five different banner types for various compliance needs",
-      items: ["Multilevel consent", "Accept-only banners", "Accept/Decline options", "Inline multilevel", "CCPA-specific banners"]
-    },
-    {
-      icon: <Smartphone className="h-8 w-8" />,
-      title: "Mobile Optimization",
-      description: "Perfect mobile experience with touch-friendly design",
-      items: ["Touch-optimized buttons", "Mobile-responsive layouts", "Swipe gestures", "Adaptive text sizing", "iOS/Android compatibility"]
-    },
-    {
-      icon: <Code className="h-8 w-8" />,
-      title: "Developer Tools",
-      description: "Advanced tools for developers and agencies",
-      items: ["JavaScript API", "Event callbacks", "Custom integrations", "Webhook support", "White-label options"]
+      icon: <Globe className="h-6 w-6" />,
+      title: "Multi-Language",
+      description: "Support for 40+ languages with auto-detection",
+      features: ["40+ languages", "Auto-detection", "Custom translations", "RTL support"]
     }
   ]
 
   const backendFeatures = [
     {
-      icon: <BarChart3 className="h-8 w-8" />,
-      title: "Real-Time Analytics",
-      description: "Comprehensive analytics and reporting dashboard",
-      items: ["Consent rate tracking", "Visitor analytics", "Geographic insights", "Device & browser stats", "Conversion funnels"]
+      icon: <BarChart3 className="h-6 w-6" />,
+      title: "Analytics Dashboard",
+      description: "Real-time consent tracking and performance metrics",
+      features: ["Real-time data", "Conversion tracking", "Performance metrics", "Custom reports"]
     },
     {
-      icon: <DollarSign className="h-8 w-8" />,
+      icon: <DollarSign className="h-6 w-6" />,
       title: "Revenue Management",
-      description: "Complete revenue tracking and payout system",
-      items: ["60% revenue share", "Real-time earnings", "Monthly payouts", "Performance metrics", "Tax reporting"]
+      description: "Track earnings and manage automated payouts",
+      features: ["Revenue tracking", "Payout management", "Performance analytics", "Tax reporting"]
     },
     {
-      icon: <Settings className="h-8 w-8" />,
-      title: "Configuration Management",
-      description: "Centralized control for all your websites",
-      items: ["Multi-website management", "Bulk configuration", "Template system", "Version control", "Rollback capabilities"]
-    },
-    {
-      icon: <Shield className="h-8 w-8" />,
-      title: "Compliance Monitoring",
-      description: "Automated compliance tracking and reporting",
-      items: ["GDPR compliance reports", "Consent record keeping", "Legal documentation", "Audit trails", "Violation alerts"]
-    },
-    {
-      icon: <Users className="h-8 w-8" />,
+      icon: <Users className="h-6 w-6" />,
       title: "Team Collaboration",
       description: "Multi-user access with role-based permissions",
-      items: ["Team member invites", "Role-based access", "Activity logging", "Approval workflows", "Client management"]
+      features: ["Team management", "Role permissions", "Activity logs", "Shared workspaces"]
     },
     {
-      icon: <Award className="h-8 w-8" />,
-      title: "Enterprise Features",
-      description: "Advanced features for large organizations",
-      items: ["White-label solutions", "Custom integrations", "Dedicated support", "SLA guarantees", "Priority processing"]
-    }
-  ]
-
-  const aiDifferentiators = [
-    {
-      icon: <Brain className="h-8 w-8" />,
-      title: "Intelligent Consent Optimization",
-      description: "AI analyzes user behavior patterns to optimize consent rates and user experience automatically."
-    },
-    {
-      icon: <TrendingUp className="h-8 w-8" />,
-      title: "Predictive Compliance",
-      description: "Machine learning predicts regulatory changes and automatically updates compliance requirements."
-    },
-    {
-      icon: <Sparkles className="h-8 w-8" />,
-      title: "Smart Content Generation",
-      description: "AI generates personalized privacy insights content based on user demographics and interests."
-    },
-    {
-      icon: <Target className="h-8 w-8" />,
-      title: "Automated A/B Testing",
-      description: "Continuous optimization through AI-powered testing of layouts, colors, and messaging."
+      icon: <Code className="h-6 w-6" />,
+      title: "Developer Tools",
+      description: "APIs, webhooks, and integration tools",
+      features: ["REST API", "Webhooks", "SDK libraries", "Documentation"]
     }
   ]
 
   return (
-    <div className="min-h-screen bg-white pt-20">
+    <div className="min-h-screen bg-white">
+      {/* Comprehensive SEO Implementation */}
       <Helmet>
-        <title>Features - CookieBot.ai | AI-Powered Cookie Consent Management Platform</title>
-        <meta name="description" content="Discover CookieBot.ai's comprehensive features: AI-powered consent optimization, revenue generation, GDPR compliance, advanced customization, and professional analytics dashboard." />
-        <meta name="keywords" content="cookie consent features, AI-powered consent, GDPR compliance, revenue generation, privacy insights, consent management, cookie banner customization, analytics dashboard" />
+        {/* Primary Meta Tags */}
+        <title>AI-Powered Cookie Consent Features | CookieBot.ai - Your AI Consent Robot</title>
+        <meta name="title" content="AI-Powered Cookie Consent Features | CookieBot.ai - Your AI Consent Robot" />
+        <meta name="description" content="Discover CookieBot.ai's revolutionary features: AI-powered consent optimization, 60% revenue sharing system, GDPR compliance automation, unlimited customization, and professional analytics dashboard. The only cookie consent platform that pays you." />
+        <meta name="keywords" content="AI cookie consent, GDPR compliance features, revenue sharing cookie banner, privacy insights monetization, cookie consent customization, automated compliance, consent management platform, AI-powered privacy, cookie banner revenue, CCPA compliance features" />
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="English" />
+        <meta name="author" content="CookieBot.ai" />
+        
+        {/* Canonical URL */}
         <link rel="canonical" href="https://cookiebot.ai/features" />
-        <meta property="og:title" content="Features - CookieBot.ai | AI-Powered Cookie Consent Platform" />
-        <meta property="og:description" content="The only cookie consent platform with AI optimization and built-in revenue generation. Explore our comprehensive feature set." />
+        
+        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cookiebot.ai/features" />
+        <meta property="og:title" content="AI-Powered Cookie Consent Features | CookieBot.ai" />
+        <meta property="og:description" content="The only AI-powered cookie consent platform with built-in revenue generation. Discover advanced features: 60% revenue sharing, GDPR automation, unlimited customization, and professional analytics." />
+        <meta property="og:image" content="https://cookiebot.ai/features-og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="CookieBot.ai" />
+        
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://cookiebot.ai/features" />
+        <meta property="twitter:title" content="AI-Powered Cookie Consent Features | CookieBot.ai" />
+        <meta property="twitter:description" content="Revenue-generating cookie consent with AI optimization. 60% revenue share, GDPR compliance, unlimited customization." />
+        <meta property="twitter:image" content="https://cookiebot.ai/features-twitter-card.png" />
+        
+        {/* Additional SEO */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#667eea" />
+        
+        {/* Structured Data for Rich Snippets */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "CookieBot.ai Features - AI-Powered Cookie Consent",
+            "description": "Comprehensive features of CookieBot.ai: AI-powered consent optimization, revenue generation, GDPR compliance, and advanced customization.",
+            "url": "https://cookiebot.ai/features",
+            "mainEntity": {
+              "@type": "SoftwareApplication",
+              "name": "CookieBot.ai",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "description": "AI-powered cookie consent platform with revenue generation",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock",
+                "description": "Free tier available with premium features"
+              },
+              "featureList": [
+                "AI-powered consent optimization",
+                "60% revenue sharing system",
+                "GDPR/CCPA/LGPD compliance",
+                "Unlimited customization options",
+                "Professional analytics dashboard",
+                "Multi-language support",
+                "Real-time performance tracking"
+              ],
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.9",
+                "ratingCount": "127"
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "CookieBot.ai",
+                "url": "https://cookiebot.ai",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://cookiebot.ai/logo.png"
+                }
+              }
+            },
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://cookiebot.ai"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Features",
+                  "item": "https://cookiebot.ai/features"
+                }
+              ]
+            }
+          })}
+        </script>
       </Helmet>
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="container mx-auto px-4 text-center">
-          <Badge className="mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-            🤖 Your AI-Powered Cookie Consent Robot
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Features That
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {" "}Generate Revenue
-            </span>
-          </h1>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8">
-            The only AI-powered cookie consent platform that turns compliance into profit. 
-            Unlike traditional solutions, CookieBot.ai combines intelligent optimization, 
-            revenue generation, and enterprise-grade customization in one powerful platform.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/scan">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Scan className="mr-2 h-5 w-5" />
-                Scan Your Website Now
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline">
-              <Eye className="mr-2 h-5 w-5" />
-              View Live Demo
-            </Button>
-          </div>
-          
-          {/* Key Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">60%</div>
-              <div className="text-gray-600">Revenue Share</div>
+      <section className="relative pt-32 pb-20 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-4xl mx-auto">
+            <Badge className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              🤖 Your AI-Powered Cookie Consent Robot
+            </Badge>
+            
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+              Revolutionary Features That
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {" "}Generate Revenue
+              </span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+              Discover why CookieBot.ai is the only AI-powered cookie consent platform that actually pays you. 
+              Advanced features, intelligent optimization, and 60% revenue sharing make compliance profitable.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link to="/scan">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4">
+                  <Scan className="mr-2 h-5 w-5" />
+                  Test Your Website Free
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-4">
+                  <Eye className="mr-2 h-5 w-5" />
+                  View Live Demo
+                </Button>
+              </Link>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">99.9%</div>
-              <div className="text-gray-600">Uptime SLA</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">&lt;50KB</div>
-              <div className="text-gray-600">Bundle Size</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-2">∞</div>
-              <div className="text-gray-600">Customization</div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4">
+                <div className="text-2xl font-bold text-blue-600 mb-1">AI-Powered</div>
+                <div className="text-gray-600 text-sm">Intelligent Optimization</div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4">
+                <div className="text-2xl font-bold text-green-600 mb-1">60%</div>
+                <div className="text-gray-600 text-sm">Revenue Share</div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4">
+                <div className="text-2xl font-bold text-purple-600 mb-1">∞</div>
+                <div className="text-gray-600 text-sm">Customization</div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4">
+                <div className="text-2xl font-bold text-orange-600 mb-1">99.9%</div>
+                <div className="text-gray-600 text-sm">Uptime SLA</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* AI Differentiators */}
+      {/* Core Features Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge className="mb-4">🤖 AI-Powered Technology</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Choose Our AI-Powered Consent Robot?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Unlike static cookie consent solutions, CookieBot.ai uses artificial intelligence 
-              to continuously optimize performance, maximize revenue, and ensure compliance automatically.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {aiDifferentiators.map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-                <CardHeader>
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <div className="text-blue-600">
-                      {feature.icon}
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <p className="text-lg text-gray-600 mb-6">
-              Ready to see how our AI can optimize your cookie consent?
-            </p>
-            <Link to="/scan">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Search className="mr-2 h-5 w-5" />
-                Free Website Compliance Scan
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Core Features */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge className="mb-4">Core Platform</Badge>
+            <Badge className="mb-4">Core Features</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Everything You Need to Succeed
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              CookieBot.ai Enhanced v2.0 goes beyond traditional consent management with 
-              innovative features that help you comply, customize, and monetize like never before.
+              CookieBot.ai combines cutting-edge AI technology with revenue generation to create 
+              the most advanced cookie consent platform available.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {coreFeatures.map((feature, index) => (
-              <Card key={index} className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg h-full">
                 <CardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                      <div className="text-blue-600">
-                        {feature.icon}
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {feature.category}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {feature.features.map((item, idx) => (
-                      <li key={idx} className="flex items-center space-x-2 text-sm text-gray-600">
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Frontend Features */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge className="mb-4">Frontend Experience</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Unmatched Customization & User Experience
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Create the perfect cookie consent experience with our industry-leading 
-              customization options and user-friendly design tools.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {frontendFeatures.map((feature, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <div className="text-green-600">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 mb-4">
+                    <div className="text-blue-600">
                       {feature.icon}
                     </div>
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
+                  <Badge variant="outline" className="w-fit mb-2">{feature.category}</Badge>
+                  <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                  <CardDescription className="text-gray-600 text-base leading-relaxed">
+                    {feature.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {feature.items.map((item, idx) => (
-                      <li key={idx} className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="space-y-2">
+                    {feature.features.map((item, idx) => (
+                      <div key={idx} className="flex items-center space-x-2">
                         <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
+                        <span className="text-sm text-gray-600">{item}</span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -377,76 +336,124 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Backend Features */}
+      {/* Frontend vs Backend Features */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge className="mb-4">Backend Platform</Badge>
+            <Badge className="mb-4">Complete Platform</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Professional Dashboard & Management Tools
+              Frontend Freedom, Backend Power
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Powerful backend features that make CookieBot.ai the choice for professionals, 
-              agencies, and enterprises who need advanced control and insights.
+              Start free with powerful frontend features, then unlock professional backend capabilities 
+              to maximize revenue and streamline management.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {backendFeatures.map((feature, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center mb-4">
-                    <div className="text-purple-600">
-                      {feature.icon}
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {feature.items.map((item, idx) => (
-                      <li key={idx} className="flex items-center space-x-2 text-sm text-gray-600">
-                        <CheckCircle className="h-4 w-4 text-purple-500 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Frontend Features */}
+            <div>
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Code className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Frontend Features</h3>
+                <p className="text-gray-600">Available in free tier - perfect for getting started</p>
+              </div>
+              
+              <div className="space-y-6">
+                {frontendFeatures.map((feature, index) => (
+                  <Card key={index} className="border-0 shadow-md">
+                    <CardContent className="p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <div className="text-green-600">
+                            {feature.icon}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-lg mb-2">{feature.title}</h4>
+                          <p className="text-gray-600 mb-3">{feature.description}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {feature.features.map((item, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                                <span className="text-xs text-gray-600">{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
 
-          <div className="text-center mt-12">
-            <p className="text-lg text-gray-600 mb-6">
-              Unlock the full potential of your cookie consent with our professional dashboard
-            </p>
-            <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-              <BarChart3 className="mr-2 h-5 w-5" />
-              Try Dashboard Free
-            </Button>
+            {/* Backend Features */}
+            <div>
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Backend Features</h3>
+                <p className="text-gray-600">Professional tier - unlock revenue and advanced management</p>
+              </div>
+              
+              <div className="space-y-6">
+                {backendFeatures.map((feature, index) => (
+                  <Card key={index} className="border-0 shadow-md">
+                    <CardContent className="p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <div className="text-blue-600">
+                            {feature.icon}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-lg mb-2">{feature.title}</h4>
+                          <p className="text-gray-600 mb-3">{feature.description}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {feature.features.map((item, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <CheckCircle className="h-3 w-3 text-blue-500" />
+                                <span className="text-xs text-gray-600">{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Compliance Scanner CTA */}
-      <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto">
-            <Scan className="h-16 w-16 mx-auto mb-6 opacity-90" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Not Sure If Your Website Is Compliant?
+      {/* Free Compliance Scanner CTA */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-white max-w-4xl mx-auto">
+            <Badge className="mb-6 bg-white/20 text-white border-white/30">
+              🔍 Free Compliance Scanner
+            </Badge>
+            
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+              Test Your Website's Compliance
             </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Get a free, comprehensive compliance scan of your website. Our AI-powered scanner 
-              checks for GDPR, CCPA, and LGPD compliance issues and provides actionable recommendations.
+            
+            <p className="text-xl md:text-2xl mb-8 text-blue-100">
+              Get a comprehensive compliance report for your website. Our AI scanner checks GDPR, CCPA, 
+              and LGPD requirements and provides actionable recommendations.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="text-center">
-                <Clock className="h-8 w-8 mx-auto mb-3 opacity-80" />
-                <h3 className="font-semibold mb-2">30-Second Scan</h3>
-                <p className="text-sm opacity-80">Quick and comprehensive analysis</p>
+                <Search className="h-8 w-8 mx-auto mb-3 opacity-80" />
+                <h3 className="font-semibold mb-2">Deep Analysis</h3>
+                <p className="text-sm opacity-80">Comprehensive website scan</p>
               </div>
               <div className="text-center">
                 <Shield className="h-8 w-8 mx-auto mb-3 opacity-80" />
@@ -502,25 +509,25 @@ const Features = () => {
                   
                   <div className="text-center border-l border-r border-gray-200 px-8">
                     <h3 className="font-bold text-lg mb-4 text-blue-600">CookieBot.ai</h3>
-                    <ul className="space-y-3 text-sm text-gray-800">
+                    <ul className="space-y-3 text-sm text-gray-900">
                       <li>✅ AI-powered optimization</li>
                       <li>✅ 60% revenue sharing</li>
                       <li>✅ Unlimited customization</li>
                       <li>✅ Automatic compliance</li>
-                      <li>✅ Advanced analytics</li>
-                      <li>✅ Continuous learning</li>
+                      <li>✅ Professional analytics</li>
+                      <li>✅ Machine learning insights</li>
                     </ul>
                   </div>
                   
                   <div className="text-center">
-                    <h3 className="font-bold text-lg mb-4 text-gray-500">Other "Premium" Tools</h3>
+                    <h3 className="font-bold text-lg mb-4 text-gray-500">Enterprise Solutions</h3>
                     <ul className="space-y-3 text-sm text-gray-600">
-                      <li>⚠️ Expensive monthly fees</li>
-                      <li>⚠️ Complex setup process</li>
-                      <li>⚠️ Limited integrations</li>
-                      <li>⚠️ No monetization</li>
-                      <li>⚠️ Slow support</li>
+                      <li>⚠️ Expensive licensing</li>
+                      <li>⚠️ Complex implementation</li>
+                      <li>⚠️ No revenue features</li>
                       <li>⚠️ Vendor lock-in</li>
+                      <li>⚠️ Slow support</li>
+                      <li>⚠️ Limited flexibility</li>
                     </ul>
                   </div>
                 </div>
@@ -530,28 +537,32 @@ const Features = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Final CTA */}
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Transform Your Cookie Consent?
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Join thousands of websites already earning revenue with CookieBot.ai. 
-            Start your free trial today and experience the difference AI makes.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Link to="/scan">
-              <Button size="lg" variant="outline">
-                <Scan className="mr-2 h-5 w-5" />
-                Scan My Website
-              </Button>
-            </Link>
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Ready to Transform Your Cookie Consent?
+            </h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Join thousands of websites already earning revenue with CookieBot.ai. 
+              Start your free trial and experience the power of AI-driven consent management.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/dashboard">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Start Free Trial
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/scan">
+                <Button size="lg" variant="outline">
+                  <Scan className="mr-2 h-5 w-5" />
+                  Scan My Website
+                </Button>
+              </Link>
+            </div>
           </div>
           
           <p className="text-sm text-gray-500 mt-4">
