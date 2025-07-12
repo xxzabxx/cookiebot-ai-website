@@ -59,6 +59,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import Contact from './pages/Contact'
 import About from './pages/About'
+import Features from './pages/Features'
 import './App.css'
 
 // Import assets
@@ -189,7 +190,7 @@ const Navigation = () => {
             </Link>
             
             <div className="hidden md:flex items-center space-x-8">
-              <a href="/#features" className="text-gray-700 hover:text-blue-600 transition-colors">Features</a>
+              <Link to="/features" className="text-gray-700 hover:text-blue-600 transition-colors">Features</Link>
               <a href="/#customization" className="text-gray-700 hover:text-blue-600 transition-colors">Customization</a>
               <a href="/#pricing" className="text-gray-700 hover:text-blue-600 transition-colors">Pricing</a>
               <Link to="/scan" className="text-gray-700 hover:text-blue-600 transition-colors">Scan</Link>
@@ -249,7 +250,7 @@ const Navigation = () => {
           {isMenuOpen && (
             <div className="md:hidden bg-white border-t border-gray-200">
               <div className="px-2 pt-2 pb-3 space-y-1">
-                <a href="/#features" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Features</a>
+                <Link to="/features" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Features</Link>
                 <a href="/#customization" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Customization</a>
                 <a href="/#pricing" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Pricing</a>
                 <Link to="/scan" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Scan</Link>
@@ -473,10 +474,12 @@ const FeaturesSection = () => {
         </div>
 
         <div className="text-center">
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-            Explore All Features
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <Link to="/features">
+            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              Explore All Features
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
@@ -1260,7 +1263,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="/#features" className="hover:text-white transition-colors">Features</a></li>
+              <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
               <li><a href="/#customization" className="hover:text-white transition-colors">Customization</a></li>
               <li><a href="/#pricing" className="hover:text-white transition-colors">Pricing</a></li>
               <li><Link to="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
@@ -1328,6 +1331,7 @@ const AppContent = () => {
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
+        <Route path="/features" element={<Features />} />
       </Routes>
       
       <Footer />
