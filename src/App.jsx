@@ -57,6 +57,8 @@ import AuthProvider, { useAuth } from './components/AuthContext.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
+import Contact from './pages/Contact'
+import About from './pages/About'
 import './App.css'
 
 // Import assets
@@ -193,7 +195,7 @@ const Navigation = () => {
               <Link to="/scan" className="text-gray-700 hover:text-blue-600 transition-colors">Scan</Link>
               <Link to="/docs" className="text-gray-700 hover:text-blue-600 transition-colors">Documentation</Link>
               <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">Dashboard</Link>
-              <a href="/#contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+              <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</Link>
               
               {/* Authentication Buttons */}
               {isAuthenticated() ? (
@@ -253,7 +255,7 @@ const Navigation = () => {
                 <Link to="/scan" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Scan</Link>
                 <Link to="/docs" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Documentation</Link>
                 <Link to="/dashboard" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Dashboard</Link>
-                <a href="/#contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</a>
+                <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</Link>
                 
                 <div className="px-3 py-2 space-y-2">
                   {isAuthenticated() ? (
@@ -1280,8 +1282,8 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-              <li><a href="/#contact" className="hover:text-white transition-colors">Contact</a></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link></li>
               <li><a href="#" className="hover:text-white transition-colors">GDPR</a></li>
@@ -1324,6 +1326,8 @@ const AppContent = () => {
         <Route path="/scan" element={<ComplianceScanner />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
       </Routes>
       
       <Footer />
