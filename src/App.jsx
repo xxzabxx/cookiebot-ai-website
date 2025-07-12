@@ -962,19 +962,75 @@ const CTASection = () => {
   )
 }
 
-// Contact Section
+// Contact Section with Functional Form
 const ContactSection = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    message: ''
+    subject: '',
+    message: '',
+    inquiryType: 'general'
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState(null)
 
-  const handleSubmit = (e) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Form submitted:', formData)
+    setIsSubmitting(true)
+    setSubmitStatus(null)
+
+    try {
+      // Get the API endpoint from environment or use default
+      const apiEndpoint = process.env.REACT_APP_API_ENDPOINT || 'https://cookiebot-ai-backend.vercel.app'
+      
+      const response = await fetch(`${apiEndpoint}/api/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setSubmitStatus({
+          type: 'success',
+          message: result.message || 'Thank you for your message! We will get back to you within 24 hours.'
+        })
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          subject: '',
+          message: '',
+          inquiryType: 'general'
+        })
+      } else {
+        setSubmitStatus({
+          type: 'error',
+          message: result.error || 'There was an error sending your message. Please try again.'
+        })
+      }
+    } catch (error) {
+      console.error('Contact form error:', error)
+      setSubmitStatus({
+        type: 'error',
+        message: 'There was an error sending your message. Please try again later.'
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -1005,8 +1061,8 @@ const ContactSection = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-1">Email</h4>
+                  <p className="text-gray-600">info@cookiebot.ai</p>
                   <p className="text-gray-600">support@cookiebot.ai</p>
-                  <p className="text-gray-600">sales@cookiebot.ai</p>
                 </div>
               </div>
               
@@ -1057,52 +1113,110 @@ const ContactSection = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {submitStatus && (
+                <div className={`mb-4 p-4 rounded-lg ${
+                  submitStatus.type === 'success' 
+                    ? 'bg-green-50 border border-green-200 text-green-800' 
+                    : 'bg-red-50 border border-red-200 text-red-800'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    {submitStatus.type === 'success' ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5" />
+                    )}
+                    <span>{submitStatus.message}</span>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Name</label>
+                    <label className="block text-sm font-medium mb-2">Name *</label>
                     <Input
+                      name="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={handleInputChange}
                       placeholder="Your name"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <label className="block text-sm font-medium mb-2">Email *</label>
                     <Input
                       type="email"
+                      name="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      onChange={handleInputChange}
                       placeholder="your@email.com"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
                 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Company</label>
+                    <Input
+                      name="company"
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      placeholder="Your company"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Inquiry Type</label>
+                    <select
+                      name="inquiryType"
+                      value={formData.inquiryType}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      disabled={isSubmitting}
+                    >
+                      <option value="general">General Inquiry</option>
+                      <option value="sales">Sales</option>
+                      <option value="support">Technical Support</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="billing">Billing</option>
+                    </select>
+                  </div>
+                </div>
+                
                 <div>
-                  <label className="block text-sm font-medium mb-2">Company</label>
+                  <label className="block text-sm font-medium mb-2">Subject</label>
                   <Input
-                    value={formData.company}
-                    onChange={(e) => setFormData({...formData, company: e.target.value})}
-                    placeholder="Your company"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    placeholder="Brief subject line"
+                    disabled={isSubmitting}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Message</label>
+                  <label className="block text-sm font-medium mb-2">Message *</label>
                   <Textarea
+                    name="message"
                     value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
-                    placeholder="Tell us about your project..."
+                    onChange={handleInputChange}
+                    placeholder="Tell us about your project or question..."
                     rows={4}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 
-                <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Send Message
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                  {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
                 </Button>
               </form>
             </CardContent>
