@@ -10,7 +10,7 @@ import { Textarea } from './ui/textarea.jsx'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.jsx'
 
 // Enhanced Dashboard with Complete V3 Script Configuration
-// Now generates the actual enhanced cookiebot-ai v3 script with all features
+// FIXED: Preview now properly loads the enhanced V3 script while preserving ALL existing functionality
 
 const EnhancedDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics')
@@ -130,11 +130,11 @@ const EnhancedDashboard = () => {
   const currentData = isAuthenticated ? realData : demoData
 
   /**
-   * Generate the complete V3 script with all configuration options
+   * FIXED: Generate the complete V3 script with correct URL and all configuration options
    */
   const generateScript = () => {
     const attributes = [
-      `src="https://cookiebot.ai/cookiebot-ai.js"`,
+      `src="https://cookiebot-ai-backend.vercel.app/static/enhanced_cookiebot_ai_v3.js"`,
       `data-cbid="${config.clientId}"`,
       `data-api-endpoint="https://cookiebot-ai-backend.vercel.app/api"`,
       `data-company-name="${config.companyName}"`,
@@ -205,7 +205,7 @@ const EnhancedDashboard = () => {
   }
 
   /**
-   * Live Preview Component with Real Script Integration
+   * FIXED: Live Preview Component with Proper V3 Script Integration and Enhanced Sandbox
    */
   const LivePreview = () => {
     const getDeviceClass = () => {
@@ -219,14 +219,14 @@ const EnhancedDashboard = () => {
       }
     }
 
-    // Create preview HTML with actual script
+    // FIXED: Create preview HTML with correct V3 script URL and all attributes
     const previewHTML = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preview</title>
+    <title>CookieBot.ai Preview</title>
     <style>
         body {
             margin: 0;
@@ -270,8 +270,15 @@ const EnhancedDashboard = () => {
             border-radius: 8px;
             font-size: 14px;
         }
+        .config-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #1565c0;
+        }
     </style>
-    ${generatedScript}
 </head>
 <body>
     <div class="preview-content">
@@ -298,18 +305,53 @@ const EnhancedDashboard = () => {
                 All Devices
             </div>
         </div>
+
+        <div class="config-info">
+            <strong>Current Configuration:</strong><br>
+            Position: ${config.bannerPosition} | Style: ${config.bannerStyle} | 
+            Privacy Insights: ${config.enablePrivacyInsights ? 'Enabled' : 'Disabled'} |
+            Frequency: Every ${config.privacyInsightsFrequency} views
+        </div>
     </div>
+
+    <!-- FIXED: Load the enhanced V3 script with correct URL and all configuration attributes -->
+    <script src="https://cookiebot-ai-backend.vercel.app/static/enhanced_cookiebot_ai_v3.js"
+            data-cbid="${config.clientId}"
+            data-api-endpoint="https://cookiebot-ai-backend.vercel.app/api"
+            data-company-name="${config.companyName}"
+            ${config.logoUrl ? `data-logo-url="${config.logoUrl}"` : ''}
+            data-banner-position="${config.bannerPosition}"
+            data-banner-style="${config.bannerStyle}"
+            data-theme="${config.theme}"
+            data-primary-color="${config.primaryColor}"
+            data-background-color="${config.backgroundColor}"
+            data-text-color="${config.textColor}"
+            data-border-radius="${config.borderRadius}"
+            data-button-style="${config.buttonStyle}"
+            data-jurisdiction="${config.jurisdiction}"
+            data-auto-block="${config.autoBlock}"
+            data-granular-consent="${config.granularConsent}"
+            data-show-decline-button="${config.showDeclineButton}"
+            data-consent-expiry="${config.consentExpiry}"
+            data-enable-privacy-insights="${config.enablePrivacyInsights}"
+            data-privacy-insights-frequency="${config.privacyInsightsFrequency}"
+            data-privacy-widget-delay="${config.privacyWidgetDelay}"
+            data-privacy-widget-duration="${config.privacyWidgetDuration}"
+            data-revenue-share="${config.revenueShare}"
+            data-language="${config.language}">
+    </script>
 </body>
 </html>`
 
     return (
       <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
         <div className={`mx-auto ${getDeviceClass()} bg-white relative overflow-hidden border rounded-lg`}>
+          {/* FIXED: Enhanced iframe sandbox permissions for proper script loading */}
           <iframe
             srcDoc={previewHTML}
             className="w-full h-full border-0"
             title="Cookie Banner Preview"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
           />
         </div>
       </div>
@@ -863,6 +905,13 @@ const EnhancedDashboard = () => {
                     <li>4. The cookie banner will appear automatically</li>
                   </ol>
                 </div>
+
+                <div className="p-3 bg-orange-50 rounded-lg">
+                  <p className="text-sm text-orange-800">
+                    <strong>⚠️ Important:</strong> Make sure you have deployed the enhanced V3 script to your backend at 
+                    <code className="bg-orange-200 px-1 rounded">https://cookiebot-ai-backend.vercel.app/static/enhanced_cookiebot_ai_v3.js</code>
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1014,12 +1063,12 @@ const EnhancedDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Preview Tab - Enhanced Live Preview */}
+          {/* Preview Tab - FIXED Enhanced Live Preview */}
           <TabsContent value="preview" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Live Preview</CardTitle>
-                <CardDescription>See how your cookie banner will look with Privacy Insights</CardDescription>
+                <CardDescription>See how your cookie banner will look with Privacy Insights (V3 Enhanced)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Device Selector */}
@@ -1047,7 +1096,7 @@ const EnhancedDashboard = () => {
                   </Button>
                 </div>
 
-                {/* Live Preview with Real Script */}
+                {/* FIXED: Live Preview with Real V3 Script */}
                 <LivePreview />
 
                 {/* Configuration Summary */}
@@ -1068,7 +1117,7 @@ const EnhancedDashboard = () => {
 
                 {config.enablePrivacyInsights && (
                   <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium mb-2 text-green-800">Privacy Insights Active</h4>
+                    <h4 className="font-medium mb-2 text-green-800">Privacy Insights Active (V3 Enhanced)</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
                       <div>Frequency: Every {config.privacyInsightsFrequency} views</div>
                       <div>Revenue Share: {config.revenueShare * 100}%</div>
@@ -1077,6 +1126,17 @@ const EnhancedDashboard = () => {
                     </div>
                   </div>
                 )}
+
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium mb-2 text-blue-800">Preview Information</h4>
+                  <p className="text-sm text-blue-700">
+                    This preview loads the enhanced V3 script with all your configuration settings. 
+                    The cookie banner and Privacy Insights widget will appear based on your settings.
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    <strong>Note:</strong> Make sure the enhanced V3 script is deployed to your backend for the preview to work correctly.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
