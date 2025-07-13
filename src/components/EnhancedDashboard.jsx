@@ -10,7 +10,7 @@ import { Textarea } from './ui/textarea.jsx'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.jsx'
 
 // Enhanced Dashboard with Advanced Customization Features
-// Integrates the working foundation with rich configuration options
+// Now properly controls the working Privacy Insights script
 
 const EnhancedDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics')
@@ -18,28 +18,65 @@ const EnhancedDashboard = () => {
   const [error, setError] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   
-  // Advanced Configuration State (restored from original)
+  // Updated Configuration State - Maps to Working Script Options
   const [config, setConfig] = useState({
+    // Basic Configuration
     companyName: 'Your Company',
     companyLogo: '',
+    clientId: 'your-client-id',
+    
+    // Banner Configuration (maps to working script)
+    bannerPosition: 'bottom', // data-banner-position
+    bannerStyle: 'modern', // internal config
+    showLogo: true, // internal config
+    
+    // Layout and Positioning
     layout: 'dialog',
     position: 'bottom',
+    
+    // Styling (maps to working script colors)
     theme: 'light',
     customColors: {
-      background: '#ffffff',
-      text: '#1f2937',
-      accent: '#3b82f6',
+      background: '#ffffff', // backgroundColor in script
+      text: '#333333', // textColor in script  
+      accent: '#007bff', // primaryColor in script
       button: '#10b981'
     },
+    borderRadius: '8px', // borderRadius in script
+    
+    // Button and Banner Styling
     buttonStyle: 'default',
     bannerType: 'multilevel',
+    
+    // Compliance Configuration (maps to working script)
     compliance: {
       gdpr: true,
       ccpa: true,
       lgpd: false
     },
-    affiliateAds: true,
-    consentExpiry: 365
+    jurisdiction: 'auto', // jurisdiction in script (auto/gdpr/ccpa/lgpd)
+    
+    // Privacy Insights Configuration (maps to working script)
+    privacyInsights: {
+      enabled: true, // data-enable-privacy-insights
+      frequency: 3, // affects privacyWidgetDelay calculation
+      content: 'educational',
+      widgetDelay: 3000, // privacyWidgetDelay in script
+      widgetDuration: 15000, // privacyWidgetDuration in script
+      revenueShare: 0.6 // data-revenue-share
+    },
+    
+    // Consent Configuration (maps to working script)
+    autoBlock: true, // autoBlock in script
+    consentExpiry: 365, // data-consent-expiry
+    showDeclineButton: true, // showDeclineButton in script
+    granularConsent: true, // granularConsent in script
+    
+    // API Configuration
+    apiEndpoint: 'https://cookiebot-ai-backend.vercel.app/api', // data-api-endpoint
+    
+    // Language and Localization
+    language: 'auto' // language in script
   })
 
   const [previewDevice, setPreviewDevice] = useState('desktop')
@@ -100,227 +137,291 @@ const EnhancedDashboard = () => {
     }
   }
 
-  // Use demo data for sales, real data when authenticated
+  // Use demo data for display (either for unauthenticated users or as fallback)
   const currentData = isAuthenticated ? realData : demoData
 
-  // Live Preview Component (restored from original)
+  // Generate script with ALL working script configuration options
+  const generateWorkingScript = () => {
+    const scriptAttributes = [
+      `src="https://cookiebot.ai/cookiebot-ai.js"`,
+      `data-cbid="${config.clientId}"`,
+      `data-api-endpoint="${config.apiEndpoint}"`,
+      `data-company-name="${config.companyName}"`,
+      `data-banner-position="${config.bannerPosition}"`,
+      `data-primary-color="${config.customColors.accent}"`,
+      config.companyLogo ? `data-logo-url="${config.companyLogo}"` : null,
+      `data-enable-privacy-insights="${config.privacyInsights.enabled}"`,
+      `data-revenue-share="${config.privacyInsights.revenueShare}"`,
+      `data-auto-block="${config.autoBlock}"`,
+      `data-consent-expiry="${config.consentExpiry}"`,
+      `data-show-decline="${config.showDeclineButton}"`,
+      `data-granular-consent="${config.granularConsent}"`,
+      `data-jurisdiction="${config.jurisdiction}"`,
+      `data-background-color="${config.customColors.background}"`,
+      `data-text-color="${config.customColors.text}"`,
+      `data-border-radius="${config.borderRadius}"`,
+      `data-privacy-widget-delay="${config.privacyInsights.widgetDelay}"`,
+      `data-privacy-widget-duration="${config.privacyInsights.widgetDuration}"`,
+      `data-language="${config.language}"`
+    ].filter(Boolean) // Remove null values
+    
+    return `<script ${scriptAttributes.join('\n        ')}>\n</script>`
+  }
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+    // Could add a toast notification here
+  }
+
+  const downloadScript = () => {
+    const script = generateWorkingScript()
+    const blob = new Blob([script], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'cookiebot-ai-script.html'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Enhanced Preview Component with Privacy Insights
   const LivePreview = () => {
-    const getDeviceClass = () => {
-      switch (previewDevice) {
-        case 'mobile':
-          return 'w-80 h-96'
-        case 'tablet':
-          return 'w-96 h-80'
-        default:
-          return 'w-full h-96'
+    const [showPrivacyInsights, setShowPrivacyInsights] = useState(false)
+    const [consentGiven, setConsentGiven] = useState(false)
+    
+    // Simulate Privacy Insights widget appearing after consent
+    useEffect(() => {
+      if (consentGiven && config.privacyInsights.enabled) {
+        const timer = setTimeout(() => {
+          setShowPrivacyInsights(true)
+        }, config.privacyInsights.widgetDelay) // Use actual config delay
+        
+        return () => clearTimeout(timer)
       }
-    }
-
-    const getBannerStyles = () => {
-      const baseStyles = {
-        backgroundColor: config.customColors.background,
-        color: config.customColors.text,
-        padding: '16px',
-        borderRadius: config.layout === 'dialog' ? '8px' : '0px',
-        boxShadow: config.layout === 'dialog' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-        border: `1px solid ${config.customColors.accent}20`
-      }
-
-      if (config.layout === 'bar') {
-        return {
-          ...baseStyles,
-          width: '100%',
-          borderRadius: '0px',
-          borderLeft: 'none',
-          borderRight: 'none',
-          borderTop: config.position === 'bottom' ? '1px solid' : 'none',
-          borderBottom: config.position === 'top' ? '1px solid' : 'none'
-        }
-      }
-
-      return baseStyles
-    }
-
-    const getButtonStyles = (isPrimary = false) => {
-      const baseStyles = {
-        padding: '8px 16px',
-        borderRadius: '6px',
-        fontSize: '14px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        border: 'none',
-        marginRight: '8px'
-      }
-
-      switch (config.buttonStyle) {
-        case 'solid':
-          return {
-            ...baseStyles,
-            backgroundColor: isPrimary ? config.customColors.button : config.customColors.accent,
-            color: '#ffffff'
-          }
-        case 'outline':
-          return {
-            ...baseStyles,
-            backgroundColor: 'transparent',
-            color: isPrimary ? config.customColors.button : config.customColors.accent,
-            border: `1px solid ${isPrimary ? config.customColors.button : config.customColors.accent}`
-          }
-        default:
-          return {
-            ...baseStyles,
-            backgroundColor: isPrimary ? config.customColors.button : 'transparent',
-            color: isPrimary ? '#ffffff' : config.customColors.text,
-            border: isPrimary ? 'none' : `1px solid ${config.customColors.accent}`
-          }
-      }
+    }, [consentGiven, config.privacyInsights.enabled, config.privacyInsights.widgetDelay])
+    
+    const handleAcceptCookies = () => {
+      setConsentGiven(true)
     }
 
     return (
-      <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
-        <div className={`mx-auto ${getDeviceClass()} bg-white relative overflow-hidden border rounded-lg`}>
-          {/* Simulated Website Content */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-2xl mb-2">🌐</div>
-              <p className="text-sm">Your Website Preview</p>
-              <p className="text-xs text-gray-400 mt-1">{config.companyName}</p>
-            </div>
+      <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: '400px' }}>
+        {/* Simulated Website Content */}
+        <div className="p-6 h-full">
+          <div className="bg-white rounded shadow-sm p-4 mb-4">
+            <h3 className="font-semibold text-gray-900">Your Website Content</h3>
+            <p className="text-gray-600 text-sm mt-2">This preview shows how your cookie consent banner will appear with your current configuration.</p>
           </div>
-
-          {/* Cookie Banner Preview */}
-          <div 
-            className={`absolute ${config.position === 'top' ? 'top-4' : config.position === 'center' ? 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2' : 'bottom-4'} ${config.layout === 'bar' ? 'left-0 right-0' : 'left-4 right-4'}`}
-            style={getBannerStyles()}
-          >
-            <div className="flex flex-col space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="text-2xl">🍪</div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm mb-1">Cookie Consent</h3>
-                  <p className="text-xs opacity-80">
-                    We use cookies to enhance your experience and show relevant ads.
-                    {config.affiliateAds && " This helps support our platform."}
-                  </p>
+          
+          {/* Cookie Consent Banner - Styled with actual config */}
+          {!consentGiven && (
+            <div 
+              className={`fixed ${config.bannerPosition === 'top' ? 'top-0' : 'bottom-0'} left-0 right-0 z-50 p-4`}
+              style={{ 
+                backgroundColor: config.customColors.background, 
+                color: config.customColors.text,
+                borderRadius: config.bannerPosition === 'center' ? config.borderRadius : '0'
+              }}
+            >
+              <div className="max-w-6xl mx-auto">
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">🍪</div>
+                  <div className="flex-1">
+                    <div className="flex items-center mb-1">
+                      {config.showLogo && config.companyLogo && (
+                        <img src={config.companyLogo} alt="Logo" className="h-6 w-6 mr-2" />
+                      )}
+                      <h3 className="font-semibold text-sm">
+                        {config.companyName} Cookie Consent
+                      </h3>
+                    </div>
+                    <p className="text-xs opacity-80">
+                      We use cookies to enhance your experience{config.privacyInsights.enabled && ' and provide privacy insights'}.
+                      {config.granularConsent && ' You can customize your preferences below.'}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    {config.showDeclineButton && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        style={{ 
+                          borderColor: config.customColors.accent, 
+                          color: config.customColors.accent,
+                          borderRadius: config.borderRadius
+                        }}
+                      >
+                        Decline
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm"
+                      onClick={handleAcceptCookies}
+                      style={{ 
+                        backgroundColor: config.customColors.accent, 
+                        color: 'white',
+                        borderRadius: config.borderRadius
+                      }}
+                    >
+                      Accept All
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {config.bannerType === 'accept-only' && (
-                  <button style={getButtonStyles(true)}>Accept All</button>
-                )}
                 
-                {config.bannerType === 'accept-decline' && (
-                  <>
-                    <button style={getButtonStyles(true)}>Accept All</button>
-                    <button style={getButtonStyles(false)}>Decline</button>
-                  </>
-                )}
-                
-                {(config.bannerType === 'multilevel' || config.bannerType === 'inline-multilevel') && (
-                  <>
-                    <button style={getButtonStyles(true)}>Accept All</button>
-                    <button style={getButtonStyles(false)}>Customize</button>
-                    <button style={getButtonStyles(false)}>Decline</button>
-                  </>
-                )}
-                
-                {config.bannerType === 'ccpa' && (
-                  <>
-                    <button style={getButtonStyles(true)}>Accept</button>
-                    <button style={getButtonStyles(false)}>Do Not Sell My Info</button>
-                  </>
+                {/* Granular Consent Options */}
+                {config.granularConsent && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      <label className="flex items-center">
+                        <input type="checkbox" checked disabled className="mr-1" />
+                        Necessary
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-1" />
+                        Analytics
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-1" />
+                        Marketing
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" defaultChecked className="mr-1" />
+                        Functional
+                      </label>
+                    </div>
+                  </div>
                 )}
               </div>
-              
-              {config.compliance.gdpr && (
-                <p className="text-xs opacity-60">GDPR Compliant</p>
-              )}
             </div>
-          </div>
+          )}
+
+          {/* Privacy Insights Widget - Styled with actual config */}
+          {showPrivacyInsights && (
+            <div 
+              className="fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50"
+              style={{ borderRadius: config.borderRadius }}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center">
+                  <div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${config.customColors.accent}, ${config.customColors.button})`,
+                      borderRadius: config.borderRadius
+                    }}
+                  >
+                    <span className="text-white text-sm">🛡️</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Privacy Insights</h4>
+                    <p className="text-xs text-gray-600">Educational content • Revenue share: {(config.privacyInsights.revenueShare * 100)}%</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowPrivacyInsights(false)}
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="text-sm text-gray-700 mb-3">
+                <p className="font-medium mb-1">Did you know?</p>
+                <p>Websites use cookies to remember your preferences and improve your experience. You can manage these settings anytime in your browser.</p>
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button 
+                  size="sm" 
+                  className="flex-1"
+                  style={{ 
+                    backgroundColor: config.customColors.accent,
+                    borderRadius: config.borderRadius
+                  }}
+                >
+                  Learn More
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowPrivacyInsights(false)}
+                  style={{ borderRadius: config.borderRadius }}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 pt-24">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">CookieBot.ai Dashboard</h1>
-              <p className="text-gray-600 mt-1">
-                Advanced cookie consent platform with built-in monetization
-              </p>
-              {!isAuthenticated && (
-                <Badge className="mt-2 bg-blue-100 text-blue-800">
-                  Demo Mode - Sign in for real data
-                </Badge>
-              )}
-            </div>
-            <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              Enhanced v2.0
-            </Badge>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Configure your Privacy Insights cookie consent system</p>
         </div>
 
-        {/* Main Dashboard */}
+        {/* Main Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1">
-            <TabsTrigger value="analytics" className="text-xs md:text-sm px-2">Analytics</TabsTrigger>
-            <TabsTrigger value="revenue" className="text-xs md:text-sm px-2">Revenue</TabsTrigger>
-            <TabsTrigger value="websites" className="text-xs md:text-sm px-2">Websites</TabsTrigger>
-            <TabsTrigger value="configuration" className="text-xs md:text-sm px-2">Config</TabsTrigger>
-            <TabsTrigger value="compliance" className="text-xs md:text-sm px-2">Compliance</TabsTrigger>
-            <TabsTrigger value="preview" className="text-xs md:text-sm px-2">Preview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="websites">Websites</TabsTrigger>
+            <TabsTrigger value="configuration">Config</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            <TabsTrigger value="revenue">Revenue</TabsTrigger>
           </TabsList>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <div className="text-2xl">💰</div>
+                  <span className="text-2xl">💰</span>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">${currentData.revenue.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">60% revenue share</p>
+                  <p className="text-xs text-muted-foreground">+12.5% from last month</p>
                 </CardContent>
               </Card>
-
+              
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Visitors</CardTitle>
-                  <div className="text-2xl">👥</div>
+                  <CardTitle className="text-sm font-medium">Monthly Visitors</CardTitle>
+                  <span className="text-2xl">👥</span>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{currentData.visitors.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Across all websites</p>
+                  <p className="text-xs text-muted-foreground">+8.2% from last month</p>
                 </CardContent>
               </Card>
-
+              
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Consent Rate</CardTitle>
-                  <div className="text-2xl">✅</div>
+                  <span className="text-2xl">✅</span>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{currentData.consent_rate}%</div>
-                  <p className="text-xs text-muted-foreground">Average across sites</p>
+                  <p className="text-xs text-muted-foreground">+2.1% from last month</p>
                 </CardContent>
               </Card>
-
+              
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Active Websites</CardTitle>
-                  <div className="text-2xl">🌐</div>
+                  <span className="text-2xl">🌐</span>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{currentData.websites}</div>
-                  <p className="text-xs text-muted-foreground">Monitored sites</p>
+                  <p className="text-xs text-muted-foreground">+1 new this month</p>
                 </CardContent>
               </Card>
             </div>
@@ -329,12 +430,12 @@ const EnhancedDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest visitor and consent data</CardDescription>
+                <CardDescription>Your latest website performance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {(currentData.recentActivity || []).map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {demoData.recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <p className="font-medium">{activity.date}</p>
                         <p className="text-sm text-gray-600">{activity.visitors} visitors, {activity.consents} consents</p>
@@ -348,62 +449,6 @@ const EnhancedDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Revenue Tab */}
-          <TabsContent value="revenue" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue Sharing</CardTitle>
-                  <CardDescription>60% of ad revenue goes to you</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">Your Share (60%)</p>
-                      <p className="text-2xl font-bold text-green-600">${(currentData.revenue * 0.6).toFixed(2)}</p>
-                    </div>
-                    <div className="text-green-600 text-3xl">📈</div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">Platform Share (40%)</p>
-                      <p className="text-2xl font-bold text-blue-600">${(currentData.revenue * 0.4).toFixed(2)}</p>
-                    </div>
-                    <div className="text-blue-600 text-3xl">🏢</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payout Information</CardTitle>
-                  <CardDescription>Monthly payouts with $50 minimum</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Current Balance:</span>
-                      <span className="font-medium">${(currentData.revenue * 0.6).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Minimum Payout:</span>
-                      <span className="font-medium">$50.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Next Payout:</span>
-                      <span className="font-medium">End of Month</span>
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full" disabled={(currentData.revenue * 0.6) < 50}>
-                    {(currentData.revenue * 0.6) >= 50 ? 'Request Payout' : 'Minimum Not Reached'}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
 
           {/* Websites Tab */}
@@ -429,7 +474,10 @@ const EnhancedDashboard = () => {
                             <p className="font-medium">{domain}</p>
                             <p className="text-sm text-gray-600">Active • {Math.floor(Math.random() * 1000) + 500} visitors today</p>
                           </div>
-                          <Badge>Demo</Badge>
+                          <div className="flex space-x-2">
+                            <Badge variant="secondary">{config.jurisdiction.toUpperCase()}</Badge>
+                            <Badge variant="outline">Privacy Insights</Badge>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -439,359 +487,436 @@ const EnhancedDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Configuration Tab - Advanced Customization */}
+          {/* Configuration Tab - Now controls ALL working script options */}
           <TabsContent value="configuration" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Layout Configuration */}
+              
+              {/* Basic Configuration */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Layout Configuration</CardTitle>
-                  <CardDescription>Choose your banner layout and positioning</CardDescription>
+                  <CardTitle>Basic Configuration</CardTitle>
+                  <CardDescription>Essential settings for your cookie banner</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label>Layout Type</Label>
-                    <Select value={config.layout} onValueChange={(value) => setConfig({...config, layout: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dialog">Dialog (Floating Window)</SelectItem>
-                        <SelectItem value="bar">Bar (Full Width)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-2">
+                    <Label htmlFor="client-id">Client ID</Label>
+                    <Input
+                      id="client-id"
+                      value={config.clientId}
+                      onChange={(e) => setConfig({...config, clientId: e.target.value})}
+                      placeholder="your-client-id"
+                    />
                   </div>
-
-                  <div>
-                    <Label>Position</Label>
-                    <Select value={config.position} onValueChange={(value) => setConfig({...config, position: value})}>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name">Company Name</Label>
+                    <Input
+                      id="company-name"
+                      value={config.companyName}
+                      onChange={(e) => setConfig({...config, companyName: e.target.value})}
+                      placeholder="Your Company"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="company-logo">Company Logo URL</Label>
+                    <Input
+                      id="company-logo"
+                      value={config.companyLogo}
+                      onChange={(e) => setConfig({...config, companyLogo: e.target.value})}
+                      placeholder="https://yoursite.com/logo.png"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="banner-position">Banner Position</Label>
+                    <Select value={config.bannerPosition} onValueChange={(value) => setConfig({...config, bannerPosition: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="top">Top</SelectItem>
                         <SelectItem value="bottom">Bottom</SelectItem>
-                        {config.layout === 'dialog' && <SelectItem value="center">Center</SelectItem>}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Banner Type</Label>
-                    <Select value={config.bannerType} onValueChange={(value) => setConfig({...config, bannerType: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="multilevel">Multilevel</SelectItem>
-                        <SelectItem value="accept-only">Accept Only</SelectItem>
-                        <SelectItem value="accept-decline">Accept/Decline</SelectItem>
-                        <SelectItem value="inline-multilevel">Inline Multilevel</SelectItem>
-                        <SelectItem value="ccpa">CCPA</SelectItem>
+                        <SelectItem value="center">Center</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Color Customization */}
+              {/* Privacy Insights Configuration */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Color Customization</CardTitle>
-                  <CardDescription>Customize colors to match your brand</CardDescription>
+                  <CardTitle>Privacy Insights Revenue</CardTitle>
+                  <CardDescription>Configure your monetization settings</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label>Theme</Label>
-                    <Select value={config.theme} onValueChange={(value) => setConfig({...config, theme: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {config.theme === 'custom' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Background Color</Label>
-                        <Input
-                          type="color"
-                          value={config.customColors.background}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            customColors: {...config.customColors, background: e.target.value}
-                          })}
-                        />
-                      </div>
-                      <div>
-                        <Label>Text Color</Label>
-                        <Input
-                          type="color"
-                          value={config.customColors.text}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            customColors: {...config.customColors, text: e.target.value}
-                          })}
-                        />
-                      </div>
-                      <div>
-                        <Label>Accent Color</Label>
-                        <Input
-                          type="color"
-                          value={config.customColors.accent}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            customColors: {...config.customColors, accent: e.target.value}
-                          })}
-                        />
-                      </div>
-                      <div>
-                        <Label>Button Color</Label>
-                        <Input
-                          type="color"
-                          value={config.customColors.button}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            customColors: {...config.customColors, button: e.target.value}
-                          })}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <Label>Button Style</Label>
-                    <Select value={config.buttonStyle} onValueChange={(value) => setConfig({...config, buttonStyle: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">Default (CTA)</SelectItem>
-                        <SelectItem value="solid">Solid (Equal)</SelectItem>
-                        <SelectItem value="outline">Outline (Minimal)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Company Branding */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Company Branding</CardTitle>
-                  <CardDescription>Add your company information</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Company Name</Label>
-                    <Input
-                      value={config.companyName}
-                      onChange={(e) => setConfig({...config, companyName: e.target.value})}
-                      placeholder="Your Company Name"
+                  <div className="flex items-center justify-between">
+                    <Label>Enable Privacy Insights</Label>
+                    <Switch
+                      checked={config.privacyInsights.enabled}
+                      onCheckedChange={(checked) => setConfig({...config, privacyInsights: {...config.privacyInsights, enabled: checked}})}
                     />
                   </div>
                   
-                  <div>
-                    <Label>Company Logo URL</Label>
+                  <div className="space-y-2">
+                    <Label>Widget Delay (milliseconds)</Label>
                     <Input
-                      value={config.companyLogo}
-                      onChange={(e) => setConfig({...config, companyLogo: e.target.value})}
-                      placeholder="https://example.com/logo.png"
+                      type="number"
+                      value={config.privacyInsights.widgetDelay}
+                      onChange={(e) => setConfig({...config, privacyInsights: {...config.privacyInsights, widgetDelay: parseInt(e.target.value)}})}
+                      min="1000"
+                      max="10000"
+                      step="500"
                     />
+                    <p className="text-xs text-gray-500">Delay before showing Privacy Insights widget after consent</p>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Widget Duration (milliseconds)</Label>
+                    <Input
+                      type="number"
+                      value={config.privacyInsights.widgetDuration}
+                      onChange={(e) => setConfig({...config, privacyInsights: {...config.privacyInsights, widgetDuration: parseInt(e.target.value)}})}
+                      min="5000"
+                      max="30000"
+                      step="1000"
+                    />
+                    <p className="text-xs text-gray-500">How long the widget stays visible</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Revenue Share</Label>
+                    <Select 
+                      value={config.privacyInsights.revenueShare.toString()} 
+                      onValueChange={(value) => setConfig({...config, privacyInsights: {...config.privacyInsights, revenueShare: parseFloat(value)}})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0.5">50% (Standard)</SelectItem>
+                        <SelectItem value="0.6">60% (Premium)</SelectItem>
+                        <SelectItem value="0.7">70% (Enterprise)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {config.privacyInsights.enabled && (
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Revenue Projection</h4>
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                          <div className="text-lg font-bold text-purple-600">
+                            {Math.round(currentData.visitors * 0.785).toLocaleString()}
+                          </div>
+                          <div className="text-xs text-gray-600">Monthly Consents</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-green-600">
+                            ${Math.round(currentData.visitors * 0.785 * 0.15 * config.privacyInsights.revenueShare).toLocaleString()}
+                          </div>
+                          <div className="text-xs text-gray-600">Est. Monthly Revenue</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Advanced Settings */}
+              {/* Compliance Configuration */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Advanced Settings</CardTitle>
-                  <CardDescription>Configure compliance and monetization</CardDescription>
+                  <CardTitle>Compliance Settings</CardTitle>
+                  <CardDescription>Configure legal compliance options</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>Enable Affiliate Ads</Label>
-                      <Switch
-                        checked={config.affiliateAds}
-                        onCheckedChange={(checked) => setConfig({...config, affiliateAds: checked})}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label>GDPR Compliance</Label>
-                      <Switch
-                        checked={config.compliance.gdpr}
-                        onCheckedChange={(checked) => setConfig({
-                          ...config,
-                          compliance: {...config.compliance, gdpr: checked}
-                        })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label>CCPA Compliance</Label>
-                      <Switch
-                        checked={config.compliance.ccpa}
-                        onCheckedChange={(checked) => setConfig({
-                          ...config,
-                          compliance: {...config.compliance, ccpa: checked}
-                        })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label>LGPD Compliance</Label>
-                      <Switch
-                        checked={config.compliance.lgpd}
-                        onCheckedChange={(checked) => setConfig({
-                          ...config,
-                          compliance: {...config.compliance, lgpd: checked}
-                        })}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Primary Jurisdiction</Label>
+                    <Select value={config.jurisdiction} onValueChange={(value) => setConfig({...config, jurisdiction: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">Auto-detect</SelectItem>
+                        <SelectItem value="gdpr">GDPR (European Union)</SelectItem>
+                        <SelectItem value="ccpa">CCPA (California)</SelectItem>
+                        <SelectItem value="lgpd">LGPD (Brazil)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-
-                  <div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label>Auto-block Cookies</Label>
+                    <Switch
+                      checked={config.autoBlock}
+                      onCheckedChange={(checked) => setConfig({...config, autoBlock: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label>Show Decline Button</Label>
+                    <Switch
+                      checked={config.showDeclineButton}
+                      onCheckedChange={(checked) => setConfig({...config, showDeclineButton: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label>Granular Consent</Label>
+                    <Switch
+                      checked={config.granularConsent}
+                      onCheckedChange={(checked) => setConfig({...config, granularConsent: checked})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
                     <Label>Consent Expiry (days)</Label>
                     <Input
                       type="number"
                       value={config.consentExpiry}
                       onChange={(e) => setConfig({...config, consentExpiry: parseInt(e.target.value)})}
-                      min="1"
-                      max="365"
+                      min="30"
+                      max="730"
                     />
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Styling Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Styling & Appearance</CardTitle>
+                  <CardDescription>Customize colors and visual appearance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Primary Color</Label>
+                    <Input
+                      type="color"
+                      value={config.customColors.accent}
+                      onChange={(e) => setConfig({...config, customColors: {...config.customColors, accent: e.target.value}})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Background Color</Label>
+                    <Input
+                      type="color"
+                      value={config.customColors.background}
+                      onChange={(e) => setConfig({...config, customColors: {...config.customColors, background: e.target.value}})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Text Color</Label>
+                    <Input
+                      type="color"
+                      value={config.customColors.text}
+                      onChange={(e) => setConfig({...config, customColors: {...config.customColors, text: e.target.value}})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Border Radius</Label>
+                    <Select value={config.borderRadius} onValueChange={(value) => setConfig({...config, borderRadius: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0px">Square (0px)</SelectItem>
+                        <SelectItem value="4px">Slightly Rounded (4px)</SelectItem>
+                        <SelectItem value="8px">Rounded (8px)</SelectItem>
+                        <SelectItem value="12px">Very Rounded (12px)</SelectItem>
+                        <SelectItem value="20px">Pill Shape (20px)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label>Show Company Logo</Label>
+                    <Switch
+                      checked={config.showLogo}
+                      onCheckedChange={(checked) => setConfig({...config, showLogo: checked})}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Generated Script */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Generated Script</CardTitle>
+                  <CardDescription>Copy this script to your website's &lt;head&gt; section</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-900 rounded-lg p-4 mb-4">
+                    <pre className="text-green-400 text-xs overflow-x-auto">
+                      <code>{generateWorkingScript()}</code>
+                    </pre>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button onClick={() => copyToClipboard(generateWorkingScript())} className="flex-1">
+                      Copy Script
+                    </Button>
+                    <Button onClick={downloadScript} variant="outline">
+                      Download
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
-          {/* Compliance Tab */}
-          <TabsContent value="compliance" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>🇪🇺</span>
-                    <span>GDPR</span>
-                  </CardTitle>
-                  <CardDescription>European Union compliance</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span>Status:</span>
-                      <Badge className={config.compliance.gdpr ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                        {config.compliance.gdpr ? "Enabled" : "Disabled"}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Ensures compliance with EU General Data Protection Regulation
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>🇺🇸</span>
-                    <span>CCPA</span>
-                  </CardTitle>
-                  <CardDescription>California compliance</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span>Status:</span>
-                      <Badge className={config.compliance.ccpa ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                        {config.compliance.ccpa ? "Enabled" : "Disabled"}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Complies with California Consumer Privacy Act
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>🇧🇷</span>
-                    <span>LGPD</span>
-                  </CardTitle>
-                  <CardDescription>Brazil compliance</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span>Status:</span>
-                      <Badge className={config.compliance.lgpd ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                        {config.compliance.lgpd ? "Enabled" : "Disabled"}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Follows Brazilian General Data Protection Law
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Preview Tab - Live Preview */}
+          {/* Preview Tab */}
           <TabsContent value="preview" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Live Preview</CardTitle>
-                <CardDescription>See how your cookie banner will look on different devices</CardDescription>
+                <CardDescription>See how your cookie banner will look with current configuration</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Device Selector */}
-                <div className="flex space-x-2">
-                  <Button
-                    variant={previewDevice === 'desktop' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPreviewDevice('desktop')}
-                  >
-                    🖥️ Desktop
-                  </Button>
-                  <Button
-                    variant={previewDevice === 'tablet' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPreviewDevice('tablet')}
-                  >
-                    📱 Tablet
-                  </Button>
-                  <Button
-                    variant={previewDevice === 'mobile' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPreviewDevice('mobile')}
-                  >
-                    📱 Mobile
-                  </Button>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex space-x-4">
+                    <Button 
+                      variant={previewDevice === 'desktop' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPreviewDevice('desktop')}
+                    >
+                      🖥️ Desktop
+                    </Button>
+                    <Button 
+                      variant={previewDevice === 'tablet' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPreviewDevice('tablet')}
+                    >
+                      📱 Tablet
+                    </Button>
+                    <Button 
+                      variant={previewDevice === 'mobile' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPreviewDevice('mobile')}
+                    >
+                      📱 Mobile
+                    </Button>
+                  </div>
+                  
+                  <LivePreview />
+                  
+                  {/* Configuration Summary */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium mb-2">Current Configuration:</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Company: {config.companyName}</div>
+                      <div>Position: {config.bannerPosition}</div>
+                      <div>Jurisdiction: {config.jurisdiction}</div>
+                      <div>Privacy Insights: {config.privacyInsights.enabled ? 'Enabled' : 'Disabled'}</div>
+                      <div>Auto-block: {config.autoBlock ? 'Yes' : 'No'}</div>
+                      <div>Granular Consent: {config.granularConsent ? 'Yes' : 'No'}</div>
+                    </div>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                {/* Live Preview */}
-                <LivePreview />
+          {/* Compliance Tab */}
+          <TabsContent value="compliance" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Compliance Overview</CardTitle>
+                <CardDescription>Monitor your compliance status across different regulations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-6 border rounded-lg">
+                    <div className="text-3xl mb-2">🇪🇺</div>
+                    <h3 className="font-semibold">GDPR</h3>
+                    <p className="text-sm text-gray-600 mb-2">European Union</p>
+                    <Badge variant={config.jurisdiction === 'gdpr' || config.jurisdiction === 'auto' ? 'default' : 'secondary'}>
+                      {config.jurisdiction === 'gdpr' || config.jurisdiction === 'auto' ? 'Active' : 'Available'}
+                    </Badge>
+                  </div>
+                  <div className="text-center p-6 border rounded-lg">
+                    <div className="text-3xl mb-2">🇺🇸</div>
+                    <h3 className="font-semibold">CCPA</h3>
+                    <p className="text-sm text-gray-600 mb-2">California</p>
+                    <Badge variant={config.jurisdiction === 'ccpa' ? 'default' : 'secondary'}>
+                      {config.jurisdiction === 'ccpa' ? 'Active' : 'Available'}
+                    </Badge>
+                  </div>
+                  <div className="text-center p-6 border rounded-lg">
+                    <div className="text-3xl mb-2">🇧🇷</div>
+                    <h3 className="font-semibold">LGPD</h3>
+                    <p className="text-sm text-gray-600 mb-2">Brazil</p>
+                    <Badge variant={config.jurisdiction === 'lgpd' ? 'default' : 'secondary'}>
+                      {config.jurisdiction === 'lgpd' ? 'Active' : 'Available'}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                {/* Configuration Summary */}
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium mb-2">Current Configuration:</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>Layout: {config.layout}</div>
-                    <div>Position: {config.position}</div>
-                    <div>Banner Type: {config.bannerType}</div>
-                    <div>Button Style: {config.buttonStyle}</div>
-                    <div>Theme: {config.theme}</div>
-                    <div>Affiliate Ads: {config.affiliateAds ? 'Enabled' : 'Disabled'}</div>
+          {/* Revenue Tab */}
+          <TabsContent value="revenue" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Privacy Insights Revenue</CardTitle>
+                <CardDescription>Track your earnings from the Privacy Insights system</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold mb-2">This Month</h3>
+                      <div className="text-3xl font-bold text-green-600">${currentData.revenue.toLocaleString()}</div>
+                      <p className="text-sm text-gray-600">+12.5% from last month</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold mb-2">Revenue Share</h3>
+                      <div className="text-3xl font-bold text-purple-600">{(config.privacyInsights.revenueShare * 100)}%</div>
+                      <p className="text-sm text-gray-600">Your share of Privacy Insights revenue</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="font-semibold">Recent Payouts</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span className="text-sm">June 2025</span>
+                        <span className="font-medium text-green-600">$2,156.80</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span className="text-sm">May 2025</span>
+                        <span className="font-medium text-green-600">$1,943.20</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span className="text-sm">April 2025</span>
+                        <span className="font-medium text-green-600">$1,789.40</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Payout Information</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Current Balance:</span>
+                          <span className="font-medium">${(currentData.revenue * config.privacyInsights.revenueShare).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Minimum Payout:</span>
+                          <span className="font-medium">$50.00</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Next Payout:</span>
+                          <span className="font-medium">End of Month</span>
+                        </div>
+                      </div>
+                      
+                      <Button className="w-full mt-4" disabled={(currentData.revenue * config.privacyInsights.revenueShare) < 50}>
+                        {(currentData.revenue * config.privacyInsights.revenueShare) >= 50 ? 'Request Payout' : 'Minimum Not Reached'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
