@@ -56,7 +56,7 @@
             const defaultConfig = {
                 // Basic configuration
                 domain: window.location.hostname,
-                apiEndpoint: 'https://api.cookiebot.ai',
+                apiEndpoint: 'https://cookiebot-ai-backend.vercel.app/api',
                 clientId: null,
                 
                 // Banner configuration
