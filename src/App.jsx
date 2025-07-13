@@ -60,6 +60,7 @@ import TermsOfService from './pages/TermsOfService'
 import Contact from './pages/Contact'
 import About from './pages/About'
 import Features from './pages/Features'
+import UnderConstructionBanner from './components/UnderConstructionBanner'
 import './App.css'
 
 // Import assets
@@ -1324,6 +1325,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead />
+      <UnderConstructionBanner />
       <Navigation />
       
       <Routes>
