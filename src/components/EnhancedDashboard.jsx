@@ -8,6 +8,7 @@ import { Label } from './ui/label.jsx'
 import { Switch } from './ui/switch.jsx'
 import { Textarea } from './ui/textarea.jsx'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.jsx'
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 // Enhanced Dashboard with Complete V3 Script Configuration
 // FIXED: Preview now properly loads the enhanced V3 script while preserving ALL existing functionality
@@ -1147,4 +1148,376 @@ const EnhancedDashboard = () => {
 }
 
 export default EnhancedDashboard
+// ===== PHASE 2 DASHBOARD ENHANCEMENTS =====
+// These enhancements add real-time analytics, live charts, and website selection
+// while preserving ALL existing functionality
+
+// Add these imports at the top of the file (after existing imports)
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+// Add these state variables to the existing useState declarations
+const [realTimeData, setRealTimeData] = useState({
+  todayVisitors: 0,
+  todayRevenue: 0,
+  consentRate: 0,
+  privacyInsights: 0,
+  hourlyBreakdown: [],
+  eventTypes: [],
+  revenueByEvent: [],
+  revenueTrend: [],
+  recentActivity: []
+})
+
+const [selectedWebsite, setSelectedWebsite] = useState('all')
+const [userWebsites, setUserWebsites] = useState([])
+const [autoRefresh, setAutoRefresh] = useState(true)
+const [lastUpdated, setLastUpdated] = useState(new Date())
+const [analyticsLoading, setAnalyticsLoading] = useState(false)
+const [dateRange, setDateRange] = useState({
+  start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  end: new Date().toISOString().split('T')[0]
+})
+
+// Add these functions after the existing loadRealData function
+const loadRealTimeAnalytics = async () => {
+  if (!isAuthenticated) return
+  
+  setAnalyticsLoading(true)
+  try {
+    const token = localStorage.getItem('authToken')
+    const headers = { 'Authorization': `Bearer ${token}` }
+    
+    // Load user websites for selection
+    const websitesResponse = await fetch('/api/websites/list', { headers })
+    if (websitesResponse.ok) {
+      const websites = await websitesResponse.json()
+      setUserWebsites(websites)
+    }
+    
+    // Load dashboard summary
+    const summaryResponse = await fetch('/api/user/dashboard-summary', { headers })
+    if (summaryResponse.ok) {
+      const summary = await summaryResponse.json()
+      setRealTimeData(prev => ({
+        ...prev,
+        todayVisitors: summary.today_visitors,
+        todayRevenue: summary.today_revenue,
+        consentRate: summary.consent_rate,
+        privacyInsights: summary.privacy_insights_clicks
+      }))
+    }
+    
+    // Load specific website analytics if selected
+    if (selectedWebsite !== 'all') {
+      const metricsResponse = await fetch(`/api/websites/${selectedWebsite}/metrics`, { headers })
+      if (metricsResponse.ok) {
+        const metrics = await metricsResponse.json()
+        setRealTimeData(prev => ({
+          ...prev,
+          hourlyBreakdown: metrics.hourly_breakdown,
+          eventTypes: metrics.event_types,
+          revenueByEvent: metrics.revenue_by_event
+        }))
+      }
+      
+      const analyticsResponse = await fetch(`/api/websites/${selectedWebsite}/analytics?start_date=${dateRange.start}&end_date=${dateRange.end}&granularity=daily`, { headers })
+      if (analyticsResponse.ok) {
+        const analytics = await analyticsResponse.json()
+        setRealTimeData(prev => ({
+          ...prev,
+          revenueTrend: analytics.daily_breakdown,
+          recentActivity: analytics.recent_activity
+        }))
+      }
+    }
+    
+    setLastUpdated(new Date())
+  } catch (error) {
+    console.error('Error loading real-time analytics:', error)
+  } finally {
+    setAnalyticsLoading(false)
+  }
+}
+
+// Add useEffect for auto-refresh
+useEffect(() => {
+  if (autoRefresh && isAuthenticated) {
+    loadRealTimeAnalytics()
+    const interval = setInterval(loadRealTimeAnalytics, 30000) // Refresh every 30 seconds
+    return () => clearInterval(interval)
+  }
+}, [autoRefresh, isAuthenticated, selectedWebsite, dateRange])
+
+// Chart color scheme
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+
+// Enhanced Analytics Tab Component (replaces the existing analytics tab content)
+const EnhancedAnalyticsTab = () => {
+  const currentData = isAuthenticated ? realTimeData : demoData
+  
+  return (
+    <div className="space-y-6">
+      {/* Real-time Controls */}
+      {isAuthenticated && (
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Real-time Analytics</CardTitle>
+                <CardDescription>Live data updates every 30 seconds</CardDescription>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={autoRefresh}
+                    onCheckedChange={setAutoRefresh}
+                  />
+                  <Label>Auto-refresh</Label>
+                </div>
+                <Select value={selectedWebsite} onValueChange={setSelectedWebsite}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Select website" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Websites</SelectItem>
+                    {userWebsites.map(website => (
+                      <SelectItem key={website.id} value={website.id.toString()}>
+                        {website.domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center text-sm text-gray-500">
+              <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+              {analyticsLoading && <span>Updating...</span>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Live Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Visitors</CardTitle>
+            <div className="h-4 w-4 text-blue-600">👥</div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{currentData.todayVisitors || currentData.visitors}</div>
+            <p className="text-xs text-muted-foreground">
+              {isAuthenticated ? 'Live count' : '+12% from yesterday'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Consent Rate</CardTitle>
+            <div className="h-4 w-4 text-green-600">✅</div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(currentData.consentRate || currentData.consent_rate).toFixed(1)}%</div>
+            <p className="text-xs text-muted-foreground">
+              {isAuthenticated ? 'Real-time rate' : '+2.5% from last week'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+            <div className="h-4 w-4 text-yellow-600">💰</div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${(currentData.todayRevenue || currentData.revenue).toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              {isAuthenticated ? 'Live earnings' : '+8.2% from yesterday'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Privacy Insights</CardTitle>
+            <div className="h-4 w-4 text-purple-600">🔍</div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{currentData.privacyInsights || Math.floor(Math.random() * 50) + 20}</div>
+            <p className="text-xs text-muted-foreground">
+              {isAuthenticated ? 'Today\'s clicks' : '+15% engagement'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Interactive Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Hourly Breakdown Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Hourly Traffic Pattern</CardTitle>
+            <CardDescription>Visitor activity throughout the day</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={currentData.hourlyBreakdown || generateDemoHourlyData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="hour" />
+                <YAxis />
+                <Tooltip />
+                <Area type="monotone" dataKey="visitors" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Event Types Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Interaction Types</CardTitle>
+            <CardDescription>Distribution of user interactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={currentData.eventTypes || generateDemoEventTypes()}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="count"
+                >
+                  {(currentData.eventTypes || generateDemoEventTypes()).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue by Event Type */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue by Event Type</CardTitle>
+            <CardDescription>Revenue attribution by interaction</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={currentData.revenueByEvent || generateDemoRevenueByEvent()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="event_type" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']} />
+                <Bar dataKey="revenue" fill="#00C49F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+            <CardDescription>Historical revenue performance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={currentData.revenueTrend || generateDemoRevenueTrend()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']} />
+                <Line type="monotone" dataKey="revenue" stroke="#FF8042" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Daily performance breakdown</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2">Date</th>
+                  <th className="text-right p-2">Visitors</th>
+                  <th className="text-right p-2">Consents</th>
+                  <th className="text-right p-2">Rate</th>
+                  <th className="text-right p-2">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(currentData.recentActivity || demoData.recentActivity).map((day, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="p-2">{day.date}</td>
+                    <td className="text-right p-2">{day.visitors.toLocaleString()}</td>
+                    <td className="text-right p-2">{day.consents.toLocaleString()}</td>
+                    <td className="text-right p-2">{((day.consents / day.visitors) * 100).toFixed(1)}%</td>
+                    <td className="text-right p-2">${day.revenue.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Demo data generators for charts
+function generateDemoHourlyData() {
+  return Array.from({ length: 24 }, (_, i) => ({
+    hour: `${i}:00`,
+    visitors: Math.floor(Math.random() * 100) + 20
+  }))
+}
+
+function generateDemoEventTypes() {
+  return [
+    { name: 'Page Views', count: 1250 },
+    { name: 'Consents', count: 890 },
+    { name: 'Privacy Insights', count: 45 },
+    { name: 'Form Submissions', count: 120 },
+    { name: 'Newsletter Signups', count: 78 }
+  ]
+}
+
+function generateDemoRevenueByEvent() {
+  return [
+    { event_type: 'Page View', revenue: 12.50 },
+    { event_type: 'Consent', revenue: 44.50 },
+    { event_type: 'Privacy Insight', revenue: 6.75 },
+    { event_type: 'Form Submit', revenue: 12.00 },
+    { event_type: 'Newsletter', revenue: 6.24 }
+  ]
+}
+
+function generateDemoRevenueTrend() {
+  return Array.from({ length: 7 }, (_, i) => ({
+    date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    revenue: Math.random() * 50 + 30
+  }))
+}
+
+// Replace the existing Analytics TabsContent with this enhanced version
+// Find and replace the existing analytics TabsContent section with:
+// <TabsContent value="analytics" className="space-y-6">
+//   <EnhancedAnalyticsTab />
+// </TabsContent>
 
