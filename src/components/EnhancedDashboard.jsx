@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from './ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card.jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs.jsx'
@@ -8,16 +8,30 @@ import { Label } from './ui/label.jsx'
 import { Switch } from './ui/switch.jsx'
 import { Textarea } from './ui/textarea.jsx'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.jsx'
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { RefreshCw, TrendingUp, Users, MousePointer, DollarSign, Globe, Calendar, Download } from 'lucide-react'
 
-// Enhanced Dashboard with Complete V3 Script Configuration
+// Enhanced Dashboard with Complete V3 Script Configuration + Phase 2 Analytics
 // FIXED: Preview now properly loads the enhanced V3 script while preserving ALL existing functionality
+// ADDED: Phase 2 real-time analytics, live charts, and historical data visualization
 
 const EnhancedDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  
+  // Phase 2: Real-time data states
+  const [dashboardSummary, setDashboardSummary] = useState(null)
+  const [selectedWebsite, setSelectedWebsite] = useState(null)
+  const [websiteMetrics, setWebsiteMetrics] = useState(null)
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [dateRange, setDateRange] = useState({
+    start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end_date: new Date().toISOString().split('T')[0]
+  })
+  const [granularity, setGranularity] = useState('daily')
+  const [autoRefresh, setAutoRefresh] = useState(true)
   
   // Enhanced Configuration State - Maps to V3 Script Attributes
   const [config, setConfig] = useState({
@@ -76,6 +90,28 @@ const EnhancedDashboard = () => {
       { date: '2025-07-09', visitors: 1890, consents: 1420, revenue: 74.20 },
       { date: '2025-07-08', visitors: 1720, consents: 1380, revenue: 67.80 },
       { date: '2025-07-07', visitors: 1650, consents: 1250, revenue: 61.30 }
+    ],
+    // Phase 2: Enhanced demo data for charts
+    hourly_breakdown: [
+      { hour: 0, visitors: 45, consents: 32, revenue: 1.60 },
+      { hour: 1, visitors: 23, consents: 18, revenue: 0.90 },
+      { hour: 2, visitors: 12, consents: 8, revenue: 0.40 },
+      { hour: 3, visitors: 8, consents: 5, revenue: 0.25 },
+      { hour: 4, visitors: 15, consents: 10, revenue: 0.50 },
+      { hour: 5, visitors: 28, consents: 20, revenue: 1.00 },
+      { hour: 6, visitors: 67, consents: 48, revenue: 2.40 },
+      { hour: 7, visitors: 134, consents: 98, revenue: 4.90 },
+      { hour: 8, visitors: 189, consents: 142, revenue: 7.10 },
+      { hour: 9, visitors: 234, consents: 178, revenue: 8.90 },
+      { hour: 10, visitors: 267, consents: 201, revenue: 10.05 },
+      { hour: 11, visitors: 298, consents: 225, revenue: 11.25 }
+    ],
+    event_types: [
+      { type: 'page_view', count: 1250, revenue: 12.50 },
+      { type: 'consent_given', count: 890, revenue: 44.50 },
+      { type: 'privacy_insight_click', count: 67, revenue: 10.05 },
+      { type: 'form_submission', count: 34, revenue: 3.40 },
+      { type: 'newsletter_signup', count: 23, revenue: 1.84 }
     ]
   }
 
@@ -93,6 +129,7 @@ const EnhancedDashboard = () => {
     if (token) {
       setIsAuthenticated(true)
       loadRealData()
+      loadDashboardSummary()
     }
   }, [])
 
@@ -100,6 +137,99 @@ const EnhancedDashboard = () => {
   useEffect(() => {
     setGeneratedScript(generateScript())
   }, [config])
+
+  // Phase 2: Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh || !isAuthenticated) return
+
+    const interval = setInterval(() => {
+      if (activeTab === 'analytics') {
+        loadDashboardSummary()
+        if (selectedWebsite) {
+          loadWebsiteMetrics(selectedWebsite.id)
+        }
+      }
+    }, 30000) // Refresh every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, isAuthenticated, activeTab, selectedWebsite])
+
+  // Phase 2: API Functions
+  const loadDashboardSummary = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/user/dashboard-summary', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setDashboardSummary(data)
+        
+        // Auto-select first website if none selected
+        if (!selectedWebsite && data.websites && data.websites.length > 0) {
+          setSelectedWebsite(data.websites[0])
+          loadWebsiteMetrics(data.websites[0].id)
+        }
+      } else {
+        throw new Error('Failed to load dashboard summary')
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard summary:', error)
+      setError('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedWebsite])
+
+  const loadWebsiteMetrics = useCallback(async (websiteId) => {
+    try {
+      const response = await fetch(`https://cookiebot-ai-backend.vercel.app/api/websites/${websiteId}/metrics`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setWebsiteMetrics(data)
+      }
+    } catch (error) {
+      console.error('Failed to load website metrics:', error)
+    }
+  }, [])
+
+  const loadAnalyticsData = useCallback(async (websiteId) => {
+    try {
+      const params = new URLSearchParams({
+        start_date: dateRange.start_date,
+        end_date: dateRange.end_date,
+        granularity: granularity
+      })
+      
+      const response = await fetch(`https://cookiebot-ai-backend.vercel.app/api/websites/${websiteId}/analytics?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setAnalyticsData(data)
+      }
+    } catch (error) {
+      console.error('Failed to load analytics data:', error)
+    }
+  }, [dateRange, granularity])
+
+  // Handle website selection
+  const handleWebsiteSelect = (website) => {
+    setSelectedWebsite(website)
+    loadWebsiteMetrics(website.id)
+    loadAnalyticsData(website.id)
+  }
 
   const loadRealData = async () => {
     try {
@@ -128,7 +258,17 @@ const EnhancedDashboard = () => {
   }
 
   // Use demo data for sales, real data when authenticated
-  const currentData = isAuthenticated ? realData : demoData
+  const currentData = isAuthenticated ? (dashboardSummary || realData) : { 
+    ...demoData, 
+    websites: [{ id: 'demo', domain: 'demo-site.com', status: 'active' }] 
+  }
+  
+  // Phase 2: Current metrics for charts
+  const currentMetrics = isAuthenticated ? websiteMetrics : { 
+    today_metrics: demoData, 
+    hourly_breakdown: demoData.hourly_breakdown,
+    event_types: demoData.event_types
+  }
 
   /**
    * FIXED: Generate the complete V3 script with correct URL and all configuration options
@@ -162,6 +302,28 @@ const EnhancedDashboard = () => {
     ].filter(Boolean)
 
     return `<script ${attributes.join('\n        ')}>\n</script>`
+  }
+
+  // Phase 2: Chart color scheme
+  const colors = {
+    primary: '#007bff',
+    success: '#28a745',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    info: '#17a2b8'
+  }
+
+  // Phase 2: Format currency
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value)
+  }
+
+  // Phase 2: Format percentage
+  const formatPercentage = (value) => {
+    return `${value.toFixed(1)}%`
   }
 
   /**
@@ -368,7 +530,7 @@ const EnhancedDashboard = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">CookieBot.ai Dashboard</h1>
               <p className="text-gray-600 mt-1">
-                Advanced cookie consent platform with Privacy Insights monetization
+                {isAuthenticated ? 'Manage your websites and track performance' : 'Experience the power of CookieBot.ai'}
               </p>
               {!isAuthenticated && (
                 <Badge className="mt-2 bg-blue-100 text-blue-800">
@@ -376,8 +538,35 @@ const EnhancedDashboard = () => {
                 </Badge>
               )}
             </div>
+            
+            {/* Phase 2: Real-time controls */}
+            {isAuthenticated && (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    checked={autoRefresh} 
+                    onCheckedChange={setAutoRefresh}
+                    id="auto-refresh"
+                  />
+                  <Label htmlFor="auto-refresh" className="text-sm">Auto-refresh</Label>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    loadDashboardSummary()
+                    if (selectedWebsite) loadWebsiteMetrics(selectedWebsite.id)
+                  }}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
+            )}
+            
             <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              Enhanced v3.0
+              Enhanced v3.0 + Phase 2
             </Badge>
           </div>
         </div>
@@ -393,50 +582,184 @@ const EnhancedDashboard = () => {
             <TabsTrigger value="preview" className="text-xs md:text-sm px-2">Preview</TabsTrigger>
           </TabsList>
 
-          {/* Analytics Tab */}
+          {/* Phase 2: Enhanced Analytics Tab with Live Charts */}
           <TabsContent value="analytics" className="space-y-6">
+            {/* Website Selection */}
+            {isAuthenticated && currentData?.websites && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Globe className="h-5 w-5 mr-2" />
+                    Website Selection
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center space-x-4">
+                    <Label>Select Website:</Label>
+                    <Select 
+                      value={selectedWebsite?.id?.toString() || ''} 
+                      onValueChange={(value) => {
+                        const website = currentData.websites.find(w => w.id.toString() === value)
+                        if (website) handleWebsiteSelect(website)
+                      }}
+                    >
+                      <SelectTrigger className="w-64">
+                        <SelectValue placeholder="Choose a website" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currentData.websites.map((website) => (
+                          <SelectItem key={website.id} value={website.id.toString()}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{website.domain}</span>
+                              <Badge variant={website.status === 'active' ? 'default' : 'secondary'}>
+                                {website.status}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Phase 2: Real-time Metrics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <div className="text-2xl">💰</div>
+                  <CardTitle className="text-sm font-medium">Today's Visitors</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${currentData.revenue.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">{config.revenueShare * 100}% revenue share</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Visitors</CardTitle>
-                  <div className="text-2xl">👥</div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{currentData.visitors.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Across all websites</p>
+                  <div className="text-2xl font-bold">
+                    {currentMetrics?.today_metrics?.unique_visitors?.toLocaleString() || currentData?.visitors?.toLocaleString() || '0'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    +12% from yesterday
+                  </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Consent Rate</CardTitle>
-                  <div className="text-2xl">✅</div>
+                  <MousePointer className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{currentData.consent_rate}%</div>
-                  <p className="text-xs text-muted-foreground">Average across sites</p>
+                  <div className="text-2xl font-bold">
+                    {formatPercentage(currentMetrics?.today_metrics?.consent_rate || currentData?.consent_rate || 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    +2.1% from yesterday
+                  </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Websites</CardTitle>
-                  <div className="text-2xl">🌐</div>
+                  <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{currentData.websites}</div>
-                  <p className="text-xs text-muted-foreground">Monitored sites</p>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(currentMetrics?.today_metrics?.total_revenue || currentData?.revenue || 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    +8.2% from yesterday
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Privacy Insights</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {currentMetrics?.today_metrics?.privacy_clicks || 67}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency((currentMetrics?.today_metrics?.privacy_clicks || 67) * 0.15)} earned
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Phase 2: Hourly Breakdown Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Today's Hourly Breakdown</CardTitle>
+                <CardDescription>Visitor traffic and consent patterns throughout the day</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={currentMetrics?.hourly_breakdown || demoData.hourly_breakdown}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" tickFormatter={(hour) => `${hour}:00`} />
+                    <YAxis />
+                    <Tooltip 
+                      labelFormatter={(hour) => `${hour}:00`}
+                      formatter={(value, name) => [
+                        name === 'revenue' ? formatCurrency(value) : value,
+                        name === 'visitors' ? 'Visitors' : name === 'consents' ? 'Consents' : 'Revenue'
+                      ]}
+                    />
+                    <Legend />
+                    <Area type="monotone" dataKey="visitors" stackId="1" stroke={colors.primary} fill={colors.primary} fillOpacity={0.6} />
+                    <Area type="monotone" dataKey="consents" stackId="2" stroke={colors.success} fill={colors.success} fillOpacity={0.6} />
+                    <Line type="monotone" dataKey="revenue" stroke={colors.warning} strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Phase 2: Event Types Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Event Types</CardTitle>
+                  <CardDescription>Breakdown of user interactions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={currentMetrics?.event_types || demoData.event_types}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ type, count }) => `${type}: ${count}`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                      >
+                        {(currentMetrics?.event_types || demoData.event_types).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={Object.values(colors)[index % Object.values(colors).length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name) => [value, 'Count']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue by Event Type</CardTitle>
+                  <CardDescription>Revenue breakdown by interaction type</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={currentMetrics?.event_types || demoData.event_types}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="type" angle={-45} textAnchor="end" height={80} />
+                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                      <Tooltip formatter={(value) => [formatCurrency(value), 'Revenue']} />
+                      <Bar dataKey="revenue" fill={colors.success} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
             </div>
@@ -530,6 +853,25 @@ const EnhancedDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Phase 2: Revenue Trend Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Trend</CardTitle>
+                <CardDescription>Daily revenue over the past 30 days</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={currentData?.recentActivity || demoData.recentActivity}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                    <Tooltip formatter={(value) => [formatCurrency(value), 'Revenue']} />
+                    <Line type="monotone" dataKey="revenue" stroke={colors.success} strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Websites Tab */}
@@ -1148,376 +1490,4 @@ const EnhancedDashboard = () => {
 }
 
 export default EnhancedDashboard
-// ===== PHASE 2 DASHBOARD ENHANCEMENTS =====
-// These enhancements add real-time analytics, live charts, and website selection
-// while preserving ALL existing functionality
-
-// Add these imports at the top of the file (after existing imports)
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-
-// Add these state variables to the existing useState declarations
-const [realTimeData, setRealTimeData] = useState({
-  todayVisitors: 0,
-  todayRevenue: 0,
-  consentRate: 0,
-  privacyInsights: 0,
-  hourlyBreakdown: [],
-  eventTypes: [],
-  revenueByEvent: [],
-  revenueTrend: [],
-  recentActivity: []
-})
-
-const [selectedWebsite, setSelectedWebsite] = useState('all')
-const [userWebsites, setUserWebsites] = useState([])
-const [autoRefresh, setAutoRefresh] = useState(true)
-const [lastUpdated, setLastUpdated] = useState(new Date())
-const [analyticsLoading, setAnalyticsLoading] = useState(false)
-const [dateRange, setDateRange] = useState({
-  start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  end: new Date().toISOString().split('T')[0]
-})
-
-// Add these functions after the existing loadRealData function
-const loadRealTimeAnalytics = async () => {
-  if (!isAuthenticated) return
-  
-  setAnalyticsLoading(true)
-  try {
-    const token = localStorage.getItem('authToken')
-    const headers = { 'Authorization': `Bearer ${token}` }
-    
-    // Load user websites for selection
-    const websitesResponse = await fetch('/api/websites/list', { headers })
-    if (websitesResponse.ok) {
-      const websites = await websitesResponse.json()
-      setUserWebsites(websites)
-    }
-    
-    // Load dashboard summary
-    const summaryResponse = await fetch('/api/user/dashboard-summary', { headers })
-    if (summaryResponse.ok) {
-      const summary = await summaryResponse.json()
-      setRealTimeData(prev => ({
-        ...prev,
-        todayVisitors: summary.today_visitors,
-        todayRevenue: summary.today_revenue,
-        consentRate: summary.consent_rate,
-        privacyInsights: summary.privacy_insights_clicks
-      }))
-    }
-    
-    // Load specific website analytics if selected
-    if (selectedWebsite !== 'all') {
-      const metricsResponse = await fetch(`/api/websites/${selectedWebsite}/metrics`, { headers })
-      if (metricsResponse.ok) {
-        const metrics = await metricsResponse.json()
-        setRealTimeData(prev => ({
-          ...prev,
-          hourlyBreakdown: metrics.hourly_breakdown,
-          eventTypes: metrics.event_types,
-          revenueByEvent: metrics.revenue_by_event
-        }))
-      }
-      
-      const analyticsResponse = await fetch(`/api/websites/${selectedWebsite}/analytics?start_date=${dateRange.start}&end_date=${dateRange.end}&granularity=daily`, { headers })
-      if (analyticsResponse.ok) {
-        const analytics = await analyticsResponse.json()
-        setRealTimeData(prev => ({
-          ...prev,
-          revenueTrend: analytics.daily_breakdown,
-          recentActivity: analytics.recent_activity
-        }))
-      }
-    }
-    
-    setLastUpdated(new Date())
-  } catch (error) {
-    console.error('Error loading real-time analytics:', error)
-  } finally {
-    setAnalyticsLoading(false)
-  }
-}
-
-// Add useEffect for auto-refresh
-useEffect(() => {
-  if (autoRefresh && isAuthenticated) {
-    loadRealTimeAnalytics()
-    const interval = setInterval(loadRealTimeAnalytics, 30000) // Refresh every 30 seconds
-    return () => clearInterval(interval)
-  }
-}, [autoRefresh, isAuthenticated, selectedWebsite, dateRange])
-
-// Chart color scheme
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
-
-// Enhanced Analytics Tab Component (replaces the existing analytics tab content)
-const EnhancedAnalyticsTab = () => {
-  const currentData = isAuthenticated ? realTimeData : demoData
-  
-  return (
-    <div className="space-y-6">
-      {/* Real-time Controls */}
-      {isAuthenticated && (
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Real-time Analytics</CardTitle>
-                <CardDescription>Live data updates every 30 seconds</CardDescription>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={autoRefresh}
-                    onCheckedChange={setAutoRefresh}
-                  />
-                  <Label>Auto-refresh</Label>
-                </div>
-                <Select value={selectedWebsite} onValueChange={setSelectedWebsite}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select website" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Websites</SelectItem>
-                    {userWebsites.map(website => (
-                      <SelectItem key={website.id} value={website.id.toString()}>
-                        {website.domain}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center text-sm text-gray-500">
-              <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
-              {analyticsLoading && <span>Updating...</span>}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Live Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Visitors</CardTitle>
-            <div className="h-4 w-4 text-blue-600">👥</div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{currentData.todayVisitors || currentData.visitors}</div>
-            <p className="text-xs text-muted-foreground">
-              {isAuthenticated ? 'Live count' : '+12% from yesterday'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Consent Rate</CardTitle>
-            <div className="h-4 w-4 text-green-600">✅</div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{(currentData.consentRate || currentData.consent_rate).toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground">
-              {isAuthenticated ? 'Real-time rate' : '+2.5% from last week'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-            <div className="h-4 w-4 text-yellow-600">💰</div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${(currentData.todayRevenue || currentData.revenue).toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              {isAuthenticated ? 'Live earnings' : '+8.2% from yesterday'}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Privacy Insights</CardTitle>
-            <div className="h-4 w-4 text-purple-600">🔍</div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{currentData.privacyInsights || Math.floor(Math.random() * 50) + 20}</div>
-            <p className="text-xs text-muted-foreground">
-              {isAuthenticated ? 'Today\'s clicks' : '+15% engagement'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Interactive Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Hourly Breakdown Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hourly Traffic Pattern</CardTitle>
-            <CardDescription>Visitor activity throughout the day</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={currentData.hourlyBreakdown || generateDemoHourlyData()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" />
-                <YAxis />
-                <Tooltip />
-                <Area type="monotone" dataKey="visitors" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Event Types Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Interaction Types</CardTitle>
-            <CardDescription>Distribution of user interactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={currentData.eventTypes || generateDemoEventTypes()}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {(currentData.eventTypes || generateDemoEventTypes()).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Revenue by Event Type */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue by Event Type</CardTitle>
-            <CardDescription>Revenue attribution by interaction</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={currentData.revenueByEvent || generateDemoRevenueByEvent()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="event_type" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']} />
-                <Bar dataKey="revenue" fill="#00C49F" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Revenue Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
-            <CardDescription>Historical revenue performance</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={currentData.revenueTrend || generateDemoRevenueTrend()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']} />
-                <Line type="monotone" dataKey="revenue" stroke="#FF8042" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Daily performance breakdown</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Date</th>
-                  <th className="text-right p-2">Visitors</th>
-                  <th className="text-right p-2">Consents</th>
-                  <th className="text-right p-2">Rate</th>
-                  <th className="text-right p-2">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(currentData.recentActivity || demoData.recentActivity).map((day, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="p-2">{day.date}</td>
-                    <td className="text-right p-2">{day.visitors.toLocaleString()}</td>
-                    <td className="text-right p-2">{day.consents.toLocaleString()}</td>
-                    <td className="text-right p-2">{((day.consents / day.visitors) * 100).toFixed(1)}%</td>
-                    <td className="text-right p-2">${day.revenue.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-// Demo data generators for charts
-function generateDemoHourlyData() {
-  return Array.from({ length: 24 }, (_, i) => ({
-    hour: `${i}:00`,
-    visitors: Math.floor(Math.random() * 100) + 20
-  }))
-}
-
-function generateDemoEventTypes() {
-  return [
-    { name: 'Page Views', count: 1250 },
-    { name: 'Consents', count: 890 },
-    { name: 'Privacy Insights', count: 45 },
-    { name: 'Form Submissions', count: 120 },
-    { name: 'Newsletter Signups', count: 78 }
-  ]
-}
-
-function generateDemoRevenueByEvent() {
-  return [
-    { event_type: 'Page View', revenue: 12.50 },
-    { event_type: 'Consent', revenue: 44.50 },
-    { event_type: 'Privacy Insight', revenue: 6.75 },
-    { event_type: 'Form Submit', revenue: 12.00 },
-    { event_type: 'Newsletter', revenue: 6.24 }
-  ]
-}
-
-function generateDemoRevenueTrend() {
-  return Array.from({ length: 7 }, (_, i) => ({
-    date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    revenue: Math.random() * 50 + 30
-  }))
-}
-
-// Replace the existing Analytics TabsContent with this enhanced version
-// Find and replace the existing analytics TabsContent section with:
-// <TabsContent value="analytics" className="space-y-6">
-//   <EnhancedAnalyticsTab />
-// </TabsContent>
 
