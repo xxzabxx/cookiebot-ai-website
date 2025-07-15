@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'
 import { Button } from './ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card.jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs.jsx'
@@ -1073,7 +1074,7 @@ const EnhancedDashboard = () => {
           </Card>
         </TabsContent>
 
-        {/* Preview Tab */}
+        {/* Preview Tab - FIXED JSX SYNTAX */}
         <TabsContent value="preview" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Live Preview</h2>
@@ -1087,7 +1088,7 @@ const EnhancedDashboard = () => {
           <Card>
             <CardContent className="p-0">
               <iframe
-                src="data:text/html;charset=utf-8,<!DOCTYPE html><html><head><title>Preview</title></head><body><h1>CookieBot.ai Preview</h1><p>Your enhanced V3 script will appear here</p><script>" + encodeURIComponent(generateV3Script()) + "</script></body></html>"
+                src={`data:text/html;charset=utf-8,<!DOCTYPE html><html><head><title>Preview</title></head><body><h1>CookieBot.ai Preview</h1><p>Your enhanced V3 script will appear here</p><script>${encodeURIComponent(generateV3Script())}</script></body></html>`}
                 className="w-full h-96 border-0"
                 title="CookieBot.ai Preview"
               />
