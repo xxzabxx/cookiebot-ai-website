@@ -1087,7 +1087,7 @@ const EnhancedDashboard = () => {
           <Card>
             <CardContent className="p-0">
               <iframe
-                src="data:text/html;charset=utf-8,<!DOCTYPE html><html><head><title>Preview</title></head><body><h1>CookieBot.ai Preview</h1><p>Your enhanced V3 script will appear here</p><script>" + encodeURIComponent(generateV3Script()) + "</script></body></html>"
+                src={`data:text/html;charset=utf-8,<!DOCTYPE html><html><head><title>Preview</title></head><body><h1>CookieBot.ai Preview</h1><p>Your enhanced V3 script will appear here</p><script>${encodeURIComponent(generateV3Script())}</script></body></html>`}
                 className="w-full h-96 border-0"
                 title="CookieBot.ai Preview"
               />
