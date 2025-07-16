@@ -20,7 +20,7 @@ const ComplianceScanner = () => {
   const makeApiCall = async (endpoint, options = {}) => {
     try {
       const token = localStorage.getItem('authToken')
-      const response = await fetch(`cookiebot-ai-backend.railway.internal${endpoint}`, {
+      const response = await fetch(`cookiebot-ai-backend-production.up.railway.app${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` }),
