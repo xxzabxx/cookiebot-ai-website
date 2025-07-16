@@ -103,7 +103,7 @@ const EnhancedDashboard = () => {
   const loadRealData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('cookiebot-ai-backend.railway.internal/api/analytics/dashboard', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/analytics/dashboard', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -134,9 +134,9 @@ const EnhancedDashboard = () => {
    */
   const generateScript = () => {
     const attributes = [
-      `src="https://cookiebot-ai-backend.railway.internal/static/enhanced_cookiebot_ai_v3.js"`,
+      `src="https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js"`,
       `data-cbid="${config.clientId}"`,
-      `data-api-endpoint="https://cookiebot-ai-backend.railway.internal/api"`,
+      `data-api-endpoint="https://cookiebot-ai-backend-production.up.railway.app/api"`,
       `data-company-name="${config.companyName}"`,
       config.logoUrl && `data-logo-url="${config.logoUrl}"`,
       `data-banner-position="${config.bannerPosition}"`,
@@ -315,9 +315,9 @@ const EnhancedDashboard = () => {
     </div>
 
     <!-- FIXED: Load the enhanced V3 script with correct URL and all configuration attributes -->
-    <script src="https://cookiebot-ai-backend.railway.internal/static/enhanced_cookiebot_ai_v3.js"
+    <script src="https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js"
             data-cbid="${config.clientId}"
-            data-api-endpoint="https://cookiebot-ai-backend.railway.internal/api"
+            data-api-endpoint="https://cookiebot-ai-backend-production.up.railway.app/api"
             data-company-name="${config.companyName}"
             ${config.logoUrl ? `data-logo-url="${config.logoUrl}"` : ''}
             data-banner-position="${config.bannerPosition}"
@@ -909,7 +909,7 @@ const EnhancedDashboard = () => {
                 <div className="p-3 bg-orange-50 rounded-lg">
                   <p className="text-sm text-orange-800">
                     <strong>⚠️ Important:</strong> Make sure you have deployed the enhanced V3 script to your backend at 
-                    <code className="bg-orange-200 px-1 rounded">https://cookiebot-ai-backend.railway.internal/static/enhanced_cookiebot_ai_v3.js</code>
+                    <code className="bg-orange-200 px-1 rounded">https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js</code>
                   </p>
                 </div>
               </CardContent>
