@@ -20,7 +20,7 @@ const ComplianceScanner = () => {
   const makeApiCall = async (endpoint, options = {}) => {
     try {
       const token = localStorage.getItem('authToken')
-      const response = await fetch(`https://cookiebot-ai-backend.vercel.app${endpoint}`, {
+      const response = await fetch(`cookiebot-ai-backend.railway.internal${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` }),
