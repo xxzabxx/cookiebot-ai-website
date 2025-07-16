@@ -1011,7 +1011,7 @@ const ContactSection = () => {
 
     try {
       // Get the API endpoint from environment or use default
-      const apiEndpoint = process.env.REACT_APP_API_ENDPOINT || 'https://cookiebot-ai-backend.vercel.app'
+      const apiEndpoint = process.env.REACT_APP_API_ENDPOINT || 'https://cookiebot-ai-backend-production.up.railway.app'
       
       const response = await fetch(`${apiEndpoint}/api/contact`, {
         method: 'POST',
