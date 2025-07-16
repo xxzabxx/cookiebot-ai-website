@@ -208,7 +208,7 @@ const EnhancedDashboard = () => {
 
   const loadWebsiteMetrics = useCallback(async (websiteId) => {
     try {
-      const response = await fetch(`https://cookiebot-ai-backend.vercel.app/api/websites/${websiteId}/metrics`, {
+      const response = await fetch(`https://cookiebot-ai-backend-production.up.railway.app/api/websites/${websiteId}/metrics`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -231,7 +231,7 @@ const EnhancedDashboard = () => {
         granularity: granularity
       })
       
-      const response = await fetch(`https://cookiebot-ai-backend.vercel.app/api/websites/${websiteId}/analytics?${params}`, {
+      const response = await fetch(`https://cookiebot-ai-backend-production.up.railway.app/api/websites/${websiteId}/analytics?${params}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -249,7 +249,7 @@ const EnhancedDashboard = () => {
   // Payment System API Functions (NEW)
   const loadUserProfile = async () => {
     try {
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/user/profile', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/user/profile', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -270,7 +270,7 @@ const EnhancedDashboard = () => {
 
   const loadSubscriptionPlans = async () => {
     try {
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/billing/plans')
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/billing/plans')
       
       if (response.ok) {
         const data = await response.json()
@@ -283,7 +283,7 @@ const EnhancedDashboard = () => {
 
   const loadPayoutMethods = async () => {
     try {
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/payments/payout-methods', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/payments/payout-methods', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -300,7 +300,7 @@ const EnhancedDashboard = () => {
 
   const loadUsage = async () => {
     try {
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/usage/current', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/usage/current', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -325,7 +325,7 @@ const EnhancedDashboard = () => {
   const loadRealData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/analytics/dashboard', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/analytics/dashboard', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -366,9 +366,9 @@ const EnhancedDashboard = () => {
    */
   const generateScript = () => {
     const attributes = [
-      `src="https://cookiebot-ai-backend.vercel.app/static/enhanced_cookiebot_ai_v3.js"`,
+      `src="https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js"`,
       `data-cbid="${config.clientId}"`,
-      `data-api-endpoint="https://cookiebot-ai-backend.vercel.app/api"`,
+      `data-api-endpoint="https://cookiebot-ai-backend-production.up.railway.app/api"`,
       `data-company-name="${config.companyName}"`,
       config.logoUrl && `data-logo-url="${config.logoUrl}"`,
       `data-banner-position="${config.bannerPosition}"`,
@@ -425,7 +425,7 @@ const EnhancedDashboard = () => {
       setPaymentLoading(true)
       
       // In a real implementation, this would integrate with Stripe
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/billing/create-subscription', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/billing/create-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -457,7 +457,7 @@ const EnhancedDashboard = () => {
     try {
       setPaymentLoading(true)
       
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/payments/request-payout', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/payments/request-payout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -484,7 +484,7 @@ const EnhancedDashboard = () => {
 
   const loadPayoutHistory = async () => {
     try {
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/payments/payout-history', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/payments/payout-history', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -651,9 +651,9 @@ const EnhancedDashboard = () => {
     </div>
 
     <!-- FIXED: Load the enhanced V3 script with correct URL and all configuration attributes -->
-    <script src="https://cookiebot-ai-backend.vercel.app/static/enhanced_cookiebot_ai_v3.js"
+    <script src="https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js"
             data-cbid="${config.clientId}"
-            data-api-endpoint="https://cookiebot-ai-backend.vercel.app/api"
+            data-api-endpoint="https://cookiebot-ai-backend-production.up.railway.app/api"
             data-company-name="${config.companyName}"
             ${config.logoUrl ? `data-logo-url="${config.logoUrl}"` : ''}
             data-banner-position="${config.bannerPosition}"
@@ -1576,7 +1576,7 @@ const EnhancedDashboard = () => {
                 <div className="p-3 bg-orange-50 rounded-lg">
                   <p className="text-sm text-orange-800">
                     <strong>⚠️ Important:</strong> Make sure you have deployed the enhanced V3 script to your backend at 
-                    <code className="bg-orange-200 px-1 rounded">https://cookiebot-ai-backend.vercel.app/static/enhanced_cookiebot_ai_v3.js</code>
+                    <code className="bg-orange-200 px-1 rounded">https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js</code>
                   </p>
                 </div>
               </CardContent>
