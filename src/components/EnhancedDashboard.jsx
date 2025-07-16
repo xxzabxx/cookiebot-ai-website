@@ -180,7 +180,7 @@ const EnhancedDashboard = () => {
   const loadDashboardSummary = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('https://cookiebot-ai-backend.vercel.app/api/user/dashboard-summary', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/user/dashboard-summary', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
