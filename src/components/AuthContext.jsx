@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
 // API Configuration
-const API_BASE_URL = 'cookiebot-ai-backend.railway.internal'
+const API_BASE_URL = 'https://cookiebot-ai-backend-production.up.railway.app'
 
 // Create Auth Context
 const AuthContext = createContext()
