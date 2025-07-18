@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || `HTTP ${response.status}`)
+        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`)
       }
       
       return await response.json()
@@ -69,7 +69,8 @@ export const AuthProvider = ({ children }) => {
       // Clear invalid token
       localStorage.removeItem('authToken')
       setUser(null)
-      setError('Session expired. Please login again.')
+      const errorMessage = error.message || error.toString() || 'Session expired. Please login again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -92,8 +93,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, message: 'Registration successful!' }
     } catch (error) {
-      setError(error.message)
-      return { success: false, error: error.message }
+      const errorMessage = error.message || error.toString() || 'Registration failed'
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
@@ -116,8 +118,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, message: 'Login successful!' }
     } catch (error) {
-      setError(error.message)
-      return { success: false, error: error.message }
+      const errorMessage = error.message || error.toString() || 'Login failed'
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
@@ -146,8 +149,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, message: 'Profile updated successfully!' }
     } catch (error) {
-      setError(error.message)
-      return { success: false, error: error.message }
+      const errorMessage = error.message || error.toString() || 'Profile update failed'
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
@@ -162,9 +166,10 @@ export const AuthProvider = ({ children }) => {
         message: `✅ Backend Connected!\nStatus: ${health.status}\nDatabase: ${health.database}` 
       }
     } catch (error) {
+      const errorMessage = error.message || error.toString() || 'Connection failed'
       return { 
         success: false, 
-        message: `❌ Connection Failed!\nError: ${error.message}` 
+        message: `❌ Connection Failed!\nError: ${errorMessage}` 
       }
     }
   }
