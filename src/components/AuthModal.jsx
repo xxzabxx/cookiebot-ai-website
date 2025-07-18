@@ -1,123 +1,287 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import {
-  X, Mail, Lock, User, Building, Eye, EyeOff, Loader2
-} from 'lucide-react';
-import { useAuth } from './AuthContext';
+  X,
+  Mail,
+  Lock,
+  User,
+  Building,
+  Eye,
+  EyeOff,
+  Loader2
+} from 'lucide-react'
+import { useAuth } from './AuthContext'
 
 /**
  * AuthModal
- * Supports login + registration.
- * Relies on AuthContext exposing:
- *  - login(email, password) -> { success, error? }
- *  - register(data) -> { success, error? }
- *  - authLoading (boolean) : active auth action
- *  - bootLoading (boolean) : initial app auth check
- *  - error (context-wide auth error)
- *  - clearError() to reset context error
+ * Props:
+ *  - isOpen (bool)
+ *  - onClose (fn)
+ *  - initialMode: 'login' | 'register'
  */
 const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
-  const {
-    login,
-    register,
-    authLoading = false,
-    bootLoading = false,
-    error: contextError,
-    clearError,
-    isAuthenticated
-  } = useAuth();
-
-  const [mode, setMode] = useState(initialMode); // 'login' | 'register'
-  const [showPassword, setShowPassword] = useState(false);
-
+  const [mode, setMode] = useState(initialMode) // login | register
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     first_name: '',
     last_name: '',
     company: ''
-  });
+  })
+  const [formErrors, setFormErrors] = useState({})
+  const [submitMessage, setSubmitMessage] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
+  const { login, register, loading, error, setError, isAuthenticated } = useAuth()
 
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [submitMessage, setSubmitMessage] = useState('');
-  const [formError, setFormError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
-
-  // Unified busy flag (either boot init or current auth action)
-  const busy = authLoading || bootLoading;
-
-  // Close automatically if already authenticated *and* modal is open (e.g., user opened modal after being logged in)
+  /* Keep mode in sync if parent changes initialMode while open */
   useEffect(() => {
-    if (isAuthenticated && isOpen && mode === 'login' && !authLoading && !bootLoading) {
-      // Small delay to allow success message (if any) to render
-      setTimeout(() => {
-        handleClose();
-      }, 400);
+    if (isOpen) setMode(initialMode)
+  }, [initialMode, isOpen])
+
+  /* Clear internal messages when closing */
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isOpen])
 
-  // ---- Validation ----
-  const validate = useCallback(() => {
-    const errors = {};
-
-    const email = formData.email.trim();
-    const password = formData.password;
-
-    if (!email) {
-      errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Email is invalid';
-    }
-
-    if (!password) {
-      errors.password = 'Password is required';
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-    }
-
-    if (mode === 'register') {
-      if (!formData.first_name.trim()) {
-        errors.first_name = 'First name is required';
-      }
-      if (!formData.last_name.trim()) {
-        errors.last_name = 'Last name is required';
-      }
-    }
-
-    setFieldErrors(errors);
-    return { valid: Object.keys(errors).length === 0, errors };
-  }, [formData, mode]);
-
-  // ---- Input change handler ----
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }))
+    if (submitMessage) setSubmitMessage('')
+    if (successMsg) setSuccessMsg('')
+    if (error) setError(null)
+  }
 
-    // Clear per-field error
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: '' }));
+  const validateForm = () => {
+    const errs = {}
+    if (!formData.email) {
+      errs.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errs.email = 'Email is invalid'
     }
+    if (!formData.password) {
+      errs.password = 'Password is required'
+    } else if (formData.password.length < 6) {
+      errs.password = 'Password must be at least 6 characters'
+    }
+    if (mode === 'register') {
+      if (!formData.first_name) errs.first_name = 'First name is required'
+      if (!formData.last_name) errs.last_name = 'Last name is required'
+    }
+    setFormErrors(errs)
+    return Object.keys(errs).length === 0
+  }
 
-    // Clear global messages as user edits
-    if (formError) setFormError(null);
-    if (successMsg) setSuccessMsg(null);
-    if (submitMessage) setSubmitMessage('');
-    if (contextError && clearError) clearError();
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitMessage('')
+    setSuccessMsg('')
+    setError(null)
 
-  // ---- Switch mode ----
-  const switchMode = () => {
-    const next = mode === 'login' ? 'register' : 'login';
-    setMode(next);
-    // Only reset fields that differ / or keep email if switching to register?
-    setFormData(prev => ({
-      email: prev.email, // keep email so user doesn't retype
+    if (!validateForm()) return
+
+    try {
+      let result
+      if (mode === 'login') {
+        result = await login(formData.email, formData.password)
+      } else {
+        result = await register({
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          company: formData.company
+        })
+      }
+
+      if (result.success) {
+        setSuccessMsg(result.message || (mode === 'login' ? 'Login successful!' : 'Registration successful!'))
+        // Close after short delay
+        setTimeout(() => {
+          handleClose()
+        }, 1200)
+      } else {
+        setSubmitMessage(result.error || 'Authentication failed')
+      }
+    } catch (err) {
+      setSubmitMessage(err.message || 'Unexpected error occurred')
+    }
+  }
+
+  const resetForm = (clearMessages = true) => {
+    setFormData({
+      email: '',
       password: '',
       first_name: '',
       last_name: '',
       company: ''
-    }));
-    setFieldErrors({});
-    setFormError(null);
-    setSuccessMsg(null);
-    setSubmitMe
+    })
+    setFormErrors({})
+    if (clearMessages) {
+      setSubmitMessage('')
+      setSuccessMsg('')
+      setError(null)
+    }
+    setShowPassword(false)
+  }
+
+  const switchMode = () => {
+    setMode(prev => (prev === 'login' ? 'register' : 'login'))
+    resetForm()
+  }
+
+  const handleClose = () => {
+    resetForm()
+    onClose()
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={mode === 'login' ? 'Login form' : 'Registration form'}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </h2>
+            <p className="text-gray-600 mt-1 text-sm">
+              {mode === 'login'
+                ? 'Sign in to your CookieBot.ai account'
+                : 'Join thousands of websites earning revenue'}
+            </p>
+          </div>
+          <button
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close authentication modal"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {mode === 'register' && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name *
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      type="text"
+                      name="first_name"
+                      value={formData.first_name}
+                      onChange={handleInputChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.first_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="John"
+                      autoComplete="given-name"
+                    />
+                  </div>
+                  {formErrors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.first_name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name *
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      type="text"
+                      name="last_name"
+                      value={formData.last_name}
+                      onChange={handleInputChange}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        formErrors.last_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Doe"
+                      autoComplete="family-name"
+                    />
+                  </div>
+                  {formErrors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.last_name}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Company (Optional)
+                </label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="text"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your Company"
+                    autoComplete="organization"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address *
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  formErrors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="john@example.com"
+                autoComplete="email"
+              />
+            </div>
+            {formErrors.email && (
+              <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password *
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  formErrors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(p => !p)}
+                classN
