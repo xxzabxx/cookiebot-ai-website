@@ -11,15 +11,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from './AuthContext'
 
-/**
- * AuthModal
- * Props:
- *  - isOpen (bool)
- *  - onClose (fn)
- *  - initialMode: 'login' | 'register'
- */
 const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
-  const [mode, setMode] = useState(initialMode) // login | register
+  const [mode, setMode] = useState(initialMode)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -33,16 +26,12 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [successMsg, setSuccessMsg] = useState('')
   const { login, register, loading, error, setError, isAuthenticated } = useAuth()
 
-  /* Keep mode in sync if parent changes initialMode while open */
   useEffect(() => {
     if (isOpen) setMode(initialMode)
   }, [initialMode, isOpen])
 
-  /* Clear internal messages when closing */
   useEffect(() => {
-    if (!isOpen) {
-      resetForm(false)
-    }
+    if (!isOpen) resetForm(false)
   }, [isOpen])
 
   const handleInputChange = (e) => {
@@ -79,7 +68,6 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     setSubmitMessage('')
     setSuccessMsg('')
     setError(null)
-
     if (!validateForm()) return
 
     try {
@@ -98,7 +86,6 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
 
       if (result.success) {
         setSuccessMsg(result.message || (mode === 'login' ? 'Login successful!' : 'Registration successful!'))
-        // Close after short delay
         setTimeout(() => {
           handleClose()
         }, 1200)
