@@ -249,7 +249,7 @@ const EnhancedDashboard = () => {
   // Payment System API Functions (NEW)
   const loadUserProfile = async () => {
     try {
-      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/user/profile', {
+      const response = await fetch('https://cookiebot-ai-backend-production.up.railway.app/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
