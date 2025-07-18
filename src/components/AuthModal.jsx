@@ -284,4 +284,67 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
               <button
                 type="button"
                 onClick={() => setShowPassword(p => !p)}
-                classN
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+            {formErrors.password && (
+              <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>
+            )}
+          </div>
+
+          {/* Messages */}
+          {(error || submitMessage || successMsg) && (
+            <div
+              className={`p-3 rounded-lg text-sm border ${
+                successMsg
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : (error || submitMessage)
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-gray-50 text-gray-700 border-gray-200'
+              }`}
+            >
+              {successMsg || error || submitMessage}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                {mode === 'login' ? 'Signing In...' : 'Creating Account...'}
+              </>
+            ) : (
+              mode === 'login' ? 'Sign In' : 'Create Account'
+            )}
+          </button>
+
+          {/* Switch mode */}
+          <div className="text-center pt-4 border-t">
+            <p className="text-gray-600 text-sm">
+              {mode === 'login'
+                ? "Don't have an account?"
+                : 'Already have an account?'}
+              <button
+                type="button"
+                onClick={switchMode}
+                className="ml-2 text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                {mode === 'login' ? 'Sign Up' : 'Sign In'}
+              </button>
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default AuthModal
