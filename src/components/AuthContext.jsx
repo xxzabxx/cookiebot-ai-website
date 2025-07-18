@@ -5,7 +5,6 @@ import React, {
   useEffect,
   useCallback
 } from 'react';
-import PropTypes from 'prop-types';
 import { api, setAuthToken } from '../lib/api';
 
 // Create context
@@ -166,7 +165,6 @@ Error: ${e.message}`
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-AuthProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
 
