@@ -3,66 +3,100 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useCallback
+  useCallback,
+  useRef
 } from 'react';
 import { api, setAuthToken } from '../lib/api';
 
-// Create context
+/**
+ * AuthContext
+ *  - Handles authentication state, token persistence, and user profile updates.
+ *  - Exposes: user, isAuthenticated(), bootLoading, authLoading, error, login, register,
+ *             logout, updateProfile, loadUser, testConnection, clearError.
+ *
+ * Endpoints assumed (relative to API base inside api helper):
+ *   POST /auth/login      -> { access_token, user? } OR { data:{ access_token, user } }
+ *   POST /auth/register   -> similar to login
+ *   GET  /auth/me         -> user object (possibly wrapped)
+ *   PUT  /auth/me         -> update user
+ *   GET  /health          -> health info (skipAuth)
+ */
+
 const AuthContext = createContext(null);
 
-// Hook
-export function useAuth() {
+export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
   return ctx;
-}
+};
+
+const tokenKey = 'authToken';
+
+const getToken = () => {
+  try {
+    return localStorage.getItem(tokenKey) || null;
+  } catch {
+    return null;
+  }
+};
+
+const saveToken = (token) => {
+  try {
+    if (token) localStorage.setItem(tokenKey, token);
+    else localStorage.removeItem(tokenKey);
+  } catch {
+    /* ignore storage errors */
+  }
+};
+
+// Extract a user object from various possible backend response shapes
+const extractUser = (payload) => {
+  if (!payload) return null;
+  return (
+    payload?.data?.user ||
+    payload?.user ||
+    (payload?.email ? payload : null)
+  );
+};
 
 export function AuthProvider({ children }) {
-  // Boot/loading is the initial “figure out if I’m logged in” phase
-  const [bootLoading, setBootLoading] = useState(true);
-  // authLoading is for discrete auth actions (login, register, update)
-  const [authLoading, setAuthLoading] = useState(false);
-
   const [user, setUser] = useState(null);
+  const [bootLoading, setBootLoading] = useState(true);   // initial auth detection
+  const [authLoading, setAuthLoading] = useState(false);  // active auth operation (login/register/update)
   const [error, setError] = useState(null);
 
-  // Derived boolean
-  const isAuthenticated = !!user;
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
-  /**
-   * Normalize API user response shape:
-   * backend might return:
-   *  { success:true, data:{ user:{...}, access_token?... } }
-   * or sometimes { success:true, user:{...} }
-   */
-  function extractUser(payload) {
-    if (!payload) return null;
-    return (
-      payload?.data?.user ||
-      payload?.user ||
-      // Fallback: if payload itself looks like a user (has email)
-      (payload?.email ? payload : null)
-    );
-  }
+  const safeSet = (setter) => (...args) => {
+    if (mountedRef.current) setter(...args);
+  };
+  const safeSetUser = safeSet(setUser);
+  const safeSetError = safeSet(setError);
+  const safeSetBootLoading = safeSet(setBootLoading);
+  const safeSetAuthLoading = safeSet(setAuthLoading);
 
   const loadUser = useCallback(async () => {
-    const token = localStorage.getItem('authToken');
+    const token = getToken();
     if (!token) {
-      setUser(null);
-      setBootLoading(false);
+      safeSetUser(null);
+      safeSetBootLoading(false);
       return;
     }
     try {
       const payload = await api('/auth/me');
-      setUser(extractUser(payload));
-      setError(null);
+      safeSetUser(extractUser(payload));
+      safeSetError(null);
     } catch (e) {
-      // Invalid token – purge and reset silently
+      console.warn('Auth loadUser failed, clearing token:', e.message);
       setAuthToken(null);
-      setUser(null);
-      console.warn('loadUser(): token invalid or expired:', e.message);
+      saveToken(null);
+      safeSetUser(null);
     } finally {
-      setBootLoading(false);
+      safeSetBootLoading(false);
     }
   }, []);
 
@@ -70,19 +104,21 @@ export function AuthProvider({ children }) {
     loadUser();
   }, [loadUser]);
 
-  // Generic action wrapper to consolidate spinner + error behavior
-  async function runAuthAction(fn) {
-    setAuthLoading(true);
-    setError(null);
+  const clearError = useCallback(() => safeSetError(null), []);
+
+  const runAuthAction = async (fn) => {
+    safeSetAuthLoading(true);
+    clearError();
     try {
       return await fn();
     } catch (e) {
-      setError(e.message || 'Operation failed');
-      return { success: false, error: e.message };
+      const msg = e.message || 'Operation failed';
+      safeSetError(msg);
+      return { success: false, error: msg };
     } finally {
-      setAuthLoading(false);
+      safeSetAuthLoading(false);
     }
-  }
+  };
 
   const login = (email, password) =>
     runAuthAction(async () => {
@@ -92,8 +128,11 @@ export function AuthProvider({ children }) {
         skipAuth: true
       });
       const data = payload?.data || payload;
-      if (data?.access_token) setAuthToken(data.access_token);
-      setUser(extractUser(data));
+      if (data?.access_token) {
+        setAuthToken(data.access_token);
+        saveToken(data.access_token);
+      }
+      safeSetUser(extractUser(data));
       return { success: true };
     });
 
@@ -105,8 +144,11 @@ export function AuthProvider({ children }) {
         skipAuth: true
       });
       const data = payload?.data || payload;
-      if (data?.access_token) setAuthToken(data.access_token);
-      setUser(extractUser(data));
+      if (data?.access_token) {
+        setAuthToken(data.access_token);
+        saveToken(data.access_token);
+      }
+      safeSetUser(extractUser(data));
       return { success: true };
     });
 
@@ -116,56 +158,54 @@ export function AuthProvider({ children }) {
         method: 'PUT',
         body: JSON.stringify(profileData)
       });
-      // Reload after update
       await loadUser();
       return { success: true };
     });
+
+  const logout = () => {
+    setAuthToken(null);
+    saveToken(null);
+    safeSetUser(null);
+    safeSetError(null);
+  };
 
   const testConnection = async () => {
     try {
       const health = await api('/health', { skipAuth: true });
       return {
         success: true,
-        message: `✅ Backend Connected!
-Status: ${health.status}
-Database: ${health.database}`
+        message: `Backend OK (status: ${health.status || 'unknown'})`
       };
     } catch (e) {
-      return {
-        success: false,
-        message: `❌ Connection Failed!
-Error: ${e.message}`
-      };
+      return { success: false, message: e.message || 'Health check failed' };
     }
   };
 
-  const logout = () => {
-    setAuthToken(null);
-    setUser(null);
-    setError(null);
-  };
-
-  const clearError = () => setError(null);
+  const isAuthenticated = useCallback(
+    () => !!user && !!getToken(),
+    [user]
+  );
 
   const value = {
     user,
-    isAuthenticated,
-    bootLoading,     // initial auth boot
-    authLoading,     // current auth action
     error,
+    clearError,
+    bootLoading,
+    authLoading,
     login,
     register,
-    logout,
     updateProfile,
-    testConnection,
+    logout,
     loadUser,
-    clearError
+    testConnection,
+    isAuthenticated
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
-
-  children: PropTypes.node.isRequired
-};
 
 export default AuthProvider;
