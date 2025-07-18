@@ -1,204 +1,173 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback
+} from 'react';
+import PropTypes from 'prop-types';
+import { api, setAuthToken } from '../lib/api';
 
-// API Configuration
-const API_BASE_URL = 'https://cookiebot-ai-backend-production.up.railway.app'
+// Create context
+const AuthContext = createContext(null);
 
-// Create Auth Context
-const AuthContext = createContext()
-
-// Custom hook to use auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
+// Hook
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  return ctx;
 }
 
-// Auth Provider Component
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+export function AuthProvider({ children }) {
+  // Boot/loading is the initial “figure out if I’m logged in” phase
+  const [bootLoading, setBootLoading] = useState(true);
+  // authLoading is for discrete auth actions (login, register, update)
+  const [authLoading, setAuthLoading] = useState(false);
 
-  // API helper function
-  const apiCall = async (endpoint, options = {}) => {
-    try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
-          ...options.headers
-        },
-        ...options
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error?.message || errorData.message || errorData.error || `HTTP ${response.status}`)
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('API call failed:', error)
-      throw error
-    }
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
+
+  // Derived boolean
+  const isAuthenticated = !!user;
+
+  /**
+   * Normalize API user response shape:
+   * backend might return:
+   *  { success:true, data:{ user:{...}, access_token?... } }
+   * or sometimes { success:true, user:{...} }
+   */
+  function extractUser(payload) {
+    if (!payload) return null;
+    return (
+      payload?.data?.user ||
+      payload?.user ||
+      // Fallback: if payload itself looks like a user (has email)
+      (payload?.email ? payload : null)
+    );
   }
 
-  // Load user data on app start
+  const loadUser = useCallback(async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setUser(null);
+      setBootLoading(false);
+      return;
+    }
+    try {
+      const payload = await api('/auth/me');
+      setUser(extractUser(payload));
+      setError(null);
+    } catch (e) {
+      // Invalid token – purge and reset silently
+      setAuthToken(null);
+      setUser(null);
+      console.warn('loadUser(): token invalid or expired:', e.message);
+    } finally {
+      setBootLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    loadUser()
-  }, [])
+    loadUser();
+  }, [loadUser]);
 
-  const loadUser = async () => {
+  // Generic action wrapper to consolidate spinner + error behavior
+  async function runAuthAction(fn) {
+    setAuthLoading(true);
+    setError(null);
     try {
-      setLoading(true)
-      const token = localStorage.getItem('authToken')
-      
-      if (!token) {
-        setLoading(false)
-        return
-      }
-
-      const userData = await apiCall('/api/auth/me')
-      setUser(userData)
-      setError(null)
-    } catch (error) {
-      console.error('Failed to load user:', error)
-      // Clear invalid token
-      localStorage.removeItem('authToken')
-      setUser(null)
-      const errorMessage = error.message || error.toString() || 'Session expired. Please login again.'
-      setError(errorMessage)
+      return await fn();
+    } catch (e) {
+      setError(e.message || 'Operation failed');
+      return { success: false, error: e.message };
     } finally {
-      setLoading(false)
+      setAuthLoading(false);
     }
   }
 
-  // Register function
-  const register = async (userData) => {
-    try {
-      setLoading(true)
-      setError(null)
-      
-      const response = await apiCall('/api/auth/register', {
+  const login = (email, password) =>
+    runAuthAction(async () => {
+      const payload = await api('/auth/login', {
         method: 'POST',
-        body: JSON.stringify(userData)
-      })
-      
-      // Store token and load user data
-      localStorage.setItem('authToken', response.access_token)
-      await loadUser()
-      
-      return { success: true, message: 'Registration successful!' }
-    } catch (error) {
-      const errorMessage = error.message || error.toString() || 'Registration failed'
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
+        body: JSON.stringify({ email, password }),
+        skipAuth: true
+      });
+      const data = payload?.data || payload;
+      if (data?.access_token) setAuthToken(data.access_token);
+      setUser(extractUser(data));
+      return { success: true };
+    });
 
-  // Login function
-  const login = async (email, password) => {
-    try {
-      setLoading(true)
-      setError(null)
-      
-      const response = await apiCall('/api/auth/login', {
+  const register = (formData) =>
+    runAuthAction(async () => {
+      const payload = await api('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ email, password })
-      })
-      
-      // Store token and load user data
-      localStorage.setItem('authToken', response.access_token)
-      await loadUser()
-      
-      return { success: true, message: 'Login successful!' }
-    } catch (error) {
-      const errorMessage = error.message || error.toString() || 'Login failed'
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
+        body: JSON.stringify(formData),
+        skipAuth: true
+      });
+      const data = payload?.data || payload;
+      if (data?.access_token) setAuthToken(data.access_token);
+      setUser(extractUser(data));
+      return { success: true };
+    });
 
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem('authToken')
-    setUser(null)
-    setError(null)
-  }
-
-  // Update user profile
-  const updateProfile = async (profileData) => {
-    try {
-      setLoading(true)
-      setError(null)
-      
-      await apiCall('/api/auth/me', {
+  const updateProfile = (profileData) =>
+    runAuthAction(async () => {
+      await api('/auth/me', {
         method: 'PUT',
         body: JSON.stringify(profileData)
-      })
-      
-      // Reload user data
-      await loadUser()
-      
-      return { success: true, message: 'Profile updated successfully!' }
-    } catch (error) {
-      const errorMessage = error.message || error.toString() || 'Profile update failed'
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
+      });
+      // Reload after update
+      await loadUser();
+      return { success: true };
+    });
 
-  // Test API connection
   const testConnection = async () => {
     try {
-      const health = await apiCall('/api/health')
-      return { 
-        success: true, 
-        message: `✅ Backend Connected!\nStatus: ${health.status}\nDatabase: ${health.database}` 
-      }
-    } catch (error) {
-      const errorMessage = error.message || error.toString() || 'Connection failed'
-      return { 
-        success: false, 
-        message: `❌ Connection Failed!\nError: ${errorMessage}` 
-      }
+      const health = await api('/health', { skipAuth: true });
+      return {
+        success: true,
+        message: `✅ Backend Connected!
+Status: ${health.status}
+Database: ${health.database}`
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: `❌ Connection Failed!
+Error: ${e.message}`
+      };
     }
-  }
+  };
 
-  // Check if user is authenticated
-  const isAuthenticated = () => {
-    return !!user && !!localStorage.getItem('authToken')
-  }
+  const logout = () => {
+    setAuthToken(null);
+    setUser(null);
+    setError(null);
+  };
 
-  // Context value
+  const clearError = () => setError(null);
+
   const value = {
     user,
-    loading,
+    isAuthenticated,
+    bootLoading,     // initial auth boot
+    authLoading,     // current auth action
     error,
-    register,
     login,
+    register,
     logout,
     updateProfile,
     testConnection,
-    isAuthenticated,
     loadUser,
-    setError
-  }
+    clearError
+  };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export default AuthProvider
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
+export default AuthProvider;
