@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
-      const userData = await apiCall('/api/user/profile')
+      const userData = await apiCall('/api/auth/me')
       setUser(userData)
       setError(null)
     } catch (error) {
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true)
       setError(null)
       
-      await apiCall('/api/user/profile', {
+      await apiCall('/api/auth/me', {
         method: 'PUT',
         body: JSON.stringify(profileData)
       })
