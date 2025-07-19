@@ -12,7 +12,9 @@ import {
   Settings,
   LogOut,
   User,
-  Bell
+  Bell,
+  Palette,
+  Code
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -23,6 +25,8 @@ const ComplianceTab = lazy(() => import('../components/dashboard/ComplianceTab')
 const RevenueTab = lazy(() => import('../components/dashboard/RevenueTab'));
 const BillingTab = lazy(() => import('../components/dashboard/BillingTab'));
 const SettingsTab = lazy(() => import('../components/dashboard/SettingsTab'));
+const CustomizationTab = lazy(() => import('../components/dashboard/CustomizationTab'));
+const ScriptTab = lazy(() => import('../components/dashboard/ScriptTab'));
 
 const TabLoadingSkeleton = () => (
   <div className="space-y-6">
@@ -58,6 +62,20 @@ const Dashboard = () => {
       icon: Globe, 
       component: WebsitesTab,
       description: 'Manage your websites and integration settings'
+    },
+    { 
+      id: 'customization', 
+      label: 'Customization', 
+      icon: Palette, 
+      component: CustomizationTab,
+      description: 'Customize your cookie banner appearance and behavior'
+    },
+    { 
+      id: 'script', 
+      label: 'Script', 
+      icon: Code, 
+      component: ScriptTab,
+      description: 'Get your integration script and implementation guide'
     },
     { 
       id: 'compliance', 
@@ -192,6 +210,8 @@ const Dashboard = () => {
           <Suspense fallback={<TabLoadingSkeleton />}>
             {activeTab === 'analytics' && <AnalyticsTab />}
             {activeTab === 'websites' && <WebsitesTab />}
+            {activeTab === 'customization' && <CustomizationTab />}
+            {activeTab === 'script' && <ScriptTab />}
             {activeTab === 'compliance' && <ComplianceTab />}
             {activeTab === 'revenue' && <RevenueTab />}
             {activeTab === 'billing' && <BillingTab />}

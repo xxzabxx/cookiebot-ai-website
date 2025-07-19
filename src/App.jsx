@@ -3,6 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
+import Features from './pages/Features';
+import Scan from './pages/Scan';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import AuthModal from './components/auth/AuthModal';
 import './App.css';
 
@@ -43,6 +49,12 @@ const AppContent = () => {
             )
           } 
         />
+        <Route path="/features" element={<Features />} />
+        <Route path="/scan" element={<Scan />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route 
           path="/dashboard/*" 
           element={
