@@ -23,7 +23,8 @@ import {
   ToggleRight,
   Info,
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { api } from '../../lib/api'
@@ -59,7 +60,10 @@ const CustomizationTab = () => {
   const [success, setSuccess] = useState(null)
   const [hasLoadedData, setHasLoadedData] = useState(false)
 
-  // Load configuration from backend on component mount
+  // Get user data from auth context
+  const userId = user?.id || 1
+
+  // Load configuration from localStorage only (since backend doesn't have config endpoints)
   useEffect(() => {
     const loadConfiguration = async () => {
       try {
@@ -67,47 +71,64 @@ const CustomizationTab = () => {
         setError(null)
         let loadedAnyData = false
         
-        // Load customization config using the generic request method
+        // Load all configuration from localStorage
         try {
-          const customizationResponse = await api.request('/api/customization/config')
-          if (customizationResponse && customizationResponse.success && customizationResponse.data) {
-            console.log('Loaded customization config:', customizationResponse.data)
+          const savedConfig = localStorage.getItem('cookiebot_full_config')
+          if (savedConfig) {
+            const configData = JSON.parse(savedConfig)
+            console.log('Loaded full config from localStorage:', configData)
             setConfig(prev => ({
               ...prev,
-              ...customizationResponse.data
+              ...configData
             }))
             loadedAnyData = true
           }
         } catch (err) {
-          console.log('Customization config endpoint not available yet:', err.message)
+          console.log('No saved config in localStorage')
         }
         
-        // Load privacy insights settings using the generic request method
-        try {
-          const privacyResponse = await api.request('/api/privacy-insights/settings')
-          if (privacyResponse && privacyResponse.success && privacyResponse.data) {
-            console.log('Loaded privacy insights config:', privacyResponse.data)
-            setConfig(prev => ({
-              ...prev,
-              privacyInsightsEnabled: privacyResponse.data.enabled || false,
-              revenueShare: privacyResponse.data.revenueShare || 60,
-              dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
-            }))
-            loadedAnyData = true
+        // Try to load from separate keys as fallback
+        if (!loadedAnyData) {
+          try {
+            const savedCustomization = localStorage.getItem('cookiebot_customization_config')
+            const savedPrivacy = localStorage.getItem('cookiebot_privacy_insights_config')
+            
+            let mergedConfig = {}
+            
+            if (savedCustomization) {
+              const customizationData = JSON.parse(savedCustomization)
+              mergedConfig = { ...mergedConfig, ...customizationData }
+              loadedAnyData = true
+            }
+            
+            if (savedPrivacy) {
+              const privacyData = JSON.parse(savedPrivacy)
+              mergedConfig = {
+                ...mergedConfig,
+                privacyInsightsEnabled: privacyData.enabled || false,
+                revenueShare: privacyData.revenueShare || 60,
+                dataTypes: privacyData.dataTypes || ['analytics', 'preferences', 'marketing']
+              }
+              loadedAnyData = true
+            }
+            
+            if (loadedAnyData) {
+              setConfig(prev => ({ ...prev, ...mergedConfig }))
+            }
+          } catch (err) {
+            console.log('No fallback config in localStorage')
           }
-        } catch (err) {
-          console.log('Privacy insights config endpoint not available yet:', err.message)
         }
         
         setHasLoadedData(loadedAnyData)
         if (loadedAnyData) {
-          setSuccess('Configuration loaded successfully!')
+          setSuccess('Configuration loaded from saved settings!')
           setTimeout(() => setSuccess(null), 3000)
         }
         
       } catch (err) {
         console.error('Failed to load configuration:', err)
-        setError('Failed to load some configuration settings')
+        setError('Failed to load configuration settings')
       } finally {
         setLoading(false)
       }
@@ -156,6 +177,10 @@ const CustomizationTab = () => {
     })
     setSuccess(null)
     setError(null)
+    // Clear all localStorage
+    localStorage.removeItem('cookiebot_full_config')
+    localStorage.removeItem('cookiebot_customization_config')
+    localStorage.removeItem('cookiebot_privacy_insights_config')
   }
 
   const reloadConfiguration = async () => {
@@ -170,56 +195,31 @@ const CustomizationTab = () => {
       setError(null)
       setSuccess(null)
       
-      // Separate customization config from privacy insights config
-      const { privacyInsightsEnabled, revenueShare, dataTypes, ...customizationConfig } = config
+      // Save the complete configuration to localStorage
+      // Since the backend doesn't have configuration endpoints yet,
+      // we'll store everything locally until they're implemented
       
-      let saveErrors = []
-      
-      // Save customization config using the generic request method
       try {
-        console.log('Saving customization config:', customizationConfig)
-        const customizationResponse = await api.request('/api/customization/config', {
-          method: 'POST',
-          body: customizationConfig
-        })
-        if (!customizationResponse || !customizationResponse.success) {
-          throw new Error(customizationResponse?.message || 'Failed to save customization')
-        }
-        console.log('Customization config saved successfully')
-      } catch (err) {
-        console.error('Failed to save customization config:', err)
-        saveErrors.push('customization settings')
-      }
-      
-      // Save privacy insights settings using the generic request method
-      try {
-        const privacyData = {
+        // Save complete config as one object
+        localStorage.setItem('cookiebot_full_config', JSON.stringify(config))
+        console.log('Full configuration saved to localStorage:', config)
+        
+        // Also save in separate keys for backward compatibility
+        const { privacyInsightsEnabled, revenueShare, dataTypes, ...customizationConfig } = config
+        
+        localStorage.setItem('cookiebot_customization_config', JSON.stringify(customizationConfig))
+        localStorage.setItem('cookiebot_privacy_insights_config', JSON.stringify({
           enabled: privacyInsightsEnabled,
           revenueShare,
           dataTypes
-        }
-        console.log('Saving privacy insights config:', privacyData)
-        const privacyResponse = await api.request('/api/privacy-insights/settings', {
-          method: 'POST',
-          body: privacyData
-        })
-        if (!privacyResponse || !privacyResponse.success) {
-          throw new Error(privacyResponse?.message || 'Failed to save privacy insights settings')
-        }
-        console.log('Privacy insights config saved successfully')
-      } catch (err) {
-        console.error('Failed to save privacy insights settings:', err)
-        saveErrors.push('privacy insights settings')
-      }
-      
-      // Show appropriate message
-      if (saveErrors.length === 0) {
-        setSuccess('All settings saved successfully! Changes will appear in the Script tab.')
+        }))
+        
+        setSuccess('Configuration saved successfully! Your settings are stored locally and will be used by the Script tab.')
         setHasLoadedData(true)
-      } else if (saveErrors.length === 1) {
-        setSuccess(`Settings saved with warnings: ${saveErrors[0]} may not have saved properly.`)
-      } else {
-        setError('Some settings may not have saved properly. Backend endpoints may still be setting up.')
+        
+      } catch (err) {
+        console.error('Failed to save configuration:', err)
+        setError('Failed to save configuration to local storage')
       }
       
     } catch (err) {
@@ -293,8 +293,10 @@ const CustomizationTab = () => {
             </div>
             {config.privacyInsightsEnabled && (
               <div className="mt-2 text-xs opacity-60 flex items-center gap-1">
-                <DollarSign className="w-3 h-3" />
-                Privacy insights enabled ({config.revenueShare}% revenue share)
+                <DollarSign className="w-3 h-3 text-green-600" />
+                <span className="text-green-600 font-medium">
+                  Privacy insights enabled ({config.revenueShare}% revenue share)
+                </span>
               </div>
             )}
           </div>
@@ -344,7 +346,7 @@ const CustomizationTab = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-red-800">
-            <Info className="w-4 h-4" />
+            <AlertTriangle className="w-4 h-4" />
             <span className="font-medium">Error</span>
           </div>
           <p className="text-red-700 text-sm mt-1">{error}</p>
@@ -370,9 +372,12 @@ const CustomizationTab = () => {
           </div>
           <p className="text-blue-700 text-sm mt-1">
             {hasLoadedData 
-              ? 'Using your saved configuration settings. Changes will be reflected in the Script tab after saving.'
-              : 'Using default settings. Backend configuration endpoints are being set up. Your settings will be saved when available.'
+              ? 'Using your saved configuration settings. Settings are stored locally and will be used by the Script tab for V3 script generation.'
+              : 'Using default settings. Your settings will be saved locally when you click "Save Changes".'
             }
+          </p>
+          <p className="text-blue-600 text-xs mt-2">
+            Note: Backend configuration endpoints are being developed. Currently using local storage for persistence.
           </p>
         </CardContent>
       </Card>
