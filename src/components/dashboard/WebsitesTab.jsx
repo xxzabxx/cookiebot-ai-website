@@ -19,13 +19,14 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Lock
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const WebsitesTab = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,9 +37,39 @@ const WebsitesTab = () => {
   const [addingWebsite, setAddingWebsite] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Demo data for non-authenticated users
+  const demoWebsites = [
+    {
+      id: 'demo-1',
+      domain: 'example.com',
+      client_id: 'cb_demo1234567890abcdef',
+      status: 'active',
+      visitors_today: 245,
+      consent_rate: 78.5,
+      revenue_today: 15.25,
+      isDemo: true
+    },
+    {
+      id: 'demo-2',
+      domain: 'shop.example.com',
+      client_id: 'cb_demo0987654321fedcba',
+      status: 'pending',
+      visitors_today: 89,
+      consent_rate: 72.1,
+      revenue_today: 8.90,
+      isDemo: true
+    }
+  ];
+
   useEffect(() => {
-    fetchWebsites();
-  }, []);
+    if (isAuthenticated) {
+      fetchWebsites();
+    } else {
+      // Show demo data for non-authenticated users
+      setWebsites(demoWebsites);
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const fetchWebsites = async () => {
     try {
@@ -57,7 +88,7 @@ const WebsitesTab = () => {
       console.error('Failed to fetch websites:', err);
       setError('Failed to retrieve websites');
       
-      // For development - remove this when backend is working
+      // For authenticated users, show empty array on error
       setWebsites([]);
     } finally {
       setLoading(false);
@@ -72,10 +103,23 @@ const WebsitesTab = () => {
       setAddingWebsite(true);
       setError(null);
       
-      // Clean the domain input
-      const cleanDomain = newWebsiteDomain.trim()
+      // Clean the domain input - be more thorough
+      let cleanDomain = newWebsiteDomain.trim()
         .replace(/^https?:\/\//, '') // Remove protocol
-        .replace(/\/$/, ''); // Remove trailing slash
+        .replace(/^www\./, '') // Remove www
+        .replace(/\/$/, '') // Remove trailing slash
+        .toLowerCase(); // Convert to lowercase
+      
+      // Basic domain validation
+      if (!cleanDomain || cleanDomain.length < 3) {
+        throw new Error('Please enter a valid domain name');
+      }
+      
+      // Check for valid domain format
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
+      if (!domainRegex.test(cleanDomain)) {
+        throw new Error('Please enter a valid domain format (e.g., example.com)');
+      }
       
       // Create website via API
       const response = await api.request('/api/websites', {
@@ -161,6 +205,7 @@ const WebsitesTab = () => {
   };
 
   const canAddWebsite = () => {
+    if (!isAuthenticated) return false; // Can't add websites when not logged in
     const limit = getWebsiteLimit();
     return limit === -1 || websites.length < limit;
   };
@@ -207,12 +252,18 @@ window.cookieBotConfig = {
   };
 
   const WebsiteCard = ({ website }) => (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
+    <Card className={`hover:shadow-lg transition-shadow duration-200 ${website.isDemo ? 'border-blue-200 bg-blue-50' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Globe className="w-5 h-5 text-blue-600" />
             <CardTitle className="text-lg">{website.domain}</CardTitle>
+            {website.isDemo && (
+              <Badge className="bg-blue-100 text-blue-800 text-xs">
+                <Lock className="w-3 h-3 mr-1" />
+                Demo
+              </Badge>
+            )}
           </div>
           {getStatusBadge(website.status)}
         </div>
@@ -253,14 +304,19 @@ window.cookieBotConfig = {
             size="sm" 
             className="flex-1"
             onClick={() => {
+              if (website.isDemo) {
+                alert('Please sign in to get your integration code');
+                return;
+              }
               setSelectedWebsite(website);
               setShowCodeModal(true);
             }}
+            disabled={website.isDemo}
           >
             <Copy className="w-4 h-4 mr-2" />
             Get Code
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" disabled={website.isDemo}>
             <Settings className="w-4 h-4" />
           </Button>
           <Button 
@@ -268,6 +324,7 @@ window.cookieBotConfig = {
             size="sm" 
             className="text-red-600 hover:text-red-700"
             onClick={() => handleDeleteWebsite(website.id)}
+            disabled={website.isDemo}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -304,20 +361,38 @@ window.cookieBotConfig = {
 
   return (
     <div className="space-y-6">
+      {/* Demo Notice for Non-Authenticated Users */}
+      {!isAuthenticated && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Lock className="h-4 w-4" />
+          <AlertDescription className="text-blue-800">
+            <strong>Demo Mode:</strong> You're viewing sample data. Sign in to manage your real websites and get integration codes.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Your Websites</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {isAuthenticated ? 'Your Websites' : 'Sample Websites'}
+          </h3>
           <p className="text-sm text-gray-500">
-            {websites.length} of {getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites
+            {isAuthenticated ? (
+              `${websites.length} of ${getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites`
+            ) : (
+              'Demo data - Sign in to manage your websites'
+            )}
           </p>
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchWebsites}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          {isAuthenticated && (
+            <Button variant="outline" onClick={fetchWebsites}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          )}
           
           <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
             <DialogTrigger asChild>
@@ -341,7 +416,7 @@ window.cookieBotConfig = {
                     required
                   />
                   <p className="text-sm text-gray-500">
-                    Enter your website domain without http:// or https://
+                    Enter your website domain without http:// or https:// (e.g., example.com)
                   </p>
                 </div>
                 
@@ -373,7 +448,7 @@ window.cookieBotConfig = {
       </div>
 
       {/* Error Alert */}
-      {error && !showAddModal && (
+      {error && !showAddModal && isAuthenticated && (
         <Alert className="border-red-200 bg-red-50">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-red-800">
@@ -383,7 +458,7 @@ window.cookieBotConfig = {
       )}
 
       {/* Upgrade Notice */}
-      {!canAddWebsite() && (
+      {isAuthenticated && !canAddWebsite() && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -402,7 +477,7 @@ window.cookieBotConfig = {
             <WebsiteCard key={website.id} website={website} />
           ))}
         </div>
-      ) : (
+      ) : isAuthenticated ? (
         <Card className="text-center py-12">
           <CardContent>
             <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -416,7 +491,7 @@ window.cookieBotConfig = {
             </Button>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {/* Integration Code Modal */}
       <Dialog open={showCodeModal} onOpenChange={setShowCodeModal}>
