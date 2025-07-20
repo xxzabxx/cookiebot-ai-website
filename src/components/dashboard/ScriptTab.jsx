@@ -17,141 +17,133 @@ import {
   FileText,
   Smartphone,
   DollarSign,
-  Eye,
-  Info,
-  RefreshCw
+  RefreshCw,
+  Info
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { api } from '../../lib/api'
 
 const ScriptTab = () => {
   const { user } = useAuth()
   const [copied, setCopied] = useState(false)
   const [scriptType, setScriptType] = useState('standard')
-  const [customizationConfig, setCustomizationConfig] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [lastUpdated, setLastUpdated] = useState(null)
-  
-  // Get user data from auth context
-  const userId = user?.id || 'user_demo'
-  const apiKey = user?.api_key || 'cb_live_demo_key'
+  const [config, setConfig] = useState({
+    privacyInsightsEnabled: false,
+    revenueShare: 60,
+    theme: 'light',
+    position: 'bottom-right',
+    layout: 'dialog',
+    primaryColor: '#007bff',
+    backgroundColor: '#ffffff',
+    textColor: '#333333'
+  })
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const [configSource, setConfigSource] = useState('default')
 
-  // Load configuration from backend (read-only)
-  const loadConfiguration = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      
-      let configData = {}
-      let hasCustomConfig = false
-      
-      // Load customization config using the generic request method
-      try {
-        const customizationResponse = await api.request('/api/customization/config')
-        if (customizationResponse && customizationResponse.success && customizationResponse.data) {
-          console.log('ScriptTab: Loaded customization config:', customizationResponse.data)
-          configData = { ...configData, ...customizationResponse.data }
-          hasCustomConfig = true
-        }
-      } catch (err) {
-        console.log('ScriptTab: Customization config not available:', err.message)
-      }
-      
-      // Load privacy insights settings and merge with customization
-      try {
-        const privacyResponse = await api.request('/api/privacy-insights/settings')
-        if (privacyResponse && privacyResponse.success && privacyResponse.data) {
-          console.log('ScriptTab: Loaded privacy insights config:', privacyResponse.data)
-          configData = {
-            ...configData,
-            privacyInsightsEnabled: privacyResponse.data.enabled || false,
-            revenueShare: privacyResponse.data.revenueShare || 60,
-            dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
-          }
-          hasCustomConfig = true
-        }
-      } catch (err) {
-        console.log('ScriptTab: Privacy insights config not available:', err.message)
-      }
-      
-      if (hasCustomConfig) {
-        setCustomizationConfig(configData)
-        setLastUpdated(new Date().toLocaleTimeString())
-        setError(null)
-      } else {
-        // Set defaults if no backend config available
-        setCustomizationConfig({
-          theme: 'light',
-          position: 'bottom-right',
-          layout: 'dialog',
-          primaryColor: '#007bff',
-          backgroundColor: '#ffffff',
-          textColor: '#333333',
-          privacyInsightsEnabled: false,
-          revenueShare: 60
-        })
-        setError('Backend configuration endpoints are being set up. Using default settings.')
-      }
-      
-    } catch (err) {
-      console.error('ScriptTab: Failed to load configuration:', err)
-      setError('Unable to load configuration from backend.')
-      // Set defaults if backend fails
-      setCustomizationConfig({
-        theme: 'light',
-        position: 'bottom-right',
-        layout: 'dialog',
-        primaryColor: '#007bff',
-        backgroundColor: '#ffffff',
-        textColor: '#333333',
-        privacyInsightsEnabled: false,
-        revenueShare: 60
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  const userId = user?.id || 'user_12345'
+  const apiKey = user?.apiKey || 'cb_live_abcd1234efgh5678ijkl9012mnop3456'
 
+  // Load configuration from localStorage
   useEffect(() => {
+    const loadConfiguration = () => {
+      try {
+        let loadedConfig = {}
+        let source = 'default'
+
+        // Try to load complete config first
+        const fullConfig = localStorage.getItem('cookiebot_full_config')
+        if (fullConfig) {
+          loadedConfig = JSON.parse(fullConfig)
+          source = 'saved'
+        } else {
+          // Fallback to separate keys
+          const customizationConfig = localStorage.getItem('cookiebot_customization_config')
+          const privacyConfig = localStorage.getItem('cookiebot_privacy_insights_config')
+          
+          if (customizationConfig) {
+            const customData = JSON.parse(customizationConfig)
+            loadedConfig = { ...loadedConfig, ...customData }
+            source = 'saved'
+          }
+          
+          if (privacyConfig) {
+            const privacyData = JSON.parse(privacyConfig)
+            loadedConfig = {
+              ...loadedConfig,
+              privacyInsightsEnabled: privacyData.enabled || false,
+              revenueShare: privacyData.revenueShare || 60,
+              dataTypes: privacyData.dataTypes || ['analytics', 'preferences', 'marketing']
+            }
+            source = 'saved'
+          }
+        }
+
+        if (Object.keys(loadedConfig).length > 0) {
+          setConfig(prev => ({ ...prev, ...loadedConfig }))
+          setConfigSource(source)
+        }
+        
+        setConfigLoaded(true)
+        console.log('ScriptTab loaded config:', loadedConfig)
+      } catch (err) {
+        console.error('Failed to load configuration:', err)
+        setConfigLoaded(true)
+      }
+    }
+
     loadConfiguration()
   }, [])
 
   const refreshConfiguration = () => {
+    setConfigLoaded(false)
+    // Trigger reload
+    const loadConfiguration = () => {
+      try {
+        let loadedConfig = {}
+        let source = 'default'
+
+        const fullConfig = localStorage.getItem('cookiebot_full_config')
+        if (fullConfig) {
+          loadedConfig = JSON.parse(fullConfig)
+          source = 'saved'
+        } else {
+          const customizationConfig = localStorage.getItem('cookiebot_customization_config')
+          const privacyConfig = localStorage.getItem('cookiebot_privacy_insights_config')
+          
+          if (customizationConfig) {
+            const customData = JSON.parse(customizationConfig)
+            loadedConfig = { ...loadedConfig, ...customData }
+            source = 'saved'
+          }
+          
+          if (privacyConfig) {
+            const privacyData = JSON.parse(privacyConfig)
+            loadedConfig = {
+              ...loadedConfig,
+              privacyInsightsEnabled: privacyData.enabled || false,
+              revenueShare: privacyData.revenueShare || 60,
+              dataTypes: privacyData.dataTypes || ['analytics', 'preferences', 'marketing']
+            }
+            source = 'saved'
+          }
+        }
+
+        if (Object.keys(loadedConfig).length > 0) {
+          setConfig(prev => ({ ...prev, ...loadedConfig }))
+          setConfigSource(source)
+        }
+        
+        setConfigLoaded(true)
+        console.log('ScriptTab refreshed config:', loadedConfig)
+      } catch (err) {
+        console.error('Failed to refresh configuration:', err)
+        setConfigLoaded(true)
+      }
+    }
+
     loadConfiguration()
   }
 
   const generateScript = (type = 'standard') => {
-    // Use V3 script URL from your backend
-    const scriptUrl = 'https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js'
-    
-    // Build customization object from backend config
-    const customization = customizationConfig ? {
-      theme: customizationConfig.theme || 'light',
-      position: customizationConfig.position || 'bottom-right',
-      layout: customizationConfig.layout || 'dialog',
-      primaryColor: customizationConfig.primaryColor || '#007bff',
-      backgroundColor: customizationConfig.backgroundColor || '#ffffff',
-      textColor: customizationConfig.textColor || '#333333',
-      buttonStyle: customizationConfig.buttonStyle || 'default',
-      borderRadius: customizationConfig.borderRadius || '8px',
-      animations: customizationConfig.animations !== false,
-      overlay: customizationConfig.overlay !== false,
-      bannerType: customizationConfig.bannerType || 'multilevel',
-      showLogo: customizationConfig.showLogo || false,
-      logoUrl: customizationConfig.logoUrl || '',
-      companyName: customizationConfig.companyName || 'Your Company'
-    } : {
-      theme: 'light',
-      position: 'bottom-right',
-      layout: 'dialog'
-    }
-
-    // Check if privacy insights is enabled from CustomizationTab
-    const privacyInsightsEnabled = customizationConfig?.privacyInsightsEnabled || false
-    const revenueShare = customizationConfig?.revenueShare || 60
-    const dataTypes = customizationConfig?.dataTypes || ['analytics', 'preferences', 'marketing']
-
     const baseScript = `<!-- CookieBot.ai V3 Script -->
 <script>
   window.cookieBotConfig = {
@@ -160,7 +152,8 @@ const ScriptTab = () => {
     domain: window.location.hostname,
     version: 'v3',
     ${type === 'async' ? 'async: true,' : ''}
-    ${(type === 'privacy-insights' || privacyInsightsEnabled) ? 'privacyInsights: true,' : ''}
+    ${config.privacyInsightsEnabled || type === 'privacy-insights' ? 'privacyInsights: true,' : ''}
+    ${config.privacyInsightsEnabled ? `revenueShare: ${config.revenueShare / 100},` : ''}
     ${type === 'minimal' ? 'minimal: true,' : ''}
     autoShow: true,
     compliance: {
@@ -168,29 +161,22 @@ const ScriptTab = () => {
       ccpa: true,
       lgpd: true
     },
-    customization: ${JSON.stringify(customization, null, 6).replace(/\n/g, '\n    ')},
-    ${privacyInsightsEnabled ? `monetization: {
+    customization: {
+      theme: '${config.theme}',
+      position: '${config.position}',
+      layout: '${config.layout}',
+      primaryColor: '${config.primaryColor}',
+      backgroundColor: '${config.backgroundColor}',
+      textColor: '${config.textColor}'
+    }${config.privacyInsightsEnabled ? `,
+    monetization: {
       enabled: true,
-      revenueShare: ${revenueShare},
-      dataTypes: ${JSON.stringify(dataTypes)}
-    },` : ''}
-    callbacks: {
-      onAccept: function(categories) {
-        console.log('CookieBot V3: Accepted categories:', categories);
-      },
-      onDecline: function() {
-        console.log('CookieBot V3: User declined cookies');
-      },
-      onCustomize: function() {
-        console.log('CookieBot V3: User opened customization');
-      }${privacyInsightsEnabled ? `,
-      onPrivacyInsights: function(data) {
-        console.log('CookieBot V3: Privacy insights data:', data);
-      }` : ''}
-    }
+      revenueShare: ${config.revenueShare / 100},
+      dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])}
+    }` : ''}
   };
 </script>
-<script src="${scriptUrl}" ${type === 'async' ? 'async' : ''}></script>`
+<script src="https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js" ${type === 'async' ? 'async' : ''}></script>`
 
     return baseScript
   }
@@ -277,19 +263,16 @@ const ScriptTab = () => {
     }
   ]
 
-  if (loading) {
+  if (!configLoaded) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your configuration...</p>
+          <p className="text-gray-600">Loading configuration...</p>
         </div>
       </div>
     )
   }
-
-  const privacyInsightsEnabled = customizationConfig?.privacyInsightsEnabled || false
-  const hasCustomConfig = !error || error.includes('default settings')
 
   return (
     <div className="space-y-6">
@@ -297,9 +280,9 @@ const ScriptTab = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Code className="w-6 h-6 text-blue-600" />
-            Script Integration
+            Script
           </h2>
-          <p className="text-gray-600">Get your CookieBot.ai V3 script with your customization settings</p>
+          <p className="text-gray-600">Get your integration script and implementation guide</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={refreshConfiguration}>
@@ -317,82 +300,7 @@ const ScriptTab = () => {
         </div>
       </div>
 
-      {error && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-blue-800">
-            <Info className="w-4 h-4" />
-            <span className="font-medium">Configuration Status</span>
-          </div>
-          <p className="text-blue-700 text-sm mt-1">{error}</p>
-        </div>
-      )}
-
-      {lastUpdated && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle className="w-4 h-4" />
-            <span className="font-medium">Configuration Loaded</span>
-          </div>
-          <p className="text-green-700 text-sm mt-1">
-            Using your saved customization settings. Last updated: {lastUpdated}
-          </p>
-        </div>
-      )}
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Quick Stats */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">V3 Active</h3>
-                <p className="text-sm text-gray-600">Latest Version</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${hasCustomConfig ? 'bg-green-100' : 'bg-blue-100'} rounded-lg flex items-center justify-center`}>
-                <Settings className={`w-6 h-6 ${hasCustomConfig ? 'text-green-600' : 'text-blue-600'}`} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  {hasCustomConfig ? 'Custom Config' : 'Default Config'}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {hasCustomConfig ? 'From Customization Tab' : 'Using Defaults'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${privacyInsightsEnabled ? 'bg-green-100' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
-                <DollarSign className={`w-6 h-6 ${privacyInsightsEnabled ? 'text-green-600' : 'text-gray-400'}`} />
-              </div>
-              <div>
-                <h3 className={`font-semibold ${privacyInsightsEnabled ? 'text-green-900' : 'text-gray-900'}`}>
-                  {privacyInsightsEnabled ? 'Monetization Active' : 'Monetization Off'}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {privacyInsightsEnabled ? `${customizationConfig.revenueShare}% Revenue Share` : 'Configure in Customization'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Configuration Notice */}
+      {/* Configuration Status */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-blue-800">
@@ -400,24 +308,88 @@ const ScriptTab = () => {
             <span className="font-medium">Script Configuration</span>
           </div>
           <p className="text-blue-700 text-sm mt-1">
-            This script automatically includes your settings from the <strong>Customization tab</strong>. 
-            To modify privacy insights, colors, layout, or other settings, use the Customization tab and save your changes.
-            {privacyInsightsEnabled && (
-              <span className="font-medium text-green-700"> Privacy insights monetization is currently ACTIVE.</span>
-            )}
+            This script automatically includes your settings from the <strong>Customization tab</strong>. To modify privacy insights, colors, layout, or other settings, use the Customization tab and save your changes.
           </p>
         </CardContent>
       </Card>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* V3 Active Status */}
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-green-900">V3 Active</h3>
+                <p className="text-sm text-green-700">Latest Version</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custom Config Status */}
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Settings className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-green-900">Custom Config</h3>
+                <p className="text-sm text-green-700">From Customization Tab</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Monetization Status */}
+        <Card className={`${config.privacyInsightsEnabled ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                config.privacyInsightsEnabled 
+                  ? 'bg-green-100' 
+                  : 'bg-gray-100'
+              }`}>
+                <DollarSign className={`w-6 h-6 ${
+                  config.privacyInsightsEnabled 
+                    ? 'text-green-600' 
+                    : 'text-gray-400'
+                }`} />
+              </div>
+              <div>
+                <h3 className={`font-semibold ${
+                  config.privacyInsightsEnabled 
+                    ? 'text-green-900' 
+                    : 'text-gray-900'
+                }`}>
+                  {config.privacyInsightsEnabled ? 'Monetization Active' : 'Monetization Off'}
+                </h3>
+                <p className={`text-sm ${
+                  config.privacyInsightsEnabled 
+                    ? 'text-green-700' 
+                    : 'text-gray-600'
+                }`}>
+                  {config.privacyInsightsEnabled 
+                    ? `${config.revenueShare}% Revenue Share` 
+                    : 'Configure in Customization'
+                  }
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Script Generator */}
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Generate Your V3 Script</CardTitle>
-              <CardDescription>
-                Your script includes {hasCustomConfig ? 'your customization settings' : 'default settings'} and {privacyInsightsEnabled ? 'privacy insights monetization' : 'compliance features'}
-              </CardDescription>
+              <CardTitle className="text-lg">🔥 Script Integration</CardTitle>
+              <CardDescription>Get your CookieBot.ai V3 script with your customization settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -436,7 +408,7 @@ const ScriptTab = () => {
 
               <div className="bg-gray-900 rounded-lg p-4 relative">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-green-400 text-sm font-mono">HTML - V3 Script</span>
+                  <span className="text-green-400 text-sm font-mono">HTML</span>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -450,24 +422,24 @@ const ScriptTab = () => {
                     )}
                   </Button>
                 </div>
-                <pre className="text-gray-300 text-sm overflow-x-auto max-h-96">
+                <pre className="text-gray-300 text-sm overflow-x-auto">
                   <code>{generateScript(scriptType)}</code>
                 </pre>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Shield className="w-4 h-4" />
-                <span>V3 script includes {hasCustomConfig ? 'your customization settings' : 'default settings'} and latest compliance features</span>
+                <span>This V3 script includes your customization settings and latest compliance features</span>
               </div>
 
-              {privacyInsightsEnabled && (
+              {config.privacyInsightsEnabled && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-green-800 mb-1">
                     <DollarSign className="w-4 h-4" />
-                    <span className="text-sm font-medium">Monetization Enabled in Script</span>
+                    <span className="text-sm font-medium">Privacy Insights Enabled</span>
                   </div>
                   <p className="text-green-700 text-xs">
-                    This script includes privacy insights monetization with {customizationConfig.revenueShare}% revenue share
+                    This script includes privacy insights monetization with {config.revenueShare}% revenue share
                   </p>
                 </div>
               )}
@@ -529,7 +501,7 @@ const ScriptTab = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Integration Steps</CardTitle>
-              <CardDescription>Follow these steps to implement CookieBot.ai V3 on your website</CardDescription>
+              <CardDescription>Follow these steps to implement CookieBot.ai on your website</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -552,45 +524,62 @@ const ScriptTab = () => {
           {/* Live Preview */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Eye className="w-5 h-5" />
-                Live Preview
-              </CardTitle>
+              <CardTitle className="text-lg">Live Preview</CardTitle>
               <CardDescription>Preview how your banner will look with current settings</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-lg p-4 bg-gray-50 min-h-32 flex items-center justify-center">
-                <div 
-                  className="bg-white border rounded-lg p-4 shadow-lg max-w-sm"
-                  style={{
-                    borderColor: customizationConfig?.primaryColor || '#007bff',
-                    backgroundColor: customizationConfig?.backgroundColor || '#ffffff',
-                    color: customizationConfig?.textColor || '#333333'
-                  }}
-                >
-                  <div className="font-semibold mb-2">🍪 We value your privacy</div>
-                  <p className="text-xs mb-3 opacity-80">
-                    This website uses cookies to enhance your experience{privacyInsightsEnabled ? ' and generate privacy insights revenue' : ''}.
-                  </p>
-                  <div className="flex gap-2">
-                    <button 
-                      className="px-3 py-1 rounded text-xs font-medium text-white"
-                      style={{ backgroundColor: customizationConfig?.primaryColor || '#007bff' }}
-                    >
-                      Accept All
-                    </button>
-                    <button className="px-3 py-1 rounded text-xs font-medium border">
-                      Customize
-                    </button>
-                  </div>
-                  {privacyInsightsEnabled && (
-                    <div className="mt-2 text-xs opacity-60 flex items-center gap-1">
-                      <DollarSign className="w-3 h-3 text-green-600" />
-                      <span className="text-green-600 font-medium">
-                        Privacy insights enabled ({customizationConfig?.revenueShare || 60}% revenue share)
-                      </span>
+              <div className="border rounded-lg bg-gray-50 p-4 h-48">
+                <div className="h-full flex items-end justify-center">
+                  <div 
+                    className="max-w-sm p-4 shadow-lg rounded-lg"
+                    style={{
+                      backgroundColor: config.backgroundColor,
+                      color: config.textColor,
+                      borderRadius: '8px',
+                      border: `1px solid ${config.primaryColor}20`
+                    }}
+                  >
+                    <div className="font-semibold mb-2">🍪 We value your privacy</div>
+                    <p className="text-xs mb-3 opacity-80">
+                      This website uses cookies to enhance your experience{config.privacyInsightsEnabled ? ' and generate privacy insights revenue' : ''}.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      <button 
+                        style={{
+                          backgroundColor: config.primaryColor,
+                          color: '#ffffff',
+                          borderRadius: '8px',
+                          border: 'none',
+                          padding: '8px 16px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Accept All
+                      </button>
+                      <button 
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: config.textColor,
+                          border: `1px solid ${config.textColor}30`,
+                          borderRadius: '8px',
+                          padding: '8px 16px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Customize
+                      </button>
                     </div>
-                  )}
+                    {config.privacyInsightsEnabled && (
+                      <div className="mt-2 text-xs opacity-60 flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 text-green-600" />
+                        <span className="text-green-600 font-medium">
+                          Privacy insights enabled ({config.revenueShare}% revenue share)
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -622,44 +611,70 @@ const ScriptTab = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Testing Tools */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Testing & Validation</CardTitle>
+              <CardDescription>Tools to verify your implementation</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start">
+                <Globe className="w-4 h-4 mr-2" />
+                Test Script on Domain
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Smartphone className="w-4 h-4 mr-2" />
+                Mobile Preview
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Shield className="w-4 h-4 mr-2" />
+                Compliance Validator
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <FileText className="w-4 h-4 mr-2" />
+                Generate Test Report
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Advanced Configuration */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Advanced V3 Configuration</CardTitle>
-          <CardDescription>Optional settings and callbacks for advanced users</CardDescription>
+          <CardTitle className="text-lg">Advanced Configuration</CardTitle>
+          <CardDescription>Optional settings for advanced users</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="events" className="w-full">
             <TabsList>
               <TabsTrigger value="events">Event Callbacks</TabsTrigger>
               <TabsTrigger value="custom">Custom CSS</TabsTrigger>
-              <TabsTrigger value="api">V3 API Methods</TabsTrigger>
+              <TabsTrigger value="api">API Methods</TabsTrigger>
             </TabsList>
 
             <TabsContent value="events" className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4">
-                <div className="text-green-400 text-sm font-mono mb-2">JavaScript - V3 Events</div>
+                <div className="text-green-400 text-sm font-mono mb-2">JavaScript</div>
                 <pre className="text-gray-300 text-sm overflow-x-auto">
                   <code>{`// V3 Event callbacks
 window.cookieBotConfig.callbacks = {
   onAccept: function(categories) {
-    console.log('V3: Accepted categories:', categories);
+    console.log('Accepted categories:', categories);
     // Your custom code here
   },
   onDecline: function() {
-    console.log('V3: User declined cookies');
+    console.log('User declined cookies');
     // Your custom code here
   },
   onCustomize: function() {
-    console.log('V3: User opened customization');
+    console.log('User opened customization');
     // Your custom code here
-  }${privacyInsightsEnabled ? `,
-  onPrivacyInsights: function(data) {
-    console.log('V3: Privacy insights data:', data);
-    // Handle monetization data
+  }${config.privacyInsightsEnabled ? `,
+  onPrivacyInsightClick: function(insightData) {
+    console.log('Privacy insight clicked:', insightData);
+    // Revenue tracking code here
   }` : ''}
 };`}</code>
                 </pre>
@@ -668,23 +683,21 @@ window.cookieBotConfig.callbacks = {
 
             <TabsContent value="custom" className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4">
-                <div className="text-green-400 text-sm font-mono mb-2">CSS - V3 Styling</div>
+                <div className="text-green-400 text-sm font-mono mb-2">CSS</div>
                 <pre className="text-gray-300 text-sm overflow-x-auto">
-                  <code>{`/* V3 Custom styling */
+                  <code>{`/* Custom V3 styling */
 .cookiebot-v3-banner {
   font-family: 'Your Font', sans-serif;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  border-radius: ${customizationConfig?.borderRadius || '8px'};
 }
 
 .cookiebot-v3-button-accept {
-  background: ${customizationConfig?.primaryColor || '#007bff'};
+  background: linear-gradient(45deg, ${config.primaryColor}, #0056b3);
   border-radius: 25px;
-  transition: all 0.3s ease;
-}${privacyInsightsEnabled ? `
+}${config.privacyInsightsEnabled ? `
 
 .cookiebot-v3-privacy-insights {
-  background: linear-gradient(45deg, #10b981, #059669);
+  background: linear-gradient(45deg, #28a745, #20c997);
   color: white;
 }` : ''}`}</code>
                 </pre>
@@ -693,17 +706,16 @@ window.cookieBotConfig.callbacks = {
 
             <TabsContent value="api" className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4">
-                <div className="text-green-400 text-sm font-mono mb-2">JavaScript - V3 API</div>
+                <div className="text-green-400 text-sm font-mono mb-2">JavaScript V3 API</div>
                 <pre className="text-gray-300 text-sm overflow-x-auto">
-                  <code>{`// V3 API methods
+                  <code>{`// Available V3 API methods
 CookieBotV3.show();           // Show banner
 CookieBotV3.hide();           // Hide banner
 CookieBotV3.reset();          // Reset consent
 CookieBotV3.getConsent();     // Get current consent
-CookieBotV3.hasConsent();     // Check if user has consented
-CookieBotV3.updateConfig();   // Update configuration${privacyInsightsEnabled ? `
-CookieBotV3.getInsights();    // Get privacy insights data
-CookieBotV3.getRevenue();     // Get revenue information` : ''}`}</code>
+CookieBotV3.hasConsent();     // Check if user has consented${config.privacyInsightsEnabled ? `
+CookieBotV3.getRevenue();     // Get revenue data
+CookieBotV3.trackInsight();   // Track privacy insight` : ''}`}</code>
                 </pre>
               </div>
             </TabsContent>
