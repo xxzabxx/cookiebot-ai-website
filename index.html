@@ -9,5 +9,55 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+  <!-- CookieBot.ai - Just copy and paste anywhere in your website -->
+<script>
+window.cookieBotConfig = {
+  apiKey: 'cb_live_abcd1234efgh5678ijkl9012mnop3456',
+  userId: '1',
+  domain: window.location.hostname,
+  version: 'v3',
+  privacyInsights: true,
+  revenueShare: 0.7,
+  autoShow: true,
+  compliance: {
+    gdpr: true,
+    ccpa: true,
+    lgpd: true
+  },
+  customization: {
+    theme: 'dark',
+    position: 'bottom-right',
+    layout: 'dialog',
+    primaryColor: '#007bff',
+    backgroundColor: '#ffffff',
+    textColor: '#333333'
+  },
+  monetization: {
+    enabled: true,
+    revenueShare: 0.7,
+    dataTypes: ["analytics","preferences","marketing"]
+  }
+};
+
+// Universal script that works on any website
+(function() {
+  function loadCookieBot() {
+    if (window.CookieBotLoaded) return;
+    window.CookieBotLoaded = true;
+    
+    var script = document.createElement('script');
+    script.src = 'https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js';
+    document.head.appendChild(script);
+  }
+  
+  if (document.readyState === 'complete') {
+    loadCookieBot();
+  } else {
+    window.addEventListener('load', loadCookieBot);
+    document.addEventListener('DOMContentLoaded', loadCookieBot);
+    setTimeout(loadCookieBot, 2000);
+  }
+})();
+</script>
   </body>
 </html>
