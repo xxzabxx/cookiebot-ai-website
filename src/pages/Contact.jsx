@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Users } from 'lucide-react'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Textarea } from '../components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Users } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,44 +13,71 @@ const Contact = () => {
     inquiryType: 'general',
     subject: '',
     message: ''
-  })
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setIsSubmitting(false)
-    setSubmitted(true)
-  }
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setSubmitted(true);
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          inquiryType: 'general',
+          subject: '',
+          message: ''
+        });
+      } else {
+        throw new Error(data.error?.message || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError(error.message || 'An error occurred while sending your message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (submitted) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="max-w-md mx-auto text-center p-8">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Send className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Send className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Message Sent!</h2>
           <p className="text-gray-600 mb-6">
             Thank you for contacting us. We'll get back to you within 24 hours.
           </p>
-          <Button 
+          <Button
             onClick={() => {
-              setSubmitted(false)
+              setSubmitted(false);
               setFormData({
                 name: '',
                 email: '',
@@ -58,7 +85,7 @@ const Contact = () => {
                 inquiryType: 'general',
                 subject: '',
                 message: ''
-              })
+              });
             }}
             variant="outline"
           >
@@ -66,98 +93,54 @@ const Contact = () => {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Get in <span className="text-blue-600">Touch</span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Have questions about CookieBot.ai? Our team is here to help you get started 
-              with AI-powered cookie consent management and Privacy Insights revenue generation.
-            </p>
-          </div>
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Get in Touch</h1>
+          <p className="text-xl max-w-3xl mx-auto">
+            Have questions about CookieBot.ai? We're here to help you get started with 
+            AI-powered cookie consent that pays.
+          </p>
         </div>
       </section>
 
-      {/* Contact Information */}
+      {/* Contact Form & Info */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-                <p className="text-gray-600 text-sm mb-1">info@cookiebot.ai</p>
-                <p className="text-gray-600 text-sm">support@cookiebot.ai</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Phone className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Phone</h3>
-                <p className="text-gray-600 text-sm mb-1">+1 (555) 123-4567</p>
-                <p className="text-gray-600 text-sm">Mon-Fri 9AM-6PM EST</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Office</h3>
-                <p className="text-gray-600 text-sm mb-1">123 Tech Street</p>
-                <p className="text-gray-600 text-sm">San Francisco, CA 94105</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-orange-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Support Hours</h3>
-                <p className="text-gray-600 text-sm mb-1">24/7 Email Support</p>
-                <p className="text-gray-600 text-sm">Phone: Mon-Fri 9AM-6PM</p>
-              </CardContent>
-            </Card>
-          </div>
-
+        <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <Card>
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Send us a message</CardTitle>
+                <CardTitle className="text-2xl">Send us a Message</CardTitle>
                 <CardDescription>
-                  We'll get back to you within 24 hours.
+                  Fill out the form below and we'll get back to you as soon as possible.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                      {error}
+                    </div>
+                  )}
+
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                         Name *
                       </label>
                       <Input
-                        type="text"
                         id="name"
                         name="name"
+                        type="text"
+                        required
                         value={formData.name}
                         onChange={handleInputChange}
-                        required
                         placeholder="Your full name"
                       />
                     </div>
@@ -166,12 +149,12 @@ const Contact = () => {
                         Email *
                       </label>
                       <Input
-                        type="email"
                         id="email"
                         name="email"
+                        type="email"
+                        required
                         value={formData.email}
                         onChange={handleInputChange}
-                        required
                         placeholder="your@email.com"
                       />
                     </div>
@@ -182,9 +165,9 @@ const Contact = () => {
                       Company
                     </label>
                     <Input
-                      type="text"
                       id="company"
                       name="company"
+                      type="text"
                       value={formData.company}
                       onChange={handleInputChange}
                       placeholder="Your company name"
@@ -212,15 +195,16 @@ const Contact = () => {
 
                   <div>
                     <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                      Subject
+                      Subject *
                     </label>
                     <Input
-                      type="text"
                       id="subject"
                       name="subject"
+                      type="text"
+                      required
                       value={formData.subject}
                       onChange={handleInputChange}
-                      placeholder="Brief description of your inquiry"
+                      placeholder="Brief subject of your message"
                     />
                   </div>
 
@@ -231,22 +215,22 @@ const Contact = () => {
                     <Textarea
                       id="message"
                       name="message"
+                      required
+                      rows={6}
                       value={formData.message}
                       onChange={handleInputChange}
-                      required
-                      rows={5}
-                      placeholder="Tell us more about your inquiry..."
+                      placeholder="Tell us how we can help you..."
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Sending...
                       </>
                     ) : (
@@ -260,80 +244,84 @@ const Contact = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Help */}
+            {/* Contact Information */}
             <div className="space-y-8">
+              {/* Contact Details */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="w-5 h-5" />
-                    Quick Help
-                  </CardTitle>
-                  <CardDescription>
-                    Common questions and resources
-                  </CardDescription>
+                  <CardTitle className="text-xl">Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-semibold text-gray-900 mb-2">Getting Started</h4>
-                    <p className="text-gray-600 text-sm mb-3">
-                      New to CookieBot.ai? Check out our quick start guide and documentation.
-                    </p>
-                    <Button variant="outline" size="sm">
-                      View Documentation
-                    </Button>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <p className="text-gray-600">hello@cookiebot.ai</p>
+                    </div>
                   </div>
-
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-semibold text-gray-900 mb-2">Technical Support</h4>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Need help with implementation or troubleshooting? Our support team is here to help.
-                    </p>
-                    <Button variant="outline" size="sm">
-                      Open Support Ticket
-                    </Button>
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Phone</p>
+                      <p className="text-gray-600">+1 (555) 123-4567</p>
+                    </div>
                   </div>
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Address</p>
+                      <p className="text-gray-600">
+                        123 AI Street<br />
+                        Tech City, TC 12345<br />
+                        United States
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Business Hours</p>
+                      <p className="text-gray-600">
+                        Monday - Friday: 9:00 AM - 6:00 PM EST<br />
+                        Saturday - Sunday: Closed
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <h4 className="font-semibold text-gray-900 mb-2">Sales Inquiry</h4>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Interested in our enterprise solutions? Let's discuss your needs.
-                    </p>
-                    <Button variant="outline" size="sm">
-                      Schedule Demo
+              {/* Quick Contact Options */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Quick Contact</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    <Button variant="outline" className="justify-start">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Live Chat Support
+                    </Button>
+                    <Button variant="outline" className="justify-start">
+                      <HelpCircle className="w-4 h-4 mr-2" />
+                      Help Center
+                    </Button>
+                    <Button variant="outline" className="justify-start">
+                      <Users className="w-4 h-4 mr-2" />
+                      Schedule a Demo
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Community
-                  </CardTitle>
-                  <CardDescription>
-                    Connect with other CookieBot.ai users
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Discord Community</h4>
-                      <p className="text-gray-600 text-sm">Join our Discord server for real-time support</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Users className="w-5 h-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">GitHub</h4>
-                      <p className="text-gray-600 text-sm">Contribute to our open-source projects</p>
-                    </div>
+              {/* Response Time */}
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h3 className="font-semibold text-blue-900 mb-1">Fast Response Time</h3>
+                    <p className="text-blue-700 text-sm">
+                      We typically respond to all inquiries within 24 hours during business days.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -343,52 +331,62 @@ const Contact = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4">
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-gray-600">
               Quick answers to common questions about CookieBot.ai
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">How quickly can I get started with CookieBot.ai?</h3>
+              <CardHeader>
+                <CardTitle className="text-lg">How quickly can I get started?</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <p className="text-gray-600">
-                  You can get started in under 5 minutes. Simply sign up for a free account, 
-                  customize your consent banner, and add our script to your website.
+                  You can get started in minutes! Simply sign up, add our script to your website, 
+                  and start earning revenue from privacy compliance.
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">What makes CookieBot.ai different from other consent platforms?</h3>
+              <CardHeader>
+                <CardTitle className="text-lg">What's the revenue share model?</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <p className="text-gray-600">
-                  CookieBot.ai is the only platform that turns cookie consent into revenue through our 
-                  Privacy Insights system, while providing advanced AI-powered optimization and complete compliance.
+                  We offer up to 70% revenue share depending on your plan. You earn money from 
+                  privacy insights while maintaining full GDPR compliance.
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Is CookieBot.ai GDPR compliant?</h3>
+              <CardHeader>
+                <CardTitle className="text-lg">Do you offer technical support?</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <p className="text-gray-600">
-                  Yes, CookieBot.ai is fully compliant with GDPR, CCPA, LGPD, and other major privacy regulations. 
-                  Our AI automatically detects user jurisdiction and applies appropriate compliance measures.
+                  Yes! We provide comprehensive technical support, documentation, and integration 
+                  assistance to ensure smooth implementation.
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">How does the Privacy Insights revenue system work?</h3>
+              <CardHeader>
+                <CardTitle className="text-lg">Is there a free trial?</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <p className="text-gray-600">
-                  After users give consent, we display educational privacy content. You earn 60% of the revenue 
-                  generated from these privacy insights, with transparent tracking and monthly payouts.
+                  Absolutely! We offer a free plan with basic features and 50% revenue share. 
+                  No credit card required to get started.
                 </p>
               </CardContent>
             </Card>
@@ -396,8 +394,8 @@ const Contact = () => {
         </div>
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Contact
+export default Contact;
 
