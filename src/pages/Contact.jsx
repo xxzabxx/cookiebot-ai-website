@@ -33,7 +33,8 @@ const Contact = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/contact`, {
+      // Fixed API path - added /api/ prefix to match backend registration
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
