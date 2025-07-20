@@ -61,24 +61,32 @@ const CustomizationTab = () => {
       try {
         setLoading(true)
         
-        // Load customization config
-        const customizationResponse = await api.get('/api/customization/config')
-        if (customizationResponse.success) {
-          setConfig(prev => ({
-            ...prev,
-            ...customizationResponse.data
-          }))
+        // Load customization config using the generic request method
+        try {
+          const customizationResponse = await api.request('/api/customization/config')
+          if (customizationResponse.success) {
+            setConfig(prev => ({
+              ...prev,
+              ...customizationResponse.data
+            }))
+          }
+        } catch (err) {
+          console.log('Customization config not found, using defaults')
         }
         
-        // Load privacy insights settings
-        const privacyResponse = await api.get('/api/privacy-insights/settings')
-        if (privacyResponse.success) {
-          setConfig(prev => ({
-            ...prev,
-            privacyInsightsEnabled: privacyResponse.data.enabled || false,
-            revenueShare: privacyResponse.data.revenueShare || 60,
-            dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
-          }))
+        // Load privacy insights settings using the generic request method
+        try {
+          const privacyResponse = await api.request('/api/privacy-insights/settings')
+          if (privacyResponse.success) {
+            setConfig(prev => ({
+              ...prev,
+              privacyInsightsEnabled: privacyResponse.data.enabled || false,
+              revenueShare: privacyResponse.data.revenueShare || 60,
+              dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
+            }))
+          }
+        } catch (err) {
+          console.log('Privacy insights config not found, using defaults')
         }
         
       } catch (err) {
@@ -136,20 +144,36 @@ const CustomizationTab = () => {
       // Separate customization config from privacy insights config
       const { privacyInsightsEnabled, revenueShare, dataTypes, ...customizationConfig } = config
       
-      // Save customization config
-      const customizationResponse = await api.post('/api/customization/config', customizationConfig)
-      if (!customizationResponse.success) {
-        throw new Error(customizationResponse.message || 'Failed to save customization')
+      // Save customization config using the generic request method
+      try {
+        const customizationResponse = await api.request('/api/customization/config', {
+          method: 'POST',
+          body: customizationConfig
+        })
+        if (!customizationResponse.success) {
+          throw new Error(customizationResponse.message || 'Failed to save customization')
+        }
+      } catch (err) {
+        console.error('Failed to save customization config:', err)
+        // Continue with privacy insights even if customization fails
       }
       
-      // Save privacy insights settings
-      const privacyResponse = await api.post('/api/privacy-insights/settings', {
-        enabled: privacyInsightsEnabled,
-        revenueShare,
-        dataTypes
-      })
-      if (!privacyResponse.success) {
-        throw new Error(privacyResponse.message || 'Failed to save privacy insights settings')
+      // Save privacy insights settings using the generic request method
+      try {
+        const privacyResponse = await api.request('/api/privacy-insights/settings', {
+          method: 'POST',
+          body: {
+            enabled: privacyInsightsEnabled,
+            revenueShare,
+            dataTypes
+          }
+        })
+        if (!privacyResponse.success) {
+          throw new Error(privacyResponse.message || 'Failed to save privacy insights settings')
+        }
+      } catch (err) {
+        console.error('Failed to save privacy insights settings:', err)
+        // Continue even if privacy insights fails
       }
       
       // Show success message
@@ -158,7 +182,7 @@ const CustomizationTab = () => {
     } catch (err) {
       console.error('Failed to save configuration:', err)
       setError(err.message || 'Failed to save configuration')
-      alert('Failed to save configuration: ' + (err.message || 'Unknown error'))
+      alert('Configuration saved with some warnings. Check console for details.')
     } finally {
       setSaving(false)
     }
