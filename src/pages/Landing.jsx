@@ -15,8 +15,6 @@ import {
   TrendingUp,
   Bot,
   Scan,
-  Palette,
-  FileText,
   Brain,
   Target,
   Infinity
@@ -110,41 +108,7 @@ const Landing = ({ onShowAuth }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Bot className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white" />
-            <span className="text-xl font-bold text-gray-900">CookieBot.ai</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</Link>
-            <Link to="/scan" className="text-gray-600 hover:text-gray-900 transition-colors">Scan</Link>
-            <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</a>
-            <Link to="/about" className="text-gray-600 hover:text-gray-900 transition-colors">About</Link>
-          </nav>
-
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <Button asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" onClick={onShowAuth}>
-                  Sign In
-                </Button>
-                <Button onClick={onShowAuth}>
-                  Get Started
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
@@ -330,57 +294,6 @@ const Landing = ({ onShowAuth }) => {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Bot className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white" />
-                <span className="text-xl font-bold">CookieBot.ai</span>
-              </div>
-              <p className="text-gray-400">
-                The AI-powered cookie consent platform that pays you while ensuring compliance.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link to="/scan" className="hover:text-white transition-colors">Compliance Scanner</Link></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">GDPR</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 CookieBot.ai. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
 
       {/* Demo Login Component */}
       <DemoLogin />
