@@ -33,8 +33,8 @@ const Contact = () => {
     setError(null);
 
     try {
-      // Fixed API path - added /api/ prefix to match backend registration
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/contact`, {
+      // Fixed API path - added trailing slash to match Flask route definition
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/contact/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
