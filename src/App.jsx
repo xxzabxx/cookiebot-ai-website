@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Features from './pages/Features';
@@ -24,11 +25,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-  
-  return children;
+  return user ? children : <Navigate to="/" replace />;
 };
 
 // Main App Content
@@ -39,33 +36,61 @@ const AppContent = () => {
   return (
     <>
       <Routes>
-        <Route 
-          path="/" 
-          element={
-            user ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Landing onShowAuth={() => setShowAuthModal(true)} />
-            )
-          } 
-        />
-        <Route path="/features" element={<Features />} />
-        <Route path="/scan" element={<Scan />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route 
-          path="/dashboard/*" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
+        {/* Public Routes with Layout */}
+        <Route path="/" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <Landing onShowAuth={() => setShowAuthModal(true)} />
+          </Layout>
+        } />
+        
+        <Route path="/features" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <Features />
+          </Layout>
+        } />
+        
+        <Route path="/scan" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <Scan />
+          </Layout>
+        } />
+        
+        <Route path="/about" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <About />
+          </Layout>
+        } />
+        
+        <Route path="/contact" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <Contact />
+          </Layout>
+        } />
+        
+        <Route path="/privacy" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <PrivacyPolicy />
+          </Layout>
+        } />
+        
+        <Route path="/terms" element={
+          <Layout onShowAuth={() => setShowAuthModal(true)}>
+            <TermsOfService />
+          </Layout>
+        } />
+
+        {/* Protected Dashboard Route (No Layout - has its own) */}
+        <Route path="/dashboard/*" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      
+
+      {/* Auth Modal */}
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
@@ -85,3 +110,4 @@ function App() {
 }
 
 export default App;
+
