@@ -21,7 +21,9 @@ import {
   DollarSign,
   ToggleLeft,
   ToggleRight,
-  Info
+  Info,
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { api } from '../../lib/api'
@@ -54,44 +56,58 @@ const CustomizationTab = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
+  const [hasLoadedData, setHasLoadedData] = useState(false)
 
   // Load configuration from backend on component mount
   useEffect(() => {
     const loadConfiguration = async () => {
       try {
         setLoading(true)
+        setError(null)
+        let loadedAnyData = false
         
         // Load customization config using the generic request method
         try {
           const customizationResponse = await api.request('/api/customization/config')
-          if (customizationResponse.success) {
+          if (customizationResponse && customizationResponse.success && customizationResponse.data) {
+            console.log('Loaded customization config:', customizationResponse.data)
             setConfig(prev => ({
               ...prev,
               ...customizationResponse.data
             }))
+            loadedAnyData = true
           }
         } catch (err) {
-          console.log('Customization config not found, using defaults')
+          console.log('Customization config endpoint not available yet:', err.message)
         }
         
         // Load privacy insights settings using the generic request method
         try {
           const privacyResponse = await api.request('/api/privacy-insights/settings')
-          if (privacyResponse.success) {
+          if (privacyResponse && privacyResponse.success && privacyResponse.data) {
+            console.log('Loaded privacy insights config:', privacyResponse.data)
             setConfig(prev => ({
               ...prev,
               privacyInsightsEnabled: privacyResponse.data.enabled || false,
               revenueShare: privacyResponse.data.revenueShare || 60,
               dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
             }))
+            loadedAnyData = true
           }
         } catch (err) {
-          console.log('Privacy insights config not found, using defaults')
+          console.log('Privacy insights config endpoint not available yet:', err.message)
+        }
+        
+        setHasLoadedData(loadedAnyData)
+        if (loadedAnyData) {
+          setSuccess('Configuration loaded successfully!')
+          setTimeout(() => setSuccess(null), 3000)
         }
         
       } catch (err) {
         console.error('Failed to load configuration:', err)
-        setError('Failed to load configuration')
+        setError('Failed to load some configuration settings')
       } finally {
         setLoading(false)
       }
@@ -105,6 +121,8 @@ const CustomizationTab = () => {
       ...prev,
       [key]: value
     }))
+    // Clear success message when user makes changes
+    if (success) setSuccess(null)
   }
 
   const handlePrivacyInsightsToggle = (enabled) => {
@@ -112,6 +130,8 @@ const CustomizationTab = () => {
       ...prev,
       privacyInsightsEnabled: enabled
     }))
+    // Clear success message when user makes changes
+    if (success) setSuccess(null)
   }
 
   const resetToDefaults = () => {
@@ -134,55 +154,77 @@ const CustomizationTab = () => {
       revenueShare: 60,
       dataTypes: ['analytics', 'preferences', 'marketing']
     })
+    setSuccess(null)
+    setError(null)
+  }
+
+  const reloadConfiguration = async () => {
+    setLoading(true)
+    // Trigger the useEffect logic again
+    window.location.reload()
   }
 
   const saveConfiguration = async () => {
     try {
       setSaving(true)
       setError(null)
+      setSuccess(null)
       
       // Separate customization config from privacy insights config
       const { privacyInsightsEnabled, revenueShare, dataTypes, ...customizationConfig } = config
       
+      let saveErrors = []
+      
       // Save customization config using the generic request method
       try {
+        console.log('Saving customization config:', customizationConfig)
         const customizationResponse = await api.request('/api/customization/config', {
           method: 'POST',
           body: customizationConfig
         })
-        if (!customizationResponse.success) {
-          throw new Error(customizationResponse.message || 'Failed to save customization')
+        if (!customizationResponse || !customizationResponse.success) {
+          throw new Error(customizationResponse?.message || 'Failed to save customization')
         }
+        console.log('Customization config saved successfully')
       } catch (err) {
         console.error('Failed to save customization config:', err)
-        // Continue with privacy insights even if customization fails
+        saveErrors.push('customization settings')
       }
       
       // Save privacy insights settings using the generic request method
       try {
+        const privacyData = {
+          enabled: privacyInsightsEnabled,
+          revenueShare,
+          dataTypes
+        }
+        console.log('Saving privacy insights config:', privacyData)
         const privacyResponse = await api.request('/api/privacy-insights/settings', {
           method: 'POST',
-          body: {
-            enabled: privacyInsightsEnabled,
-            revenueShare,
-            dataTypes
-          }
+          body: privacyData
         })
-        if (!privacyResponse.success) {
-          throw new Error(privacyResponse.message || 'Failed to save privacy insights settings')
+        if (!privacyResponse || !privacyResponse.success) {
+          throw new Error(privacyResponse?.message || 'Failed to save privacy insights settings')
         }
+        console.log('Privacy insights config saved successfully')
       } catch (err) {
         console.error('Failed to save privacy insights settings:', err)
-        // Continue even if privacy insights fails
+        saveErrors.push('privacy insights settings')
       }
       
-      // Show success message
-      alert('Configuration saved successfully!')
+      // Show appropriate message
+      if (saveErrors.length === 0) {
+        setSuccess('All settings saved successfully! Changes will appear in the Script tab.')
+        setHasLoadedData(true)
+      } else if (saveErrors.length === 1) {
+        setSuccess(`Settings saved with warnings: ${saveErrors[0]} may not have saved properly.`)
+      } else {
+        setError('Some settings may not have saved properly. Backend endpoints may still be setting up.')
+      }
       
     } catch (err) {
       console.error('Failed to save configuration:', err)
       setError(err.message || 'Failed to save configuration')
-      alert('Configuration saved with some warnings. Check console for details.')
     } finally {
       setSaving(false)
     }
@@ -266,7 +308,7 @@ const CustomizationTab = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading configuration...</p>
+          <p className="text-gray-600">Loading your saved configuration...</p>
         </div>
       </div>
     )
@@ -283,6 +325,10 @@ const CustomizationTab = () => {
           <p className="text-gray-600">Customize your cookie consent banner appearance, behavior, and monetization</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={reloadConfiguration}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Reload
+          </Button>
           <Button variant="outline" onClick={resetToDefaults}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
@@ -294,6 +340,7 @@ const CustomizationTab = () => {
         </div>
       </div>
 
+      {/* Status Messages */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-red-800">
@@ -303,6 +350,32 @@ const CustomizationTab = () => {
           <p className="text-red-700 text-sm mt-1">{error}</p>
         </div>
       )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-green-800">
+            <CheckCircle className="w-4 h-4" />
+            <span className="font-medium">Success</span>
+          </div>
+          <p className="text-green-700 text-sm mt-1">{success}</p>
+        </div>
+      )}
+
+      {/* Configuration Status */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 text-blue-800">
+            <Info className="w-4 h-4" />
+            <span className="font-medium">Configuration Status</span>
+          </div>
+          <p className="text-blue-700 text-sm mt-1">
+            {hasLoadedData 
+              ? 'Using your saved configuration settings. Changes will be reflected in the Script tab after saving.'
+              : 'Using default settings. Backend configuration endpoints are being set up. Your settings will be saved when available.'
+            }
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Configuration Panel */}
@@ -726,6 +799,12 @@ const CustomizationTab = () => {
                   <span className="text-gray-600">Privacy Insights:</span>
                   <span className={`font-medium ${config.privacyInsightsEnabled ? 'text-purple-600' : 'text-gray-400'}`}>
                     {config.privacyInsightsEnabled ? `Enabled (${config.revenueShare}%)` : 'Disabled'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Data Status:</span>
+                  <span className={`font-medium ${hasLoadedData ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {hasLoadedData ? 'Saved Configuration' : 'Default Settings'}
                   </span>
                 </div>
               </div>
