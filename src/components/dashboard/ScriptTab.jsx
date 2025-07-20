@@ -15,24 +15,116 @@ import {
   Shield,
   Settings,
   FileText,
-  Smartphone
+  Smartphone,
+  DollarSign,
+  Eye,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { api } from '../../lib/api'
 
 const ScriptTab = () => {
+  const { user } = useAuth()
   const [copied, setCopied] = useState(false)
   const [scriptType, setScriptType] = useState('standard')
-  const [userId] = useState('user_12345') // This would come from auth context
-  const [apiKey] = useState('cb_live_abcd1234efgh5678ijkl9012mnop3456') // This would come from user settings
+  const [privacyInsightsEnabled, setPrivacyInsightsEnabled] = useState(false)
+  const [customizationConfig, setCustomizationConfig] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+  // Get user data from auth context
+  const userId = user?.id || 'user_demo'
+  const apiKey = user?.api_key || 'cb_live_demo_key'
+
+  // Load customization config and privacy insights settings from backend
+  useEffect(() => {
+    const loadConfiguration = async () => {
+      try {
+        setLoading(true)
+        
+        // Load customization config
+        const customizationResponse = await api.get('/api/customization/config')
+        if (customizationResponse.success) {
+          setCustomizationConfig(customizationResponse.data)
+        }
+        
+        // Load privacy insights setting
+        const privacyResponse = await api.get('/api/privacy-insights/settings')
+        if (privacyResponse.success) {
+          setPrivacyInsightsEnabled(privacyResponse.data.enabled || false)
+        }
+        
+      } catch (err) {
+        console.error('Failed to load configuration:', err)
+        setError('Failed to load configuration')
+        // Set defaults if backend fails
+        setCustomizationConfig({
+          theme: 'light',
+          position: 'bottom-right',
+          layout: 'dialog',
+          primaryColor: '#007bff',
+          backgroundColor: '#ffffff',
+          textColor: '#333333'
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadConfiguration()
+  }, [])
+
+  // Save privacy insights setting to backend
+  const handlePrivacyInsightsToggle = async (enabled) => {
+    try {
+      const response = await api.post('/api/privacy-insights/settings', {
+        enabled: enabled
+      })
+      
+      if (response.success) {
+        setPrivacyInsightsEnabled(enabled)
+      } else {
+        throw new Error(response.message || 'Failed to update setting')
+      }
+    } catch (err) {
+      console.error('Failed to update privacy insights setting:', err)
+      // Revert toggle on error
+      setPrivacyInsightsEnabled(!enabled)
+    }
+  }
 
   const generateScript = (type = 'standard') => {
-    const baseScript = `<!-- CookieBot.ai Script -->
+    // Use V3 script URL instead of V2
+    const scriptUrl = 'https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js'
+    
+    // Build customization object from backend config
+    const customization = customizationConfig ? {
+      theme: customizationConfig.theme || 'light',
+      position: customizationConfig.position || 'bottom-right',
+      layout: customizationConfig.layout || 'dialog',
+      primaryColor: customizationConfig.primaryColor || '#007bff',
+      backgroundColor: customizationConfig.backgroundColor || '#ffffff',
+      textColor: customizationConfig.textColor || '#333333',
+      buttonStyle: customizationConfig.buttonStyle || 'default',
+      borderRadius: customizationConfig.borderRadius || '8px',
+      animations: customizationConfig.animations !== false,
+      overlay: customizationConfig.overlay !== false
+    } : {
+      theme: 'light',
+      position: 'bottom-right',
+      layout: 'dialog'
+    }
+
+    const baseScript = `<!-- CookieBot.ai V3 Script -->
 <script>
   window.cookieBotConfig = {
     apiKey: '${apiKey}',
     userId: '${userId}',
     domain: window.location.hostname,
+    version: 'v3',
     ${type === 'async' ? 'async: true,' : ''}
-    ${type === 'privacy-insights' ? 'privacyInsights: true,' : ''}
+    ${(type === 'privacy-insights' || privacyInsightsEnabled) ? 'privacyInsights: true,' : ''}
     ${type === 'minimal' ? 'minimal: true,' : ''}
     autoShow: true,
     compliance: {
@@ -40,14 +132,29 @@ const ScriptTab = () => {
       ccpa: true,
       lgpd: true
     },
-    customization: {
-      theme: 'auto',
-      position: 'bottom-right',
-      layout: 'dialog'
+    customization: ${JSON.stringify(customization, null, 6).replace(/\n/g, '\n    ')},
+    ${privacyInsightsEnabled ? `monetization: {
+      enabled: true,
+      revenueShare: 60,
+      dataTypes: ['analytics', 'preferences', 'marketing']
+    },` : ''}
+    callbacks: {
+      onAccept: function(categories) {
+        console.log('CookieBot: Accepted categories:', categories);
+      },
+      onDecline: function() {
+        console.log('CookieBot: User declined cookies');
+      },
+      onCustomize: function() {
+        console.log('CookieBot: User opened customization');
+      }${privacyInsightsEnabled ? `,
+      onPrivacyInsights: function(data) {
+        console.log('CookieBot: Privacy insights data:', data);
+      }` : ''}
     }
   };
 </script>
-<script src="https://cdn.cookiebot.ai/v2/cookiebot.min.js" ${type === 'async' ? 'async' : ''}></script>`
+<script src="${scriptUrl}" ${type === 'async' ? 'async' : ''}></script>`
 
     return baseScript
   }
@@ -65,7 +172,7 @@ const ScriptTab = () => {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'cookiebot-script.html'
+    a.download = 'cookiebot-v3-script.html'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -75,7 +182,7 @@ const ScriptTab = () => {
   const integrationSteps = [
     {
       title: "Copy the Script",
-      description: "Copy the generated script code below",
+      description: "Copy the generated V3 script code below",
       icon: Copy
     },
     {
@@ -134,6 +241,17 @@ const ScriptTab = () => {
     }
   ]
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading configuration...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -142,7 +260,7 @@ const ScriptTab = () => {
             <Code className="w-6 h-6 text-blue-600" />
             Script Integration
           </h2>
-          <p className="text-gray-600">Get your CookieBot.ai script and integration instructions</p>
+          <p className="text-gray-600">Get your CookieBot.ai V3 script with customization and privacy insights</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadScript}>
@@ -165,8 +283,8 @@ const ScriptTab = () => {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Active</h3>
-                <p className="text-sm text-gray-600">Script Status</p>
+                <h3 className="font-semibold text-gray-900">V3 Active</h3>
+                <p className="text-sm text-gray-600">Latest Version</p>
               </div>
             </div>
           </CardContent>
@@ -179,8 +297,8 @@ const ScriptTab = () => {
                 <Globe className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">3 Domains</h3>
-                <p className="text-sm text-gray-600">Configured</p>
+                <h3 className="font-semibold text-gray-900">Custom Config</h3>
+                <p className="text-sm text-gray-600">Applied</p>
               </div>
             </div>
           </CardContent>
@@ -189,25 +307,74 @@ const ScriptTab = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-purple-600" />
+              <div className={`w-12 h-12 ${privacyInsightsEnabled ? 'bg-purple-100' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
+                <DollarSign className={`w-6 h-6 ${privacyInsightsEnabled ? 'text-purple-600' : 'text-gray-400'}`} />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">v2.1.0</h3>
-                <p className="text-sm text-gray-600">Latest Version</p>
+                <h3 className="font-semibold text-gray-900">
+                  {privacyInsightsEnabled ? 'Monetization On' : 'Monetization Off'}
+                </h3>
+                <p className="text-sm text-gray-600">Privacy Insights</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Privacy Insights Configuration */}
+      <Card className="border-purple-200 bg-purple-50">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-purple-600" />
+            Privacy Insights Monetization
+          </CardTitle>
+          <CardDescription>
+            Enable privacy insights to generate revenue while respecting user privacy
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900">Enable Privacy Insights</h4>
+              <p className="text-sm text-gray-600">
+                Allow users to opt-in to share anonymized privacy insights and earn 60% revenue share
+              </p>
+            </div>
+            <button
+              onClick={() => handlePrivacyInsightsToggle(!privacyInsightsEnabled)}
+              className="flex items-center"
+            >
+              {privacyInsightsEnabled ? (
+                <ToggleRight className="w-8 h-8 text-purple-600" />
+              ) : (
+                <ToggleLeft className="w-8 h-8 text-gray-400" />
+              )}
+            </button>
+          </div>
+          
+          {privacyInsightsEnabled && (
+            <div className="bg-white p-4 rounded-lg border border-purple-200">
+              <h5 className="font-medium text-gray-900 mb-2">Monetization Features Enabled:</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Users can opt-in to share anonymized analytics data</li>
+                <li>• 60% revenue share from privacy insights</li>
+                <li>• Automatic compliance with privacy regulations</li>
+                <li>• Real-time earnings tracking in Revenue tab</li>
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Script Generator */}
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Generate Your Script</CardTitle>
-              <CardDescription>Choose the integration type that best fits your needs</CardDescription>
+              <CardTitle className="text-lg">Generate Your V3 Script</CardTitle>
+              <CardDescription>
+                Your script includes customization settings and {privacyInsightsEnabled ? 'privacy insights monetization' : 'compliance features'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -219,14 +386,14 @@ const ScriptTab = () => {
                 >
                   <option value="standard">Standard (Recommended)</option>
                   <option value="async">Async Loading</option>
-                  <option value="privacy-insights">With Privacy Insights</option>
+                  <option value="privacy-insights">Force Privacy Insights</option>
                   <option value="minimal">Minimal (Compliance Only)</option>
                 </select>
               </div>
 
               <div className="bg-gray-900 rounded-lg p-4 relative">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-green-400 text-sm font-mono">HTML</span>
+                  <span className="text-green-400 text-sm font-mono">HTML - V3 Script</span>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -240,14 +407,14 @@ const ScriptTab = () => {
                     )}
                   </Button>
                 </div>
-                <pre className="text-gray-300 text-sm overflow-x-auto">
+                <pre className="text-gray-300 text-sm overflow-x-auto max-h-96">
                   <code>{generateScript(scriptType)}</code>
                 </pre>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Shield className="w-4 h-4" />
-                <span>This script is automatically updated and includes the latest compliance features</span>
+                <span>V3 script includes your customization settings and latest compliance features</span>
               </div>
             </CardContent>
           </Card>
@@ -307,7 +474,7 @@ const ScriptTab = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Integration Steps</CardTitle>
-              <CardDescription>Follow these steps to implement CookieBot.ai on your website</CardDescription>
+              <CardDescription>Follow these steps to implement CookieBot.ai V3 on your website</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -323,6 +490,50 @@ const ScriptTab = () => {
                     <step.icon className="w-5 h-5 text-gray-400" />
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Live Preview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                Live Preview
+              </CardTitle>
+              <CardDescription>Preview how your banner will look with current settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg p-4 bg-gray-50 min-h-32 flex items-center justify-center">
+                <div 
+                  className="bg-white border rounded-lg p-4 shadow-lg max-w-sm"
+                  style={{
+                    borderColor: customizationConfig?.primaryColor || '#007bff',
+                    backgroundColor: customizationConfig?.backgroundColor || '#ffffff',
+                    color: customizationConfig?.textColor || '#333333'
+                  }}
+                >
+                  <div className="font-semibold mb-2">🍪 We value your privacy</div>
+                  <p className="text-xs mb-3 opacity-80">
+                    This website uses cookies to enhance your experience and {privacyInsightsEnabled ? 'generate privacy insights revenue' : 'ensure compliance'}.
+                  </p>
+                  <div className="flex gap-2">
+                    <button 
+                      className="px-3 py-1 rounded text-xs font-medium text-white"
+                      style={{ backgroundColor: customizationConfig?.primaryColor || '#007bff' }}
+                    >
+                      Accept All
+                    </button>
+                    <button className="px-3 py-1 rounded text-xs font-medium border">
+                      Customize
+                    </button>
+                  </div>
+                  {privacyInsightsEnabled && (
+                    <div className="mt-2 text-xs opacity-60">
+                      💰 Privacy insights enabled
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -353,67 +564,45 @@ const ScriptTab = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Testing Tools */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Testing & Validation</CardTitle>
-              <CardDescription>Tools to verify your implementation</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <Globe className="w-4 h-4 mr-2" />
-                Test Script on Domain
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Smartphone className="w-4 h-4 mr-2" />
-                Mobile Preview
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Shield className="w-4 h-4 mr-2" />
-                Compliance Validator
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="w-4 h-4 mr-2" />
-                Generate Test Report
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
       {/* Advanced Configuration */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Advanced Configuration</CardTitle>
-          <CardDescription>Optional settings for advanced users</CardDescription>
+          <CardTitle className="text-lg">Advanced V3 Configuration</CardTitle>
+          <CardDescription>Optional settings and callbacks for advanced users</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="events" className="w-full">
             <TabsList>
               <TabsTrigger value="events">Event Callbacks</TabsTrigger>
               <TabsTrigger value="custom">Custom CSS</TabsTrigger>
-              <TabsTrigger value="api">API Methods</TabsTrigger>
+              <TabsTrigger value="api">V3 API Methods</TabsTrigger>
             </TabsList>
 
             <TabsContent value="events" className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4">
-                <div className="text-green-400 text-sm font-mono mb-2">JavaScript</div>
+                <div className="text-green-400 text-sm font-mono mb-2">JavaScript - V3 Events</div>
                 <pre className="text-gray-300 text-sm overflow-x-auto">
-                  <code>{`// Event callbacks
+                  <code>{`// V3 Event callbacks
 window.cookieBotConfig.callbacks = {
   onAccept: function(categories) {
-    console.log('Accepted categories:', categories);
+    console.log('V3: Accepted categories:', categories);
     // Your custom code here
   },
   onDecline: function() {
-    console.log('User declined cookies');
+    console.log('V3: User declined cookies');
     // Your custom code here
   },
   onCustomize: function() {
-    console.log('User opened customization');
+    console.log('V3: User opened customization');
     // Your custom code here
-  }
+  }${privacyInsightsEnabled ? `,
+  onPrivacyInsights: function(data) {
+    console.log('V3: Privacy insights data:', data);
+    // Handle monetization data
+  }` : ''}
 };`}</code>
                 </pre>
               </div>
@@ -421,32 +610,42 @@ window.cookieBotConfig.callbacks = {
 
             <TabsContent value="custom" className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4">
-                <div className="text-green-400 text-sm font-mono mb-2">CSS</div>
+                <div className="text-green-400 text-sm font-mono mb-2">CSS - V3 Styling</div>
                 <pre className="text-gray-300 text-sm overflow-x-auto">
-                  <code>{`/* Custom styling */
-.cookiebot-banner {
+                  <code>{`/* V3 Custom styling */
+.cookiebot-v3-banner {
   font-family: 'Your Font', sans-serif;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: ${customizationConfig?.borderRadius || '8px'};
 }
 
-.cookiebot-button-accept {
-  background: linear-gradient(45deg, #007bff, #0056b3);
+.cookiebot-v3-button-accept {
+  background: ${customizationConfig?.primaryColor || '#007bff'};
   border-radius: 25px;
-}`}</code>
+  transition: all 0.3s ease;
+}${privacyInsightsEnabled ? `
+
+.cookiebot-v3-privacy-insights {
+  background: linear-gradient(45deg, #9333ea, #7c3aed);
+  color: white;
+}` : ''}`}</code>
                 </pre>
               </div>
             </TabsContent>
 
             <TabsContent value="api" className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4">
-                <div className="text-green-400 text-sm font-mono mb-2">JavaScript API</div>
+                <div className="text-green-400 text-sm font-mono mb-2">JavaScript - V3 API</div>
                 <pre className="text-gray-300 text-sm overflow-x-auto">
-                  <code>{`// Available API methods
-CookieBot.show();           // Show banner
-CookieBot.hide();           // Hide banner
-CookieBot.reset();          // Reset consent
-CookieBot.getConsent();     // Get current consent
-CookieBot.hasConsent();     // Check if user has consented`}</code>
+                  <code>{`// V3 API methods
+CookieBotV3.show();           // Show banner
+CookieBotV3.hide();           // Hide banner
+CookieBotV3.reset();          // Reset consent
+CookieBotV3.getConsent();     // Get current consent
+CookieBotV3.hasConsent();     // Check if user has consented
+CookieBotV3.updateConfig();   // Update configuration${privacyInsightsEnabled ? `
+CookieBotV3.getInsights();    // Get privacy insights data
+CookieBotV3.getRevenue();     // Get revenue information` : ''}`}</code>
                 </pre>
               </div>
             </TabsContent>
