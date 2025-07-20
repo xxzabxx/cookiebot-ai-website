@@ -18,7 +18,8 @@ import {
   Smartphone,
   DollarSign,
   Eye,
-  Info
+  Info,
+  RefreshCw
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { api } from '../../lib/api'
@@ -30,47 +31,56 @@ const ScriptTab = () => {
   const [customizationConfig, setCustomizationConfig] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(null)
   
   // Get user data from auth context
   const userId = user?.id || 'user_demo'
   const apiKey = user?.api_key || 'cb_live_demo_key'
 
   // Load configuration from backend (read-only)
-  useEffect(() => {
-    const loadConfiguration = async () => {
+  const loadConfiguration = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      let configData = {}
+      let hasCustomConfig = false
+      
+      // Load customization config using the generic request method
       try {
-        setLoading(true)
-        setError(null)
-        
-        // Load customization config using the generic request method
-        try {
-          const customizationResponse = await api.request('/api/customization/config')
-          if (customizationResponse.success) {
-            setCustomizationConfig(customizationResponse.data)
-          }
-        } catch (err) {
-          console.log('Customization config not found, using defaults')
+        const customizationResponse = await api.request('/api/customization/config')
+        if (customizationResponse && customizationResponse.success && customizationResponse.data) {
+          console.log('ScriptTab: Loaded customization config:', customizationResponse.data)
+          configData = { ...configData, ...customizationResponse.data }
+          hasCustomConfig = true
         }
-        
-        // Load privacy insights settings and merge with customization
-        try {
-          const privacyResponse = await api.request('/api/privacy-insights/settings')
-          if (privacyResponse.success) {
-            setCustomizationConfig(prev => ({
-              ...prev,
-              privacyInsightsEnabled: privacyResponse.data.enabled || false,
-              revenueShare: privacyResponse.data.revenueShare || 60,
-              dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
-            }))
-          }
-        } catch (err) {
-          console.log('Privacy insights config not found, using defaults')
-        }
-        
       } catch (err) {
-        console.error('Failed to load configuration:', err)
-        setError('Some configuration endpoints are not available yet. Using default settings.')
-        // Set defaults if backend fails
+        console.log('ScriptTab: Customization config not available:', err.message)
+      }
+      
+      // Load privacy insights settings and merge with customization
+      try {
+        const privacyResponse = await api.request('/api/privacy-insights/settings')
+        if (privacyResponse && privacyResponse.success && privacyResponse.data) {
+          console.log('ScriptTab: Loaded privacy insights config:', privacyResponse.data)
+          configData = {
+            ...configData,
+            privacyInsightsEnabled: privacyResponse.data.enabled || false,
+            revenueShare: privacyResponse.data.revenueShare || 60,
+            dataTypes: privacyResponse.data.dataTypes || ['analytics', 'preferences', 'marketing']
+          }
+          hasCustomConfig = true
+        }
+      } catch (err) {
+        console.log('ScriptTab: Privacy insights config not available:', err.message)
+      }
+      
+      if (hasCustomConfig) {
+        setCustomizationConfig(configData)
+        setLastUpdated(new Date().toLocaleTimeString())
+        setError(null)
+      } else {
+        // Set defaults if no backend config available
         setCustomizationConfig({
           theme: 'light',
           position: 'bottom-right',
@@ -81,13 +91,35 @@ const ScriptTab = () => {
           privacyInsightsEnabled: false,
           revenueShare: 60
         })
-      } finally {
-        setLoading(false)
+        setError('Backend configuration endpoints are being set up. Using default settings.')
       }
+      
+    } catch (err) {
+      console.error('ScriptTab: Failed to load configuration:', err)
+      setError('Unable to load configuration from backend.')
+      // Set defaults if backend fails
+      setCustomizationConfig({
+        theme: 'light',
+        position: 'bottom-right',
+        layout: 'dialog',
+        primaryColor: '#007bff',
+        backgroundColor: '#ffffff',
+        textColor: '#333333',
+        privacyInsightsEnabled: false,
+        revenueShare: 60
+      })
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadConfiguration()
   }, [])
+
+  const refreshConfiguration = () => {
+    loadConfiguration()
+  }
 
   const generateScript = (type = 'standard') => {
     // Use V3 script URL from your backend
@@ -250,13 +282,14 @@ const ScriptTab = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading configuration...</p>
+          <p className="text-gray-600">Loading your configuration...</p>
         </div>
       </div>
     )
   }
 
   const privacyInsightsEnabled = customizationConfig?.privacyInsightsEnabled || false
+  const hasCustomConfig = !error || error.includes('default settings')
 
   return (
     <div className="space-y-6">
@@ -269,6 +302,10 @@ const ScriptTab = () => {
           <p className="text-gray-600">Get your CookieBot.ai V3 script with your customization settings</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={refreshConfiguration}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Config
+          </Button>
           <Button variant="outline" onClick={downloadScript}>
             <Download className="w-4 h-4 mr-2" />
             Download Script
@@ -284,9 +321,21 @@ const ScriptTab = () => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-blue-800">
             <Info className="w-4 h-4" />
-            <span className="font-medium">Notice</span>
+            <span className="font-medium">Configuration Status</span>
           </div>
           <p className="text-blue-700 text-sm mt-1">{error}</p>
+        </div>
+      )}
+
+      {lastUpdated && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-green-800">
+            <CheckCircle className="w-4 h-4" />
+            <span className="font-medium">Configuration Loaded</span>
+          </div>
+          <p className="text-green-700 text-sm mt-1">
+            Using your saved customization settings. Last updated: {lastUpdated}
+          </p>
         </div>
       )}
 
@@ -309,15 +358,15 @@ const ScriptTab = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Settings className="w-6 h-6 text-blue-600" />
+              <div className={`w-12 h-12 ${hasCustomConfig ? 'bg-green-100' : 'bg-blue-100'} rounded-lg flex items-center justify-center`}>
+                <Settings className={`w-6 h-6 ${hasCustomConfig ? 'text-green-600' : 'text-blue-600'}`} />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  {customizationConfig ? 'Custom Config' : 'Default Config'}
+                  {hasCustomConfig ? 'Custom Config' : 'Default Config'}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {customizationConfig ? 'From Customization Tab' : 'Using Defaults'}
+                  {hasCustomConfig ? 'From Customization Tab' : 'Using Defaults'}
                 </p>
               </div>
             </div>
@@ -327,12 +376,12 @@ const ScriptTab = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${privacyInsightsEnabled ? 'bg-purple-100' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
-                <DollarSign className={`w-6 h-6 ${privacyInsightsEnabled ? 'text-purple-600' : 'text-gray-400'}`} />
+              <div className={`w-12 h-12 ${privacyInsightsEnabled ? 'bg-green-100' : 'bg-gray-100'} rounded-lg flex items-center justify-center`}>
+                <DollarSign className={`w-6 h-6 ${privacyInsightsEnabled ? 'text-green-600' : 'text-gray-400'}`} />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">
-                  {privacyInsightsEnabled ? 'Monetization On' : 'Monetization Off'}
+                <h3 className={`font-semibold ${privacyInsightsEnabled ? 'text-green-900' : 'text-gray-900'}`}>
+                  {privacyInsightsEnabled ? 'Monetization Active' : 'Monetization Off'}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {privacyInsightsEnabled ? `${customizationConfig.revenueShare}% Revenue Share` : 'Configure in Customization'}
@@ -353,7 +402,9 @@ const ScriptTab = () => {
           <p className="text-blue-700 text-sm mt-1">
             This script automatically includes your settings from the <strong>Customization tab</strong>. 
             To modify privacy insights, colors, layout, or other settings, use the Customization tab and save your changes.
-            {!customizationConfig && ' Backend configuration endpoints are being set up.'}
+            {privacyInsightsEnabled && (
+              <span className="font-medium text-green-700"> Privacy insights monetization is currently ACTIVE.</span>
+            )}
           </p>
         </CardContent>
       </Card>
@@ -365,7 +416,7 @@ const ScriptTab = () => {
             <CardHeader>
               <CardTitle className="text-lg">Generate Your V3 Script</CardTitle>
               <CardDescription>
-                Your script includes {customizationConfig ? 'your customization settings' : 'default settings'} and {privacyInsightsEnabled ? 'privacy insights monetization' : 'compliance features'}
+                Your script includes {hasCustomConfig ? 'your customization settings' : 'default settings'} and {privacyInsightsEnabled ? 'privacy insights monetization' : 'compliance features'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -406,8 +457,20 @@ const ScriptTab = () => {
 
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Shield className="w-4 h-4" />
-                <span>V3 script includes {customizationConfig ? 'your customization settings' : 'default settings'} and latest compliance features</span>
+                <span>V3 script includes {hasCustomConfig ? 'your customization settings' : 'default settings'} and latest compliance features</span>
               </div>
+
+              {privacyInsightsEnabled && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-green-800 mb-1">
+                    <DollarSign className="w-4 h-4" />
+                    <span className="text-sm font-medium">Monetization Enabled in Script</span>
+                  </div>
+                  <p className="text-green-700 text-xs">
+                    This script includes privacy insights monetization with {customizationConfig.revenueShare}% revenue share
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -522,8 +585,10 @@ const ScriptTab = () => {
                   </div>
                   {privacyInsightsEnabled && (
                     <div className="mt-2 text-xs opacity-60 flex items-center gap-1">
-                      <DollarSign className="w-3 h-3" />
-                      Privacy insights enabled ({customizationConfig?.revenueShare || 60}% revenue share)
+                      <DollarSign className="w-3 h-3 text-green-600" />
+                      <span className="text-green-600 font-medium">
+                        Privacy insights enabled ({customizationConfig?.revenueShare || 60}% revenue share)
+                      </span>
                     </div>
                   )}
                 </div>
@@ -619,7 +684,7 @@ window.cookieBotConfig.callbacks = {
 }${privacyInsightsEnabled ? `
 
 .cookiebot-v3-privacy-insights {
-  background: linear-gradient(45deg, #9333ea, #7c3aed);
+  background: linear-gradient(45deg, #10b981, #059669);
   color: white;
 }` : ''}`}</code>
                 </pre>
