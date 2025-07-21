@@ -62,13 +62,15 @@ const WebsitesTab = () => {
   ];
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Only proceed if we have a clear authentication state
+    if (isAuthenticated === true) {
       fetchWebsites();
-    } else {
+    } else if (isAuthenticated === false) {
       // Show demo data for non-authenticated users
       setWebsites(demoWebsites);
       setLoading(false);
     }
+    // If isAuthenticated is undefined/null, wait for auth to initialize
   }, [isAuthenticated]);
 
   const fetchWebsites = async () => {
@@ -205,7 +207,7 @@ const WebsitesTab = () => {
   };
 
   const canAddWebsite = () => {
-    if (!isAuthenticated) return false; // Can't add websites when not logged in
+    if (isAuthenticated !== true) return false; // Can't add websites when not logged in
     const limit = getWebsiteLimit();
     return limit === -1 || websites.length < limit;
   };
@@ -333,6 +335,33 @@ window.cookieBotConfig = {
     </Card>
   );
 
+  // Wait for authentication to initialize
+  if (isAuthenticated === undefined || isAuthenticated === null) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="h-12 bg-gray-200 rounded"></div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -362,7 +391,7 @@ window.cookieBotConfig = {
   return (
     <div className="space-y-6">
       {/* Demo Notice for Non-Authenticated Users */}
-      {!isAuthenticated && (
+      {isAuthenticated === false && (
         <Alert className="border-blue-200 bg-blue-50">
           <Lock className="h-4 w-4" />
           <AlertDescription className="text-blue-800">
