@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Plus, 
   Globe, 
   Users, 
   TrendingUp, 
@@ -19,7 +15,10 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Code,
+  Zap,
+  Info
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -29,11 +28,8 @@ const WebsitesTab = () => {
   const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedWebsite, setSelectedWebsite] = useState(null);
-  const [newWebsiteDomain, setNewWebsiteDomain] = useState('');
-  const [addingWebsite, setAddingWebsite] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -45,7 +41,7 @@ const WebsitesTab = () => {
       setLoading(true);
       setError(null);
       
-      // FIXED: Use the proper API method with parameters object
+      // Use the proper API method with parameters object
       const response = await api.getWebsites({
         page: 1,
         per_page: 50,
@@ -61,61 +57,9 @@ const WebsitesTab = () => {
     } catch (err) {
       console.error('Failed to fetch websites:', err);
       setError('Failed to retrieve websites');
-      
-      // For development - remove this when backend is working
       setWebsites([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleAddWebsite = async (e) => {
-    e.preventDefault();
-    if (!newWebsiteDomain.trim()) return;
-
-    try {
-      setAddingWebsite(true);
-      setError(null);
-      
-      // Enhanced domain cleaning and validation
-      let cleanDomain = newWebsiteDomain.trim()
-        .replace(/^https?:\/\//, '') // Remove protocol
-        .replace(/^www\./, '')       // Remove www
-        .replace(/\/$/, '')          // Remove trailing slash
-        .toLowerCase();              // Convert to lowercase
-
-      // Basic validation
-      if (!cleanDomain || cleanDomain.length < 3) {
-        throw new Error('Please enter a valid domain name');
-      }
-
-      // Format validation
-      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
-      if (!domainRegex.test(cleanDomain)) {
-        throw new Error('Please enter a valid domain format (e.g., example.com)');
-      }
-      
-      // FIXED: Use the proper API method
-      const response = await api.createWebsite({
-        domain: cleanDomain
-      });
-      
-      if (response.success) {
-        // Add the new website to the list
-        setWebsites(prev => [...prev, response.data.website]);
-        setNewWebsiteDomain('');
-        setShowAddModal(false);
-        
-        // Show success message
-        console.log('Website added successfully:', response.data.website);
-      } else {
-        throw new Error(response.message || 'Failed to create website');
-      }
-    } catch (err) {
-      console.error('Failed to add website:', err);
-      setError(err.message || 'Failed to add website');
-    } finally {
-      setAddingWebsite(false);
     }
   };
 
@@ -125,7 +69,6 @@ const WebsitesTab = () => {
     }
 
     try {
-      // FIXED: Use the proper API method
       const response = await api.deleteWebsite(websiteId);
       
       if (response.success) {
@@ -164,60 +107,86 @@ const WebsitesTab = () => {
     );
   };
 
-  const getWebsiteLimit = () => {
-    const limits = {
-      free: 1,
-      basic: 5,
-      pro: 25,
-      enterprise: -1
-    };
-    return limits[user?.subscription_tier] || 1;
-  };
-
-  const canAddWebsite = () => {
-    const limit = getWebsiteLimit();
-    return limit === -1 || websites.length < limit;
-  };
-
   const generateIntegrationCode = (website) => {
+    const userApiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`;
+    
     return `<!-- CookieBot.ai Integration -->
 <script>
-window.cookieBotConfig = {
-  apiKey: '${user?.apiKey || 'cb_live_' + Math.random().toString(36).substr(2, 32)}',
-  websiteId: '${website.id}',
-  clientId: '${website.client_id}',
-  userId: '${user?.id}',
-  domain: window.location.hostname,
-  version: 'v3',
-  autoShow: true,
-  compliance: {
-    gdpr: true,
-    ccpa: true,
-    lgpd: true
-  }
-};
-
-// Universal script that works on any website
 (function() {
-  function loadCookieBot() {
-    if (window.CookieBotLoaded) return;
-    window.CookieBotLoaded = true;
+    var cb = window.CookieBot = window.CookieBot || {};
+    cb.clientId = '${website.client_id}';
+    cb.apiKey = '${userApiKey}';
+    cb.apiUrl = 'https://cookiebot-ai-backend-production.up.railway.app/api/public';
     
+    // Auto-register website on script load
+    if (cb.apiKey && window.location.hostname) {
+        fetch(cb.apiUrl + '/register-website', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                api_key: cb.apiKey,
+                domain: window.location.hostname,
+                referrer: document.referrer || window.location.href
+            })
+        }).catch(function(error) {
+            console.warn('CookieBot auto-registration failed:', error);
+        });
+    }
+    
+    // Load CookieBot script
     var script = document.createElement('script');
-    script.src = 'https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js';
+    script.src = cb.apiUrl + '/script.js';
+    script.async = true;
     document.head.appendChild(script);
-  }
-  
-  if (document.readyState === 'complete') {
-    loadCookieBot();
-  } else {
-    window.addEventListener('load', loadCookieBot);
-    document.addEventListener('DOMContentLoaded', loadCookieBot);
-    setTimeout(loadCookieBot, 2000);
-  }
 })();
 </script>
 <!-- End CookieBot.ai Integration -->`;
+  };
+
+  const generateUniversalScript = () => {
+    const userApiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`;
+    
+    return `<!-- CookieBot.ai Universal Script -->
+<script>
+(function() {
+    var cb = window.CookieBot = window.CookieBot || {};
+    cb.apiKey = '${userApiKey}';
+    cb.apiUrl = 'https://cookiebot-ai-backend-production.up.railway.app/api/public';
+    
+    // Auto-register website on script load
+    if (cb.apiKey && window.location.hostname) {
+        fetch(cb.apiUrl + '/register-website', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                api_key: cb.apiKey,
+                domain: window.location.hostname,
+                referrer: document.referrer || window.location.href
+            })
+        }).then(function(response) {
+            return response.json();
+        }).then(function(data) {
+            if (data.success) {
+                cb.clientId = data.data.client_id;
+                console.log('CookieBot: Website auto-registered with ID:', data.data.website_id);
+            }
+        }).catch(function(error) {
+            console.warn('CookieBot auto-registration failed:', error);
+        });
+    }
+    
+    // Load CookieBot script
+    var script = document.createElement('script');
+    script.src = cb.apiUrl + '/script.js';
+    script.async = true;
+    document.head.appendChild(script);
+})();
+</script>
+<!-- End CookieBot.ai Universal Script -->`;
   };
 
   const WebsiteCard = ({ website }) => (
@@ -231,7 +200,7 @@ window.cookieBotConfig = {
           {getStatusBadge(website.status)}
         </div>
         <CardDescription className="text-sm text-gray-500">
-          Website ID: {website.id} • Client ID: {website.client_id}
+          Auto-registered • Client ID: {website.client_id}
         </CardDescription>
       </CardHeader>
       
@@ -323,71 +292,18 @@ window.cookieBotConfig = {
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Your Websites</h3>
           <p className="text-sm text-gray-500">
-            {websites.length} of {getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites
+            {websites.length} websites auto-registered from your script deployments
           </p>
         </div>
         
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchWebsites}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          
-          <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-            <DialogTrigger asChild>
-              <Button disabled={!canAddWebsite()}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Website
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Website</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddWebsite} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="domain">Website Domain</Label>
-                  <Input
-                    id="domain"
-                    placeholder="example.com"
-                    value={newWebsiteDomain}
-                    onChange={(e) => setNewWebsiteDomain(e.target.value)}
-                    required
-                  />
-                  <p className="text-sm text-gray-500">
-                    Enter your website domain without http:// or https:// (e.g., example.com)
-                  </p>
-                </div>
-                
-                {error && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="text-red-800">
-                      {error}
-                    </AlertDescription>
-                  </Alert>
-                )}
-                
-                <div className="flex space-x-2">
-                  <Button type="submit" disabled={addingWebsite} className="flex-1">
-                    {addingWebsite ? 'Adding...' : 'Add Website'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => {
-                    setShowAddModal(false);
-                    setError(null);
-                    setNewWebsiteDomain('');
-                  }}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Button variant="outline" onClick={fetchWebsites}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       {/* Error Alert */}
-      {error && !showAddModal && (
+      {error && (
         <Alert className="border-red-200 bg-red-50">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-red-800">
@@ -396,18 +312,14 @@ window.cookieBotConfig = {
         </Alert>
       )}
 
-      {/* Upgrade Notice */}
-      {!canAddWebsite() && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            You've reached your website limit for the {user?.subscription_tier || 'free'} plan. 
-            <Button variant="link" className="p-0 h-auto ml-1">
-              Upgrade your plan
-            </Button> to add more websites.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Auto-Registration Info */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <Zap className="h-4 w-4" />
+        <AlertDescription className="text-blue-800">
+          <strong>🚀 Auto-Registration Active!</strong> Websites automatically appear here when you deploy the CookieBot script. 
+          Get your script from the <Button variant="link" className="p-0 h-auto text-blue-600 underline">Script tab</Button>.
+        </AlertDescription>
+      </Alert>
 
       {/* Websites Grid */}
       {websites.length > 0 ? (
@@ -419,73 +331,137 @@ window.cookieBotConfig = {
       ) : (
         <Card className="text-center py-12">
           <CardContent>
-            <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No websites yet</h3>
-            <p className="text-gray-500 mb-4">
-              Add your first website to start tracking cookie consent and compliance.
-            </p>
-            <Button onClick={() => setShowAddModal(true)} disabled={!canAddWebsite()}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Website
-            </Button>
+            <div className="max-w-md mx-auto">
+              <Code className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Deploy Your Script to See Websites</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Your websites will automatically appear here once you deploy the CookieBot script. 
+                No manual setup required!
+              </p>
+              
+              {/* Quick Deploy Section */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center justify-center">
+                  <Zap className="w-4 h-4 mr-2 text-blue-600" />
+                  Quick Deploy
+                </h4>
+                <div className="text-left space-y-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">1</span>
+                    <span className="text-gray-700">Go to the <strong>Script tab</strong> to get your personalized script</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">2</span>
+                    <span className="text-gray-700">Copy and paste it anywhere in your website's HTML</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">3</span>
+                    <span className="text-gray-700">Your website will automatically appear here!</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Universal Script Preview */}
+              <div className="bg-gray-900 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-green-400 text-xs font-mono">Universal Script Preview</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyToClipboard(generateUniversalScript())}
+                    className="text-gray-400 hover:text-white h-6 px-2"
+                  >
+                    {copied ? (
+                      <CheckCircle className="w-3 h-3" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </Button>
+                </div>
+                <pre className="text-gray-300 text-xs overflow-x-auto max-h-32">
+                  <code>{generateUniversalScript().substring(0, 300)}...</code>
+                </pre>
+              </div>
+
+              <Button asChild className="w-full">
+                <a href="#script" onClick={() => {
+                  // Trigger script tab navigation if available
+                  const scriptTab = document.querySelector('[data-tab="script"]');
+                  if (scriptTab) scriptTab.click();
+                }}>
+                  <Code className="w-4 h-4 mr-2" />
+                  Get Your Script Now
+                </a>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Integration Code Modal */}
-      <Dialog open={showCodeModal} onOpenChange={setShowCodeModal}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Integration Code for {selectedWebsite?.domain}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Copy this code and paste it anywhere in your website's HTML:</Label>
-              <div className="relative mt-2">
-                <Textarea
-                  value={selectedWebsite ? generateIntegrationCode(selectedWebsite) : ''}
-                  readOnly
-                  className="font-mono text-sm min-h-[300px]"
-                />
-                <Button
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={() => copyToClipboard(selectedWebsite ? generateIntegrationCode(selectedWebsite) : '')}
-                >
-                  {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      {showCodeModal && selectedWebsite && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Integration Code for {selectedWebsite.domain}</h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowCodeModal(false)}>
+                  ×
                 </Button>
               </div>
-            </div>
-            
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription className="text-green-800">
-                <strong>Website ID: {selectedWebsite?.id}</strong> - This unique ID will track analytics for this specific website.
-              </AlertDescription>
-            </Alert>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Copy this code and paste it anywhere in your website's HTML:
+                  </label>
+                  <div className="relative">
+                    <Textarea
+                      value={generateIntegrationCode(selectedWebsite)}
+                      readOnly
+                      className="font-mono text-sm min-h-[300px] bg-gray-50"
+                    />
+                    <Button
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => copyToClipboard(generateIntegrationCode(selectedWebsite))}
+                    >
+                      {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+                
+                <Alert className="border-green-200 bg-green-50">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription className="text-green-800">
+                    <strong>Auto-Registration Enabled:</strong> This script will automatically register new websites when deployed.
+                  </AlertDescription>
+                </Alert>
 
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                After adding this code to your website, it may take a few minutes for data to appear in your dashboard.
-                The script works on any website platform (WordPress, Shopify, React, HTML, etc.).
-              </AlertDescription>
-            </Alert>
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    This script works on any platform: WordPress, Shopify, React, HTML, etc. 
+                    After deployment, analytics will appear in your dashboard within minutes.
+                  </AlertDescription>
+                </Alert>
 
-            <div className="flex space-x-2">
-              <Button asChild className="flex-1">
-                <a href="https://docs.cookiebot.ai/integration" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  View Documentation
-                </a>
-              </Button>
-              <Button variant="outline" onClick={() => setShowCodeModal(false)}>
-                Close
-              </Button>
+                <div className="flex space-x-2">
+                  <Button asChild className="flex-1">
+                    <a href="https://docs.cookiebot.ai/integration" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      View Documentation
+                    </a>
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowCodeModal(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };
