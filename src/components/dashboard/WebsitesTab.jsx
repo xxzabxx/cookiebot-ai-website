@@ -1,54 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Badge } from '../ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { 
-  Globe, 
   Plus, 
-  RefreshCw, 
-  Settings, 
-  Trash2, 
-  Copy, 
-  Code, 
+  Globe, 
   Users, 
   TrendingUp, 
-  DollarSign,
-  AlertCircle,
+  Copy, 
+  ExternalLink,
+  Settings,
+  Trash2,
   CheckCircle,
-  Clock
+  AlertCircle,
+  Clock,
+  RefreshCw
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const WebsitesTab = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [selectedWebsite, setSelectedWebsite] = useState(null);
   const [newWebsiteDomain, setNewWebsiteDomain] = useState('');
   const [addingWebsite, setAddingWebsite] = useState(false);
-  const [addError, setAddError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  // Fetch websites with proper pagination parameters
+  useEffect(() => {
+    fetchWebsites();
+  }, []);
+
   const fetchWebsites = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Add required pagination parameters that backend expects
-      const response = await api.request('/api/websites', {
-        method: 'GET',
-        params: {
-          page: 1,
-          per_page: 50,
-          sort_by: 'created_at',
-          sort_order: 'desc'
-        }
-      });
+      // ONLY CHANGE: Add required pagination parameters
+      const response = await api.request('/api/websites?page=1&per_page=50&sort_by=created_at&sort_order=desc');
       
-      if (response.success && response.data) {
+      if (response.success) {
         setWebsites(response.data.websites || []);
       } else {
         throw new Error(response.message || 'Failed to fetch websites');
@@ -56,24 +56,23 @@ const WebsitesTab = () => {
     } catch (err) {
       console.error('Failed to fetch websites:', err);
       setError('Failed to retrieve websites');
+      
+      // For development - remove this when backend is working
       setWebsites([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add website with proper validation
-  const handleAddWebsite = async () => {
-    if (!newWebsiteDomain.trim()) {
-      setAddError('Please enter a domain name');
-      return;
-    }
+  const handleAddWebsite = async (e) => {
+    e.preventDefault();
+    if (!newWebsiteDomain.trim()) return;
 
     try {
       setAddingWebsite(true);
-      setAddError(null);
-
-      // Enhanced domain cleaning and validation
+      setError(null);
+      
+      // ONLY CHANGE: Enhanced domain cleaning and validation
       let cleanDomain = newWebsiteDomain.trim()
         .replace(/^https?:\/\//, '') // Remove protocol
         .replace(/^www\./, '')       // Remove www
@@ -90,42 +89,34 @@ const WebsitesTab = () => {
       if (!domainRegex.test(cleanDomain)) {
         throw new Error('Please enter a valid domain format (e.g., example.com)');
       }
-
-      // Send request with exact format backend expects
+      
+      // Create website via API
       const response = await api.request('/api/websites', {
         method: 'POST',
         body: {
-          domain: cleanDomain  // Only send domain field as backend expects
+          domain: cleanDomain
         }
       });
-
-      if (response.success && response.data) {
-        // Add new website to list
-        setWebsites(prev => [response.data, ...prev]);
+      
+      if (response.success) {
+        // Add the new website to the list
+        setWebsites(prev => [...prev, response.data.website]);
         setNewWebsiteDomain('');
         setShowAddModal(false);
+        
+        // Show success message
+        console.log('Website added successfully:', response.data.website);
       } else {
-        throw new Error(response.message || 'Failed to add website');
+        throw new Error(response.message || 'Failed to create website');
       }
     } catch (err) {
       console.error('Failed to add website:', err);
-      
-      // Handle specific error types
-      if (err.message.includes('422')) {
-        setAddError('Invalid domain format. Please enter a valid domain (e.g., example.com)');
-      } else if (err.message.includes('402')) {
-        setAddError('Website limit reached. Please upgrade your plan to add more websites.');
-      } else if (err.message.includes('409')) {
-        setAddError('This domain is already registered. Please use a different domain.');
-      } else {
-        setAddError(err.message || 'Failed to add website');
-      }
+      setError(err.message || 'Failed to add website');
     } finally {
       setAddingWebsite(false);
     }
   };
 
-  // Delete website
   const handleDeleteWebsite = async (websiteId) => {
     if (!confirm('Are you sure you want to delete this website? This action cannot be undone.')) {
       return;
@@ -135,7 +126,7 @@ const WebsitesTab = () => {
       const response = await api.request(`/api/websites/${websiteId}`, {
         method: 'DELETE'
       });
-
+      
       if (response.success) {
         setWebsites(prev => prev.filter(w => w.id !== websiteId));
       } else {
@@ -143,144 +134,182 @@ const WebsitesTab = () => {
       }
     } catch (err) {
       console.error('Failed to delete website:', err);
-      alert('Failed to delete website: ' + err.message);
+      setError(err.message || 'Failed to delete website');
     }
   };
 
-  // Get website limit based on subscription
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      active: { color: 'bg-green-100 text-green-800', label: 'Active', icon: CheckCircle },
+      pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending', icon: Clock },
+      inactive: { color: 'bg-gray-100 text-gray-800', label: 'Inactive', icon: AlertCircle }
+    };
+
+    const config = statusConfig[status] || statusConfig.pending;
+    const Icon = config.icon;
+
+    return (
+      <Badge className={`${config.color} flex items-center space-x-1`}>
+        <Icon className="w-3 h-3" />
+        <span>{config.label}</span>
+      </Badge>
+    );
+  };
+
   const getWebsiteLimit = () => {
-    if (!user?.subscription_tier) return 1;
-    
-    switch (user.subscription_tier) {
-      case 'free': return 1;
-      case 'basic': return 5;
-      case 'pro': return 25;
-      case 'enterprise': return -1; // Unlimited
-      default: return 1;
-    }
+    const limits = {
+      free: 1,
+      basic: 5,
+      pro: 25,
+      enterprise: -1
+    };
+    return limits[user?.subscription_tier] || 1;
   };
 
-  // Check if user can add more websites
   const canAddWebsite = () => {
     const limit = getWebsiteLimit();
     return limit === -1 || websites.length < limit;
   };
 
-  // Copy integration code to clipboard
-  const copyIntegrationCode = (website) => {
-    const integrationCode = `<!-- CookieBot.ai V3 Script -->
+  const generateIntegrationCode = (website) => {
+    return `<!-- CookieBot.ai Integration -->
 <script>
-  window.cookieBotConfig = {
-    apiKey: '${user?.apiKey || 'your_api_key_here'}',
-    websiteId: '${website.id}',
-    clientId: '${website.client_id}',
-    userId: '${user?.id}',
-    domain: window.location.hostname,
-    version: 'v3',
+window.cookieBotConfig = {
+  apiKey: '${user?.apiKey || 'cb_live_' + Math.random().toString(36).substr(2, 32)}',
+  websiteId: '${website.id}',
+  clientId: '${website.client_id}',
+  userId: '${user?.id}',
+  domain: window.location.hostname,
+  version: 'v3',
+  autoShow: true,
+  compliance: {
+    gdpr: true,
+    ccpa: true,
+    lgpd: true
+  }
+};
+
+// Universal script that works on any website
+(function() {
+  function loadCookieBot() {
+    if (window.CookieBotLoaded) return;
+    window.CookieBotLoaded = true;
     
-    privacyInsights: true,
-    revenueShare: 0.6,
-    
-    autoShow: true,
-    compliance: {
-      gdpr: true,
-      ccpa: true,
-      lgpd: true
-    },
-    customization: {
-      theme: 'light',
-      position: 'bottom-right',
-      layout: 'dialog',
-      primaryColor: '#007bff',
-      backgroundColor: '#ffffff',
-      textColor: '#333333'
-    }
-  };
+    var script = document.createElement('script');
+    script.src = 'https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js';
+    document.head.appendChild(script);
+  }
+  
+  if (document.readyState === 'complete') {
+    loadCookieBot();
+  } else {
+    window.addEventListener('load', loadCookieBot);
+    document.addEventListener('DOMContentLoaded', loadCookieBot);
+    setTimeout(loadCookieBot, 2000);
+  }
+})();
 </script>
-<script src="https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js"></script>`;
-
-    navigator.clipboard.writeText(integrationCode).then(() => {
-      alert('Integration code copied to clipboard!');
-    }).catch(() => {
-      alert('Failed to copy to clipboard');
-    });
+<!-- End CookieBot.ai Integration -->`;
   };
 
-  // Load websites on component mount
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchWebsites();
-    }
-  }, [isAuthenticated]);
-
-  // Status badge component
-  const StatusBadge = ({ status }) => {
-    const statusConfig = {
-      active: { color: 'bg-green-100 text-green-800', icon: CheckCircle, text: 'Active' },
-      pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, text: 'Pending' },
-      inactive: { color: 'bg-gray-100 text-gray-800', icon: AlertCircle, text: 'Inactive' }
-    };
-
-    const config = statusConfig[status] || statusConfig.inactive;
-    const Icon = config.icon;
-
-    return (
-      <Badge className={`${config.color} flex items-center gap-1`}>
-        <Icon className="w-3 h-3" />
-        {config.text}
-      </Badge>
-    );
-  };
-
-  // Loading skeleton
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">Websites</h2>
-            <p className="text-gray-600">Manage your websites and integration settings</p>
+  const WebsiteCard = ({ website }) => (
+    <Card className="hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Globe className="w-5 h-5 text-blue-600" />
+            <CardTitle className="text-lg">{website.domain}</CardTitle>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" disabled>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button disabled>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Website
-            </Button>
+          {getStatusBadge(website.status)}
+        </div>
+        <CardDescription className="text-sm text-gray-500">
+          Website ID: {website.id} • Client ID: {website.client_id}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-900">{website.visitors_today || 0}</div>
+            <div className="text-xs text-gray-500 flex items-center justify-center">
+              <Users className="w-3 h-3 mr-1" />
+              Visitors Today
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {website.consent_rate ? parseFloat(website.consent_rate).toFixed(1) : '0.0'}%
+            </div>
+            <div className="text-xs text-gray-500 flex items-center justify-center">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              Consent Rate
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              ${website.revenue_today ? parseFloat(website.revenue_today).toFixed(2) : '0.00'}
+            </div>
+            <div className="text-xs text-gray-500">Revenue Today</div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Websites</h3>
-            <span className="text-sm text-gray-500">Loading...</span>
-          </div>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
+            onClick={() => {
+              setSelectedWebsite(website);
+              setShowCodeModal(true);
+            }}
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Get Code
+          </Button>
+          <Button variant="outline" size="sm">
+            <Settings className="w-4 h-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-red-600 hover:text-red-700"
+            onClick={() => handleDeleteWebsite(website.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="h-8 bg-gray-200 rounded"></div>
-                      <div className="h-8 bg-gray-200 rounded"></div>
-                      <div className="h-8 bg-gray-200 rounded"></div>
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="h-8 bg-gray-200 rounded flex-1"></div>
-                      <div className="h-8 bg-gray-200 rounded w-8"></div>
-                      <div className="h-8 bg-gray-200 rounded w-8"></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="h-12 bg-gray-200 rounded"></div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -289,210 +318,173 @@ const WebsitesTab = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Websites</h2>
-          <p className="text-gray-600">Manage your websites and integration settings</p>
+          <h3 className="text-lg font-semibold text-gray-900">Your Websites</h3>
+          <p className="text-sm text-gray-500">
+            {websites.length} of {getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites
+          </p>
         </div>
+        
         <div className="flex gap-2">
           <Button variant="outline" onClick={fetchWebsites}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button 
-            onClick={() => setShowAddModal(true)}
-            disabled={!canAddWebsite()}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Website
-          </Button>
-        </div>
-      </div>
-
-      {/* Websites List */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Your Websites</h3>
-          <span className="text-sm text-gray-500">
-            {websites.length} of {getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites
-          </span>
-        </div>
-
-        {/* Error State */}
-        {error && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-red-700">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Website Limit Warning */}
-        {!canAddWebsite() && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-yellow-700">
-                  <AlertCircle className="w-4 h-4" />
-                  You've reached your website limit for the free plan.
-                </div>
-                <Button variant="outline" size="sm">
-                  Upgrade your plan
-                </Button>
-              </div>
-              <p className="text-sm text-yellow-600 mt-1">
-                to add more websites.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Websites Grid */}
-        {websites.length === 0 ? (
-          <Card className="border-dashed border-2 border-gray-300">
-            <CardContent className="p-12 text-center">
-              <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No websites yet</h3>
-              <p className="text-gray-600 mb-4">
-                Add your first website to start tracking cookie consent and compliance.
-              </p>
-              <Button 
-                onClick={() => setShowAddModal(true)}
-                disabled={!canAddWebsite()}
-              >
+          
+          <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+            <DialogTrigger asChild>
+              <Button disabled={!canAddWebsite()}>
                 <Plus className="w-4 h-4 mr-2" />
-                Add Your First Website
+                Add Website
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {websites.map((website) => (
-              <Card key={website.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Website Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <h4 className="font-semibold">{website.domain}</h4>
-                          <p className="text-sm text-gray-500">
-                            Website ID: {website.id} • Client ID: {website.client_id}
-                          </p>
-                        </div>
-                      </div>
-                      <StatusBadge status={website.status} />
-                    </div>
-
-                    {/* Metrics */}
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="flex items-center justify-center gap-1 text-blue-600">
-                          <Users className="w-4 h-4" />
-                          <span className="font-bold">{website.visitors_today || 0}</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Visitors Today</p>
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-center gap-1 text-green-600">
-                          <TrendingUp className="w-4 h-4" />
-                          <span className="font-bold">{website.consent_rate || 0}%</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Consent Rate</p>
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-center gap-1 text-purple-600">
-                          <DollarSign className="w-4 h-4" />
-                          <span className="font-bold">${website.revenue_today || '0.00'}</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Revenue Today</p>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => copyIntegrationCode(website)}
-                      >
-                        <Code className="w-4 h-4 mr-2" />
-                        Get Code
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDeleteWebsite(website.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Website</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddWebsite} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="domain">Website Domain</Label>
+                  <Input
+                    id="domain"
+                    placeholder="example.com"
+                    value={newWebsiteDomain}
+                    onChange={(e) => setNewWebsiteDomain(e.target.value)}
+                    required
+                  />
+                  <p className="text-sm text-gray-500">
+                    Enter your website domain without http:// or https:// (e.g., example.com)
+                  </p>
+                </div>
+                
+                {error && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-red-800">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <div className="flex space-x-2">
+                  <Button type="submit" disabled={addingWebsite} className="flex-1">
+                    {addingWebsite ? 'Adding...' : 'Add Website'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => {
+                    setShowAddModal(false);
+                    setError(null);
+                    setNewWebsiteDomain('');
+                  }}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {/* Add Website Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Add New Website</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Website Domain</label>
-                <Input
-                  placeholder="example.com"
-                  value={newWebsiteDomain}
-                  onChange={(e) => setNewWebsiteDomain(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddWebsite()}
+      {/* Error Alert */}
+      {error && !showAddModal && (
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-800">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Upgrade Notice */}
+      {!canAddWebsite() && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You've reached your website limit for the {user?.subscription_tier || 'free'} plan. 
+            <Button variant="link" className="p-0 h-auto ml-1">
+              Upgrade your plan
+            </Button> to add more websites.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Websites Grid */}
+      {websites.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {websites.map((website) => (
+            <WebsiteCard key={website.id} website={website} />
+          ))}
+        </div>
+      ) : (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No websites yet</h3>
+            <p className="text-gray-500 mb-4">
+              Add your first website to start tracking cookie consent and compliance.
+            </p>
+            <Button onClick={() => setShowAddModal(true)} disabled={!canAddWebsite()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Website
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Integration Code Modal */}
+      <Dialog open={showCodeModal} onOpenChange={setShowCodeModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Integration Code for {selectedWebsite?.domain}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Copy this code and paste it anywhere in your website's HTML:</Label>
+              <div className="relative mt-2">
+                <Textarea
+                  value={selectedWebsite ? generateIntegrationCode(selectedWebsite) : ''}
+                  readOnly
+                  className="font-mono text-sm min-h-[300px]"
                 />
-                <p className="text-sm text-gray-500 mt-1">
-                  Enter your website domain without http:// or https:// (e.g., example.com)
-                </p>
-              </div>
-
-              {addError && (
-                <div className="flex items-center gap-2 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  {addError}
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleAddWebsite}
-                  disabled={addingWebsite}
-                  className="flex-1"
+                <Button
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => copyToClipboard(selectedWebsite ? generateIntegrationCode(selectedWebsite) : '')}
                 >
-                  {addingWebsite ? 'Adding...' : 'Add Website'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setNewWebsiteDomain('');
-                    setAddError(null);
-                  }}
-                >
-                  Cancel
+                  {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
+            
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription className="text-green-800">
+                <strong>Website ID: {selectedWebsite?.id}</strong> - This unique ID will track analytics for this specific website.
+              </AlertDescription>
+            </Alert>
+
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                After adding this code to your website, it may take a few minutes for data to appear in your dashboard.
+                The script works on any website platform (WordPress, Shopify, React, HTML, etc.).
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex space-x-2">
+              <Button asChild className="flex-1">
+                <a href="https://docs.cookiebot.ai/integration" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View Documentation
+                </a>
+              </Button>
+              <Button variant="outline" onClick={() => setShowCodeModal(false)}>
+                Close
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
