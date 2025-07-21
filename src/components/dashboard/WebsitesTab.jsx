@@ -45,8 +45,13 @@ const WebsitesTab = () => {
       setLoading(true);
       setError(null);
       
-      // ONLY CHANGE: Add required pagination parameters
-      const response = await api.request('/api/websites?page=1&per_page=50&sort_by=created_at&sort_order=desc');
+      // FIXED: Use the proper API method with parameters object
+      const response = await api.getWebsites({
+        page: 1,
+        per_page: 50,
+        sort_by: 'created_at',
+        sort_order: 'desc'
+      });
       
       if (response.success) {
         setWebsites(response.data.websites || []);
@@ -72,7 +77,7 @@ const WebsitesTab = () => {
       setAddingWebsite(true);
       setError(null);
       
-      // ONLY CHANGE: Enhanced domain cleaning and validation
+      // Enhanced domain cleaning and validation
       let cleanDomain = newWebsiteDomain.trim()
         .replace(/^https?:\/\//, '') // Remove protocol
         .replace(/^www\./, '')       // Remove www
@@ -90,12 +95,9 @@ const WebsitesTab = () => {
         throw new Error('Please enter a valid domain format (e.g., example.com)');
       }
       
-      // Create website via API
-      const response = await api.request('/api/websites', {
-        method: 'POST',
-        body: {
-          domain: cleanDomain
-        }
+      // FIXED: Use the proper API method
+      const response = await api.createWebsite({
+        domain: cleanDomain
       });
       
       if (response.success) {
@@ -123,9 +125,8 @@ const WebsitesTab = () => {
     }
 
     try {
-      const response = await api.request(`/api/websites/${websiteId}`, {
-        method: 'DELETE'
-      });
+      // FIXED: Use the proper API method
+      const response = await api.deleteWebsite(websiteId);
       
       if (response.success) {
         setWebsites(prev => prev.filter(w => w.id !== websiteId));
