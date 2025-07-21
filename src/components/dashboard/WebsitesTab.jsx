@@ -19,14 +19,13 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  RefreshCw,
-  Lock
+  RefreshCw
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const WebsitesTab = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,41 +36,9 @@ const WebsitesTab = () => {
   const [addingWebsite, setAddingWebsite] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Demo data for non-authenticated users
-  const demoWebsites = [
-    {
-      id: 'demo-1',
-      domain: 'example.com',
-      client_id: 'cb_demo1234567890abcdef',
-      status: 'active',
-      visitors_today: 245,
-      consent_rate: 78.5,
-      revenue_today: 15.25,
-      isDemo: true
-    },
-    {
-      id: 'demo-2',
-      domain: 'shop.example.com',
-      client_id: 'cb_demo0987654321fedcba',
-      status: 'pending',
-      visitors_today: 89,
-      consent_rate: 72.1,
-      revenue_today: 8.90,
-      isDemo: true
-    }
-  ];
-
   useEffect(() => {
-    // Only proceed if we have a clear authentication state
-    if (isAuthenticated === true) {
-      fetchWebsites();
-    } else if (isAuthenticated === false) {
-      // Show demo data for non-authenticated users
-      setWebsites(demoWebsites);
-      setLoading(false);
-    }
-    // If isAuthenticated is undefined/null, wait for auth to initialize
-  }, [isAuthenticated]);
+    fetchWebsites();
+  }, []);
 
   const fetchWebsites = async () => {
     try {
@@ -90,7 +57,7 @@ const WebsitesTab = () => {
       console.error('Failed to fetch websites:', err);
       setError('Failed to retrieve websites');
       
-      // For authenticated users, show empty array on error
+      // For development - remove this when backend is working
       setWebsites([]);
     } finally {
       setLoading(false);
@@ -105,23 +72,10 @@ const WebsitesTab = () => {
       setAddingWebsite(true);
       setError(null);
       
-      // Clean the domain input - be more thorough
-      let cleanDomain = newWebsiteDomain.trim()
+      // Clean the domain input
+      const cleanDomain = newWebsiteDomain.trim()
         .replace(/^https?:\/\//, '') // Remove protocol
-        .replace(/^www\./, '') // Remove www
-        .replace(/\/$/, '') // Remove trailing slash
-        .toLowerCase(); // Convert to lowercase
-      
-      // Basic domain validation
-      if (!cleanDomain || cleanDomain.length < 3) {
-        throw new Error('Please enter a valid domain name');
-      }
-      
-      // Check for valid domain format
-      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
-      if (!domainRegex.test(cleanDomain)) {
-        throw new Error('Please enter a valid domain format (e.g., example.com)');
-      }
+        .replace(/\/$/, ''); // Remove trailing slash
       
       // Create website via API
       const response = await api.request('/api/websites', {
@@ -207,7 +161,6 @@ const WebsitesTab = () => {
   };
 
   const canAddWebsite = () => {
-    if (isAuthenticated !== true) return false; // Can't add websites when not logged in
     const limit = getWebsiteLimit();
     return limit === -1 || websites.length < limit;
   };
@@ -254,18 +207,12 @@ window.cookieBotConfig = {
   };
 
   const WebsiteCard = ({ website }) => (
-    <Card className={`hover:shadow-lg transition-shadow duration-200 ${website.isDemo ? 'border-blue-200 bg-blue-50' : ''}`}>
+    <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Globe className="w-5 h-5 text-blue-600" />
             <CardTitle className="text-lg">{website.domain}</CardTitle>
-            {website.isDemo && (
-              <Badge className="bg-blue-100 text-blue-800 text-xs">
-                <Lock className="w-3 h-3 mr-1" />
-                Demo
-              </Badge>
-            )}
           </div>
           {getStatusBadge(website.status)}
         </div>
@@ -306,19 +253,14 @@ window.cookieBotConfig = {
             size="sm" 
             className="flex-1"
             onClick={() => {
-              if (website.isDemo) {
-                alert('Please sign in to get your integration code');
-                return;
-              }
               setSelectedWebsite(website);
               setShowCodeModal(true);
             }}
-            disabled={website.isDemo}
           >
             <Copy className="w-4 h-4 mr-2" />
             Get Code
           </Button>
-          <Button variant="outline" size="sm" disabled={website.isDemo}>
+          <Button variant="outline" size="sm">
             <Settings className="w-4 h-4" />
           </Button>
           <Button 
@@ -326,7 +268,6 @@ window.cookieBotConfig = {
             size="sm" 
             className="text-red-600 hover:text-red-700"
             onClick={() => handleDeleteWebsite(website.id)}
-            disabled={website.isDemo}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -334,33 +275,6 @@ window.cookieBotConfig = {
       </CardContent>
     </Card>
   );
-
-  // Wait for authentication to initialize
-  if (isAuthenticated === undefined || isAuthenticated === null) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
-          <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="grid grid-cols-3 gap-4">
-                  {[...Array(3)].map((_, j) => (
-                    <div key={j} className="h-12 bg-gray-200 rounded"></div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -390,38 +304,20 @@ window.cookieBotConfig = {
 
   return (
     <div className="space-y-6">
-      {/* Demo Notice for Non-Authenticated Users */}
-      {isAuthenticated === false && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <Lock className="h-4 w-4" />
-          <AlertDescription className="text-blue-800">
-            <strong>Demo Mode:</strong> You're viewing sample data. Sign in to manage your real websites and get integration codes.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {isAuthenticated ? 'Your Websites' : 'Sample Websites'}
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">Your Websites</h3>
           <p className="text-sm text-gray-500">
-            {isAuthenticated ? (
-              `${websites.length} of ${getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites`
-            ) : (
-              'Demo data - Sign in to manage your websites'
-            )}
+            {websites.length} of {getWebsiteLimit() === -1 ? '∞' : getWebsiteLimit()} websites
           </p>
         </div>
         
         <div className="flex gap-2">
-          {isAuthenticated && (
-            <Button variant="outline" onClick={fetchWebsites}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-          )}
+          <Button variant="outline" onClick={fetchWebsites}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
           
           <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
             <DialogTrigger asChild>
@@ -445,7 +341,7 @@ window.cookieBotConfig = {
                     required
                   />
                   <p className="text-sm text-gray-500">
-                    Enter your website domain without http:// or https:// (e.g., example.com)
+                    Enter your website domain without http:// or https://
                   </p>
                 </div>
                 
@@ -477,7 +373,7 @@ window.cookieBotConfig = {
       </div>
 
       {/* Error Alert */}
-      {error && !showAddModal && isAuthenticated && (
+      {error && !showAddModal && (
         <Alert className="border-red-200 bg-red-50">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-red-800">
@@ -487,7 +383,7 @@ window.cookieBotConfig = {
       )}
 
       {/* Upgrade Notice */}
-      {isAuthenticated && !canAddWebsite() && (
+      {!canAddWebsite() && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -506,7 +402,7 @@ window.cookieBotConfig = {
             <WebsiteCard key={website.id} website={website} />
           ))}
         </div>
-      ) : isAuthenticated ? (
+      ) : (
         <Card className="text-center py-12">
           <CardContent>
             <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -520,7 +416,7 @@ window.cookieBotConfig = {
             </Button>
           </CardContent>
         </Card>
-      ) : null}
+      )}
 
       {/* Integration Code Modal */}
       <Dialog open={showCodeModal} onOpenChange={setShowCodeModal}>
@@ -581,4 +477,3 @@ window.cookieBotConfig = {
 };
 
 export default WebsitesTab;
-
