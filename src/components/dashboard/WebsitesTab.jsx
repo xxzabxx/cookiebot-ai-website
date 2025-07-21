@@ -20,7 +20,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import api from '../../lib/api';
+import { api } from '../../lib/api';
 
 const WebsitesTab = () => {
   const { user, isAuthenticated } = useAuth();
