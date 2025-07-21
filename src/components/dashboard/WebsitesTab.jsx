@@ -72,10 +72,23 @@ const WebsitesTab = () => {
       setAddingWebsite(true);
       setError(null);
       
-      // Clean the domain input
-      const cleanDomain = newWebsiteDomain.trim()
+      // Enhanced domain cleaning and validation
+      let cleanDomain = newWebsiteDomain.trim()
         .replace(/^https?:\/\//, '') // Remove protocol
-        .replace(/\/$/, ''); // Remove trailing slash
+        .replace(/^www\./, '')       // Remove www
+        .replace(/\/$/, '')          // Remove trailing slash
+        .toLowerCase();              // Convert to lowercase
+      
+      // Basic validation
+      if (!cleanDomain || cleanDomain.length < 3) {
+        throw new Error('Please enter a valid domain name');
+      }
+      
+      // Format validation
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
+      if (!domainRegex.test(cleanDomain)) {
+        throw new Error('Please enter a valid domain format (e.g., example.com)');
+      }
       
       // Create website via API
       const response = await api.request('/api/websites', {
@@ -341,7 +354,7 @@ window.cookieBotConfig = {
                     required
                   />
                   <p className="text-sm text-gray-500">
-                    Enter your website domain without http:// or https://
+                    Enter your website domain without http:// or https:// (e.g., example.com)
                   </p>
                 </div>
                 
@@ -477,3 +490,4 @@ window.cookieBotConfig = {
 };
 
 export default WebsitesTab;
+
