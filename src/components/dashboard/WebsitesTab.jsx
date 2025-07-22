@@ -18,7 +18,10 @@ import {
   RefreshCw,
   Code,
   Zap,
-  Info
+  Info,
+  Rocket,
+  BarChart3,
+  DollarSign
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -31,6 +34,7 @@ const WebsitesTab = () => {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedWebsite, setSelectedWebsite] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [approach, setApproach] = useState('detecting');
 
   useEffect(() => {
     fetchWebsites();
@@ -41,23 +45,52 @@ const WebsitesTab = () => {
       setLoading(true);
       setError(null);
       
-      // Use the proper API method with parameters object
-      const response = await api.getWebsites({
-        page: 1,
-        per_page: 50,
-        sort_by: 'created_at',
-        sort_order: 'desc'
-      });
-      
-      if (response.success) {
-        setWebsites(response.data.websites || []);
+      // Check if user has unified support
+      if (api.isUnifiedSupported(user)) {
+        try {
+          // Try unified approach first
+          const response = await api.getUnifiedWebsites(user.api_key);
+          setWebsites(response.data.websites || []);
+          setApproach('unified');
+        } catch (unifiedError) {
+          console.warn('Unified websites fetch failed, falling back to legacy:', unifiedError);
+          // Fallback to legacy approach
+          const response = await api.getWebsites({
+            page: 1,
+            per_page: 50,
+            sort_by: 'created_at',
+            sort_order: 'desc'
+          });
+          
+          if (response.success) {
+            setWebsites(response.data.websites || []);
+            setApproach('legacy');
+          } else {
+            throw new Error(response.message || 'Failed to fetch websites');
+          }
+        }
       } else {
-        throw new Error(response.message || 'Failed to fetch websites');
+        // Use legacy API method
+        const response = await api.getWebsites({
+          page: 1,
+          per_page: 50,
+          sort_by: 'created_at',
+          sort_order: 'desc'
+        });
+        
+        if (response.success) {
+          setWebsites(response.data.websites || []);
+          setApproach('legacy');
+        } else {
+          throw new Error(response.message || 'Failed to fetch websites');
+        }
       }
+      
     } catch (err) {
       console.error('Failed to fetch websites:', err);
       setError('Failed to retrieve websites');
       setWebsites([]);
+      setApproach('error');
     } finally {
       setLoading(false);
     }
@@ -107,86 +140,29 @@ const WebsitesTab = () => {
     );
   };
 
-  const generateIntegrationCode = (website) => {
+  const generateUnifiedScript = () => {
     const userApiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`;
     
-    return `<!-- CookieBot.ai Integration -->
+    return `<!-- CookieBot.ai Unified Script -->
 <script>
 (function() {
-    var cb = window.CookieBot = window.CookieBot || {};
-    cb.clientId = '${website.client_id}';
-    cb.apiKey = '${userApiKey}';
-    cb.apiUrl = 'https://cookiebot-ai-backend-production.up.railway.app/api/public';
+    // Configure CookieBot with your unified API key
+    window.CookieBot = {
+        apiKey: '${userApiKey}',
+        apiUrl: 'https://cookiebot-ai-backend-production.up.railway.app/api/public'
+    };
     
-    // Auto-register website on script load
-    if (cb.apiKey && window.location.hostname) {
-        fetch(cb.apiUrl + '/register-website', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                api_key: cb.apiKey,
-                domain: window.location.hostname,
-                referrer: document.referrer || window.location.href
-            })
-        }).catch(function(error) {
-            console.warn('CookieBot auto-registration failed:', error);
-        });
-    }
-    
-    // Load CookieBot script
+    // Load the CookieBot tracking script
     var script = document.createElement('script');
-    script.src = cb.apiUrl + '/script.js';
+    script.src = window.CookieBot.apiUrl + '/script.js';
     script.async = true;
+    script.onload = function() {
+        console.log('CookieBot: Unified tracking script loaded successfully');
+    };
     document.head.appendChild(script);
 })();
 </script>
-<!-- End CookieBot.ai Integration -->`;
-  };
-
-  const generateUniversalScript = () => {
-    const userApiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`;
-    
-    return `<!-- CookieBot.ai Universal Script -->
-<script>
-(function() {
-    var cb = window.CookieBot = window.CookieBot || {};
-    cb.apiKey = '${userApiKey}';
-    cb.apiUrl = 'https://cookiebot-ai-backend-production.up.railway.app/api/public';
-    
-    // Auto-register website on script load
-    if (cb.apiKey && window.location.hostname) {
-        fetch(cb.apiUrl + '/register-website', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                api_key: cb.apiKey,
-                domain: window.location.hostname,
-                referrer: document.referrer || window.location.href
-            })
-        }).then(function(response) {
-            return response.json();
-        }).then(function(data) {
-            if (data.success) {
-                cb.clientId = data.data.client_id;
-                console.log('CookieBot: Website auto-registered with ID:', data.data.website_id);
-            }
-        }).catch(function(error) {
-            console.warn('CookieBot auto-registration failed:', error);
-        });
-    }
-    
-    // Load CookieBot script
-    var script = document.createElement('script');
-    script.src = cb.apiUrl + '/script.js';
-    script.async = true;
-    document.head.appendChild(script);
-})();
-</script>
-<!-- End CookieBot.ai Universal Script -->`;
+<!-- End CookieBot.ai Unified Script -->`;
   };
 
   const WebsiteCard = ({ website }) => (
@@ -197,10 +173,21 @@ const WebsitesTab = () => {
             <Globe className="w-5 h-5 text-blue-600" />
             <CardTitle className="text-lg">{website.domain}</CardTitle>
           </div>
-          {getStatusBadge(website.status)}
+          <div className="flex items-center gap-2">
+            {getStatusBadge(website.status)}
+            {approach === 'unified' && (
+              <Badge className="bg-green-100 text-green-700 text-xs">
+                <Zap className="w-3 h-3 mr-1" />
+                Unified
+              </Badge>
+            )}
+          </div>
         </div>
         <CardDescription className="text-sm text-gray-500">
-          Auto-registered • Client ID: {website.client_id}
+          {approach === 'unified' 
+            ? `Auto-registered via API key • Domain: ${website.domain}`
+            : `Auto-registered • Client ID: ${website.client_id || 'N/A'}`
+          }
         </CardDescription>
       </CardHeader>
       
@@ -241,10 +228,10 @@ const WebsitesTab = () => {
             }}
           >
             <Copy className="w-4 h-4 mr-2" />
-            Get Code
+            Get Script
           </Button>
           <Button variant="outline" size="sm">
-            <Settings className="w-4 h-4" />
+            <BarChart3 className="w-4 h-4" />
           </Button>
           <Button 
             variant="outline" 
@@ -290,9 +277,17 @@ const WebsitesTab = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Your Websites</h3>
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            Your Websites
+            {approach === 'unified' && (
+              <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                Unified
+              </Badge>
+            )}
+          </h3>
           <p className="text-sm text-gray-500">
-            {websites.length} websites auto-registered from your script deployments
+            {websites.length} websites {approach === 'unified' ? 'managed via unified API key' : 'auto-registered from your script deployments'}
           </p>
         </div>
         
@@ -312,14 +307,27 @@ const WebsitesTab = () => {
         </Alert>
       )}
 
-      {/* Auto-Registration Info */}
-      <Alert className="border-blue-200 bg-blue-50">
-        <Zap className="h-4 w-4" />
-        <AlertDescription className="text-blue-800">
-          <strong>🚀 Auto-Registration Active!</strong> Websites automatically appear here when you deploy the CookieBot script. 
-          Get your script from the <Button variant="link" className="p-0 h-auto text-blue-600 underline">Script tab</Button>.
-        </AlertDescription>
-      </Alert>
+      {/* Unified Approach Info */}
+      {approach === 'unified' && (
+        <Alert className="border-green-200 bg-green-50">
+          <Rocket className="h-4 w-4" />
+          <AlertDescription className="text-green-800">
+            <strong>🚀 Unified Management Active!</strong> Your websites are managed via your unified API key. 
+            Deploy the same script on any website and it will automatically appear here!
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Legacy Auto-Registration Info */}
+      {approach === 'legacy' && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Zap className="h-4 w-4" />
+          <AlertDescription className="text-blue-800">
+            <strong>🚀 Auto-Registration Active!</strong> Websites automatically appear here when you deploy the CookieBot script. 
+            Get your script from the <Button variant="link" className="p-0 h-auto text-blue-600 underline">Script tab</Button>.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Websites Grid */}
       {websites.length > 0 ? (
@@ -332,23 +340,23 @@ const WebsitesTab = () => {
         <Card className="text-center py-12">
           <CardContent>
             <div className="max-w-md mx-auto">
-              <Code className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Deploy Your Script to See Websites</h3>
+              <Rocket className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Deploy Your Unified Script to See Websites</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Your websites will automatically appear here once you deploy the CookieBot script. 
+                Your websites will automatically appear here once you deploy the unified CookieBot script. 
                 No manual setup required!
               </p>
               
               {/* Quick Deploy Section */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center justify-center">
-                  <Zap className="w-4 h-4 mr-2 text-blue-600" />
+                  <Rocket className="w-4 h-4 mr-2 text-blue-600" />
                   Quick Deploy
                 </h4>
                 <div className="text-left space-y-3 text-sm">
                   <div className="flex items-start gap-2">
                     <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">1</span>
-                    <span className="text-gray-700">Go to the <strong>Script tab</strong> to get your personalized script</span>
+                    <span className="text-gray-700">Go to the <strong>Script tab</strong> to get your unified script</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">2</span>
@@ -364,11 +372,11 @@ const WebsitesTab = () => {
               {/* Universal Script Preview */}
               <div className="bg-gray-900 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-green-400 text-xs font-mono">Universal Script Preview</span>
+                  <span className="text-green-400 text-xs font-mono">Unified Script Preview</span>
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => copyToClipboard(generateUniversalScript())}
+                    onClick={() => copyToClipboard(generateUnifiedScript())}
                     className="text-gray-400 hover:text-white h-6 px-2"
                   >
                     {copied ? (
@@ -379,7 +387,7 @@ const WebsitesTab = () => {
                   </Button>
                 </div>
                 <pre className="text-gray-300 text-xs overflow-x-auto max-h-32">
-                  <code>{generateUniversalScript().substring(0, 300)}...</code>
+                  <code>{generateUnifiedScript().substring(0, 300)}...</code>
                 </pre>
               </div>
 
@@ -389,8 +397,8 @@ const WebsitesTab = () => {
                   const scriptTab = document.querySelector('[data-tab="script"]');
                   if (scriptTab) scriptTab.click();
                 }}>
-                  <Code className="w-4 h-4 mr-2" />
-                  Get Your Script Now
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Get Your Unified Script Now
                 </a>
               </Button>
             </div>
@@ -404,7 +412,7 @@ const WebsitesTab = () => {
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Integration Code for {selectedWebsite.domain}</h3>
+                <h3 className="text-lg font-semibold">Unified Script for {selectedWebsite.domain}</h3>
                 <Button variant="ghost" size="sm" onClick={() => setShowCodeModal(false)}>
                   ×
                 </Button>
@@ -413,18 +421,18 @@ const WebsitesTab = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Copy this code and paste it anywhere in your website's HTML:
+                    Copy this unified script and paste it anywhere in your website's HTML:
                   </label>
                   <div className="relative">
                     <Textarea
-                      value={generateIntegrationCode(selectedWebsite)}
+                      value={generateUnifiedScript()}
                       readOnly
                       className="font-mono text-sm min-h-[300px] bg-gray-50"
                     />
                     <Button
                       size="sm"
                       className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(generateIntegrationCode(selectedWebsite))}
+                      onClick={() => copyToClipboard(generateUnifiedScript())}
                     >
                       {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </Button>
@@ -432,9 +440,9 @@ const WebsitesTab = () => {
                 </div>
                 
                 <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle className="h-4 w-4" />
+                  <Rocket className="h-4 w-4" />
                   <AlertDescription className="text-green-800">
-                    <strong>Auto-Registration Enabled:</strong> This script will automatically register new websites when deployed.
+                    <strong>Unified Script Benefits:</strong> This script works on all your websites, enables auto-registration, and provides unified analytics.
                   </AlertDescription>
                 </Alert>
 
@@ -461,6 +469,61 @@ const WebsitesTab = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Unified Benefits Section */}
+      {approach === 'unified' && websites.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <Info className="w-5 h-5" />
+              🚀 Unified Management Benefits
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Single Script for All Websites</span>
+                </div>
+                <p className="text-blue-700 text-xs ml-6">
+                  Use the same script across all your domains
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Auto-Discovery</span>
+                </div>
+                <p className="text-blue-700 text-xs ml-6">
+                  New websites automatically appear when script is deployed
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Unified Analytics</span>
+                </div>
+                <p className="text-blue-700 text-xs ml-6">
+                  Cross-website insights and aggregated reporting
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Simplified Management</span>
+                </div>
+                <p className="text-blue-700 text-xs ml-6">
+                  Manage all websites from one unified dashboard
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
