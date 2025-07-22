@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { Button } from '../ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
+import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Alert, AlertDescription } from '../ui/alert';
 import { 
   Code, 
   Copy, 
@@ -14,13 +15,14 @@ import {
   Zap,
   Globe,
   Users,
-  TrendingUp
-} from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
+  TrendingUp,
+  Rocket
+} from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ScriptTab = () => {
-  const { user } = useAuth()
-  const [copied, setCopied] = useState(false)
+  const { user } = useAuth();
+  const [copied, setCopied] = useState(false);
   const [config, setConfig] = useState({
     privacyInsightsEnabled: false,
     revenueShare: 60,
@@ -30,195 +32,162 @@ const ScriptTab = () => {
     primaryColor: '#007bff',
     backgroundColor: '#ffffff',
     textColor: '#333333'
-  })
-  const [configLoaded, setConfigLoaded] = useState(false)
+  });
+  const [configLoaded, setConfigLoaded] = useState(false);
 
-  const userId = user?.id || '1'
-  const apiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`
+  const apiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`;
 
   // Load configuration from localStorage
   useEffect(() => {
     const loadConfiguration = () => {
       try {
-        let loadedConfig = {}
+        let loadedConfig = {};
 
-        const fullConfig = localStorage.getItem('cookiebot_full_config')
+        const fullConfig = localStorage.getItem('cookiebot_full_config');
         if (fullConfig) {
-          loadedConfig = JSON.parse(fullConfig)
+          loadedConfig = JSON.parse(fullConfig);
         } else {
-          const customizationConfig = localStorage.getItem('cookiebot_customization_config')
-          const privacyConfig = localStorage.getItem('cookiebot_privacy_insights_config')
+          const customizationConfig = localStorage.getItem('cookiebot_customization_config');
+          const privacyConfig = localStorage.getItem('cookiebot_privacy_insights_config');
           
           if (customizationConfig) {
-            const customData = JSON.parse(customizationConfig)
-            loadedConfig = { ...loadedConfig, ...customData }
+            const customData = JSON.parse(customizationConfig);
+            loadedConfig = { ...loadedConfig, ...customData };
           }
           
           if (privacyConfig) {
-            const privacyData = JSON.parse(privacyConfig)
+            const privacyData = JSON.parse(privacyConfig);
             loadedConfig = {
               ...loadedConfig,
               privacyInsightsEnabled: privacyData.enabled || false,
               revenueShare: privacyData.revenueShare || 60,
               dataTypes: privacyData.dataTypes || ['analytics', 'preferences', 'marketing']
-            }
+            };
           }
         }
 
         if (Object.keys(loadedConfig).length > 0) {
-          setConfig(prev => ({ ...prev, ...loadedConfig }))
+          setConfig(prev => ({ ...prev, ...loadedConfig }));
         }
         
-        setConfigLoaded(true)
+        setConfigLoaded(true);
       } catch (err) {
-        console.error('Failed to load configuration:', err)
-        setConfigLoaded(true)
+        console.error('Failed to load configuration:', err);
+        setConfigLoaded(true);
       }
-    }
+    };
 
-    loadConfiguration()
-  }, [])
+    loadConfiguration();
+  }, []);
 
   const refreshConfiguration = () => {
-    setConfigLoaded(false)
+    setConfigLoaded(false);
     setTimeout(() => {
       const loadConfiguration = () => {
         try {
-          let loadedConfig = {}
+          let loadedConfig = {};
 
-          const fullConfig = localStorage.getItem('cookiebot_full_config')
+          const fullConfig = localStorage.getItem('cookiebot_full_config');
           if (fullConfig) {
-            loadedConfig = JSON.parse(fullConfig)
+            loadedConfig = JSON.parse(fullConfig);
           } else {
-            const customizationConfig = localStorage.getItem('cookiebot_customization_config')
-            const privacyConfig = localStorage.getItem('cookiebot_privacy_insights_config')
+            const customizationConfig = localStorage.getItem('cookiebot_customization_config');
+            const privacyConfig = localStorage.getItem('cookiebot_privacy_insights_config');
             
             if (customizationConfig) {
-              const customData = JSON.parse(customizationConfig)
-              loadedConfig = { ...loadedConfig, ...customData }
+              const customData = JSON.parse(customizationConfig);
+              loadedConfig = { ...loadedConfig, ...customData };
             }
             
             if (privacyConfig) {
-              const privacyData = JSON.parse(privacyConfig)
+              const privacyData = JSON.parse(privacyConfig);
               loadedConfig = {
                 ...loadedConfig,
                 privacyInsightsEnabled: privacyData.enabled || false,
                 revenueShare: privacyData.revenueShare || 60,
                 dataTypes: privacyData.dataTypes || ['analytics', 'preferences', 'marketing']
-              }
+              };
             }
           }
 
           if (Object.keys(loadedConfig).length > 0) {
-            setConfig(prev => ({ ...prev, ...loadedConfig }))
+            setConfig(prev => ({ ...prev, ...loadedConfig }));
           }
           
-          setConfigLoaded(true)
+          setConfigLoaded(true);
         } catch (err) {
-          console.error('Failed to refresh configuration:', err)
-          setConfigLoaded(true)
+          console.error('Failed to refresh configuration:', err);
+          setConfigLoaded(true);
         }
-      }
+      };
 
-      loadConfiguration()
-    }, 100)
-  }
+      loadConfiguration();
+    }, 100);
+  };
 
-  const generateAutoRegistrationScript = () => {
-    return `<!-- CookieBot.ai Auto-Registration Script -->
+  const generateUnifiedScript = () => {
+    return `<!-- CookieBot.ai Unified Script -->
 <script>
 (function() {
-    var cb = window.CookieBot = window.CookieBot || {};
-    cb.apiKey = '${apiKey}';
-    cb.apiUrl = 'https://cookiebot-ai-backend-production.up.railway.app/api/public';
-    cb.config = {
-      userId: '${userId}',
-      domain: window.location.hostname,
-      version: 'v3',${config.privacyInsightsEnabled ? `
-      privacyInsights: true,
-      revenueShare: ${config.revenueShare / 100},` : ''}
-      autoShow: true,
-      compliance: {
-        gdpr: true,
-        ccpa: true,
-        lgpd: true
-      },
-      customization: {
-        theme: '${config.theme}',
-        position: '${config.position}',
-        layout: '${config.layout}',
-        primaryColor: '${config.primaryColor}',
-        backgroundColor: '${config.backgroundColor}',
-        textColor: '${config.textColor}'
-      }${config.privacyInsightsEnabled ? `,
-      monetization: {
-        enabled: true,
-        revenueShare: ${config.revenueShare / 100},
-        dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])}
-      }` : ''}
+    // Configure CookieBot with your unified API key
+    window.CookieBot = {
+        apiKey: '${apiKey}',
+        apiUrl: 'https://cookiebot-ai-backend-production.up.railway.app/api/public',
+        config: {
+            autoShow: true,
+            compliance: {
+                gdpr: true,
+                ccpa: true,
+                lgpd: true
+            },
+            customization: {
+                theme: '${config.theme}',
+                position: '${config.position}',
+                layout: '${config.layout}',
+                primaryColor: '${config.primaryColor}',
+                backgroundColor: '${config.backgroundColor}',
+                textColor: '${config.textColor}'
+            }${config.privacyInsightsEnabled ? `,
+            monetization: {
+                enabled: true,
+                revenueShare: ${config.revenueShare / 100},
+                dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])}
+            }` : ''}
+        }
     };
     
-    // Auto-register website on script load
-    if (cb.apiKey && window.location.hostname) {
-        fetch(cb.apiUrl + '/register-website', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                api_key: cb.apiKey,
-                domain: window.location.hostname,
-                referrer: document.referrer || window.location.href
-            })
-        }).then(function(response) {
-            return response.json();
-        }).then(function(data) {
-            if (data.success) {
-                cb.clientId = data.data.client_id;
-                cb.websiteId = data.data.website_id;
-                console.log('CookieBot: Website auto-registered!', {
-                    websiteId: data.data.website_id,
-                    clientId: data.data.client_id,
-                    domain: data.data.domain
-                });
-            }
-        }).catch(function(error) {
-            console.warn('CookieBot auto-registration failed:', error);
-        });
-    }
-    
-    // Load CookieBot tracking script
+    // Load the CookieBot tracking script
     var script = document.createElement('script');
-    script.src = cb.apiUrl + '/script.js';
+    script.src = window.CookieBot.apiUrl + '/script.js';
     script.async = true;
     script.onload = function() {
-        console.log('CookieBot: Tracking script loaded successfully');
+        console.log('CookieBot: Unified tracking script loaded successfully');
     };
     document.head.appendChild(script);
 })();
 </script>
-<!-- End CookieBot.ai Auto-Registration Script -->`
-  }
+<!-- End CookieBot.ai Unified Script -->`;
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const downloadScript = () => {
-    const script = generateAutoRegistrationScript()
-    const blob = new Blob([script], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'cookiebot-auto-registration-script.html'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+    const script = generateUnifiedScript();
+    const blob = new Blob([script], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cookiebot-unified-script.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   if (!configLoaded) {
     return (
@@ -228,7 +197,7 @@ const ScriptTab = () => {
           <p className="text-gray-600">Loading configuration...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -236,10 +205,10 @@ const ScriptTab = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Code className="w-6 h-6 text-blue-600" />
-            Script
+            <Rocket className="w-6 h-6 text-blue-600" />
+            Unified Script
           </h2>
-          <p className="text-gray-600">Get your auto-registration script and deploy to any website</p>
+          <p className="text-gray-600">Your universal script for all websites - simple, powerful, and fast</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={refreshConfiguration}>
@@ -253,20 +222,13 @@ const ScriptTab = () => {
         </div>
       </div>
 
-      {/* Auto-Registration Feature Highlight */}
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 text-green-800 mb-2">
-            <Zap className="w-5 h-5" />
-            <span className="font-semibold text-lg">🚀 Auto-Registration Enabled!</span>
-          </div>
-          <p className="text-green-700 text-sm leading-relaxed">
-            This script automatically registers your websites in the dashboard when deployed. 
-            No manual setup required - just paste the script and your websites will appear in the 
-            <strong> Websites tab</strong> automatically!
-          </p>
-        </CardContent>
-      </Card>
+      {/* Unified Script Feature Highlight */}
+      <Alert className="border-green-200 bg-green-50">
+        <Zap className="h-4 w-4" />
+        <AlertDescription className="text-green-800">
+          <strong>🚀 Unified Script is Live!</strong> This single script works on all your websites, enabling auto-registration, unified analytics, and real-time updates. No more client IDs!
+        </AlertDescription>
+      </Alert>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Auto-Registration Status */}
@@ -342,8 +304,8 @@ const ScriptTab = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Zap className="w-5 h-5 text-blue-600" />
-            🚀 Your Auto-Registration Script
+            <Rocket className="w-5 h-5 text-blue-600" />
+            🚀 Your Unified Script
           </CardTitle>
           <CardDescription>
             Copy this script and paste it anywhere in your website's HTML. Your websites will automatically appear in the dashboard!
@@ -352,11 +314,11 @@ const ScriptTab = () => {
         <CardContent className="space-y-4">
           <div className="bg-gray-900 rounded-lg p-4 relative">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-green-400 text-sm font-mono">Auto-Registration Script</span>
+              <span className="text-green-400 text-sm font-mono">Unified Script</span>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => copyToClipboard(generateAutoRegistrationScript())}
+                onClick={() => copyToClipboard(generateUnifiedScript())}
                 className="text-gray-400 hover:text-white"
               >
                 {copied ? (
@@ -367,7 +329,7 @@ const ScriptTab = () => {
               </Button>
             </div>
             <pre className="text-gray-300 text-sm overflow-x-auto max-h-96">
-              <code>{generateAutoRegistrationScript()}</code>
+              <code>{generateUnifiedScript()}</code>
             </pre>
           </div>
 
@@ -404,12 +366,12 @@ const ScriptTab = () => {
         </CardContent>
       </Card>
 
-      {/* How Auto-Registration Works */}
+      {/* How Unified Script Works */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Info className="w-5 h-5 text-blue-600" />
-            🔄 How Auto-Registration Works
+            🔄 How the Unified Script Works
           </CardTitle>
           <CardDescription>Understanding the automatic website registration process</CardDescription>
         </CardHeader>
@@ -466,12 +428,12 @@ const ScriptTab = () => {
         </CardContent>
       </Card>
 
-      {/* Benefits of Auto-Registration */}
+      {/* Benefits of Unified Script */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-600" />
-            ✨ Benefits of Auto-Registration
+            ✨ Benefits of the Unified Script
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -542,8 +504,8 @@ const ScriptTab = () => {
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ScriptTab
+export default ScriptTab;
 
