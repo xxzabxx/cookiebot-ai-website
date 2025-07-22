@@ -8,13 +8,15 @@ const authReducer = (state, action) => {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_USER':
-      return { ...state, user: action.payload, loading: false, error: null };
+      return { ...state, user: action.payload, loading: false, error: null, validationErrors: null };
     case 'SET_ERROR':
-      return { ...state, error: action.payload, loading: false };
+      return { ...state, error: action.payload, loading: false, validationErrors: null };
+    case 'SET_VALIDATION_ERROR':
+      return { ...state, error: action.payload, validationErrors: action.validationErrors, loading: false };
     case 'LOGOUT':
-      return { user: null, loading: false, error: null };
+      return { user: null, loading: false, error: null, validationErrors: null };
     case 'CLEAR_ERROR':
-      return { ...state, error: null };
+      return { ...state, error: null, validationErrors: null };
     default:
       return state;
   }
@@ -25,6 +27,7 @@ export const AuthProvider = ({ children }) => {
     user: null,
     loading: true,
     error: null,
+    validationErrors: null,
   });
 
   useEffect(() => {
@@ -92,8 +95,42 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      return { success: false, error: error.message };
+      console.error('Registration error:', error);
+      
+      // Enhanced error handling for validation errors
+      let errorMessage = error.message;
+      let validationErrors = null;
+      
+      // Check if this is a validation error with detailed information
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        
+        // Handle validation errors from backend
+        if (errorData.validation_errors) {
+          validationErrors = errorData.validation_errors;
+          errorMessage = 'Please fix the validation errors below';
+          
+          dispatch({ 
+            type: 'SET_VALIDATION_ERROR', 
+            payload: errorMessage,
+            validationErrors: validationErrors
+          });
+          
+          return { 
+            success: false, 
+            error: errorMessage, 
+            validationErrors: validationErrors 
+          };
+        }
+        
+        // Handle other structured error responses
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return { success: false, error: errorMessage };
     }
   };
 
