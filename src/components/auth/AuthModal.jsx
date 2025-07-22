@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Shield, Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AuthModal = ({ isOpen, onClose }) => {
-  const { login, register, loading, error, clearError } = useAuth();
+  const { login, register, loading, error, clearError, validationErrors } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   
@@ -37,6 +37,42 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   const validatePassword = (password) => {
     return password.length >= 8;
+  };
+
+  // Enhanced password validation that matches backend requirements
+  const getPasswordValidationErrors = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push("Password must be at least 8 characters long");
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (!/\d/.test(password)) {
+      errors.push("Password must contain at least one number");
+    }
+    
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push("Password must contain at least one special character");
+    }
+    
+    const commonPasswords = [
+      'password', '123456', 'password123', 'admin', 'qwerty',
+      'letmein', 'welcome', 'monkey', '1234567890'
+    ];
+    
+    if (commonPasswords.includes(password.toLowerCase())) {
+      errors.push("Password is too common");
+    }
+    
+    return errors;
   };
 
   const handleLoginSubmit = async (e) => {
@@ -75,9 +111,13 @@ const AuthModal = ({ isOpen, onClose }) => {
     if (!validateEmail(registerForm.email)) {
       errors.email = 'Please enter a valid email address';
     }
-    if (!validatePassword(registerForm.password)) {
-      errors.password = 'Password must be at least 8 characters long';
+    
+    // Enhanced password validation
+    const passwordErrors = getPasswordValidationErrors(registerForm.password);
+    if (passwordErrors.length > 0) {
+      errors.password = passwordErrors;
     }
+    
     if (registerForm.password !== registerForm.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
@@ -114,6 +154,38 @@ const AuthModal = ({ isOpen, onClose }) => {
     setFormErrors({});
   };
 
+  // Helper component to display password requirements
+  const PasswordRequirements = ({ password }) => {
+    const requirements = [
+      { text: "At least 8 characters long", test: (p) => p.length >= 8 },
+      { text: "Contains uppercase letter (A-Z)", test: (p) => /[A-Z]/.test(p) },
+      { text: "Contains lowercase letter (a-z)", test: (p) => /[a-z]/.test(p) },
+      { text: "Contains number (0-9)", test: (p) => /\d/.test(p) },
+      { text: "Contains special character (!@#$%^&*)", test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) }
+    ];
+
+    return (
+      <div className="mt-2 space-y-1">
+        <p className="text-sm font-medium text-gray-700">Password Requirements:</p>
+        {requirements.map((req, index) => {
+          const isValid = password ? req.test(password) : false;
+          return (
+            <div key={index} className="flex items-center space-x-2">
+              {isValid ? (
+                <CheckCircle className="h-3 w-3 text-green-500" />
+              ) : (
+                <AlertCircle className="h-3 w-3 text-gray-400" />
+              )}
+              <span className={`text-xs ${isValid ? 'text-green-600' : 'text-gray-500'}`}>
+                {req.text}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -138,6 +210,31 @@ const AuthModal = ({ isOpen, onClose }) => {
             <Alert className="mt-4 border-red-200 bg-red-50">
               <AlertDescription className="text-red-800">
                 {error}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Display backend validation errors */}
+          {validationErrors && Object.keys(validationErrors).length > 0 && (
+            <Alert className="mt-4 border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-red-800">
+                <div className="space-y-1">
+                  <p className="font-medium">Please fix the following issues:</p>
+                  {Object.entries(validationErrors).map(([field, errors]) => (
+                    <div key={field}>
+                      {Array.isArray(errors) ? (
+                        <ul className="list-disc list-inside space-y-1">
+                          {errors.map((error, index) => (
+                            <li key={index} className="text-sm">{error}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm">{errors}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </AlertDescription>
             </Alert>
           )}
@@ -299,8 +396,24 @@ const AuthModal = ({ isOpen, onClose }) => {
                         )}
                       </Button>
                     </div>
-                    {formErrors.password && (
+                    
+                    {/* Enhanced password error display */}
+                    {formErrors.password && Array.isArray(formErrors.password) ? (
+                      <div className="space-y-1">
+                        {formErrors.password.map((error, index) => (
+                          <p key={index} className="text-sm text-red-600 flex items-center">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            {error}
+                          </p>
+                        ))}
+                      </div>
+                    ) : formErrors.password ? (
                       <p className="text-sm text-red-600">{formErrors.password}</p>
+                    ) : null}
+                    
+                    {/* Show password requirements when user starts typing */}
+                    {registerForm.password && (
+                      <PasswordRequirements password={registerForm.password} />
                     )}
                   </div>
 
