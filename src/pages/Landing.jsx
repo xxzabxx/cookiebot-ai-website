@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Shield, 
   BarChart3, 
@@ -20,150 +17,13 @@ import {
   Scan,
   Brain,
   Target,
-  Infinity,
-  Clock,
-  AlertTriangle,
-  Search,
-  FileText,
-  Award,
-  Lock,
-  Sparkles,
-  Eye
+  Infinity
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import DemoLogin from '../components/auth/DemoLogin';
 
 const Landing = ({ onShowAuth }) => {
   const { user } = useAuth();
-  
-  // Scanner state
-  const [scanUrl, setScanUrl] = useState('');
-  const [scanEmail, setScanEmail] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [scanResults, setScanResults] = useState(null);
-  const [scanError, setScanError] = useState('');
-
-  // SEO Meta Tags (using native document methods instead of Helmet)
-  useEffect(() => {
-    // Set document title
-    document.title = 'CookieBot.ai - AI-Powered Cookie Consent Management Platform | GDPR Compliance';
-    
-    // Set meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'The first AI-powered cookie consent platform with built-in monetization. Ensure GDPR, CCPA, and LGPD compliance while generating revenue. Free compliance scanner included.');
-    } else {
-      const meta = document.createElement('meta');
-      meta.name = 'description';
-      meta.content = 'The first AI-powered cookie consent platform with built-in monetization. Ensure GDPR, CCPA, and LGPD compliance while generating revenue. Free compliance scanner included.';
-      document.head.appendChild(meta);
-    }
-
-    // Set meta keywords
-    const metaKeywords = document.querySelector('meta[name="keywords"]');
-    if (metaKeywords) {
-      metaKeywords.setAttribute('content', 'cookie consent, GDPR compliance, CCPA compliance, LGPD compliance, privacy management, cookie banner, compliance scanner, revenue generation, AI-powered');
-    } else {
-      const meta = document.createElement('meta');
-      meta.name = 'keywords';
-      meta.content = 'cookie consent, GDPR compliance, CCPA compliance, LGPD compliance, privacy management, cookie banner, compliance scanner, revenue generation, AI-powered';
-      document.head.appendChild(meta);
-    }
-
-    // Set theme color
-    const themeColor = document.querySelector('meta[name="theme-color"]');
-    if (themeColor) {
-      themeColor.setAttribute('content', '#3B82F6');
-    } else {
-      const meta = document.createElement('meta');
-      meta.name = 'theme-color';
-      meta.content = '#3B82F6';
-      document.head.appendChild(meta);
-    }
-
-    // Add structured data
-    const structuredData = {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "CookieBot.ai",
-      "description": "AI-powered cookie consent management platform with built-in monetization. Ensure GDPR, CCPA, and LGPD compliance while generating revenue.",
-      "url": "https://cookiebotai.netlify.app",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "description": "Free plan available"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "reviewCount": "1250"
-      },
-      "features": [
-        "AI-Powered Cookie Consent",
-        "GDPR Compliance",
-        "CCPA Compliance", 
-        "LGPD Compliance",
-        "Revenue Generation",
-        "Real-time Analytics",
-        "Compliance Scanning"
-      ]
-    };
-
-    const faqStructuredData = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is CookieBot.ai?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "CookieBot.ai is an AI-powered cookie consent management platform that helps websites achieve GDPR, CCPA, and LGPD compliance while generating revenue through privacy insights and data monetization."
-          }
-        },
-        {
-          "@type": "Question", 
-          "name": "How does the compliance scanner work?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Our compliance scanner analyzes your website for cookies, tracking technologies, and privacy compliance across GDPR, CCPA, and LGPD regulations. It provides a detailed report with compliance scores and actionable recommendations."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I really generate revenue from cookie compliance?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes! CookieBot.ai offers revenue sharing up to 70% from privacy insights and data monetization while maintaining full compliance with privacy regulations."
-          }
-        }
-      ]
-    };
-
-    // Add structured data scripts
-    const existingStructuredData = document.querySelector('script[type="application/ld+json"]');
-    if (!existingStructuredData) {
-      const script1 = document.createElement('script');
-      script1.type = 'application/ld+json';
-      script1.textContent = JSON.stringify(structuredData);
-      document.head.appendChild(script1);
-
-      const script2 = document.createElement('script');
-      script2.type = 'application/ld+json';
-      script2.textContent = JSON.stringify(faqStructuredData);
-      document.head.appendChild(script2);
-    }
-
-    // Cleanup function
-    return () => {
-      // Reset title when component unmounts
-      document.title = 'CookieBot.ai';
-    };
-  }, []);
 
   const features = [
     {
@@ -247,101 +107,6 @@ const Landing = ({ onShowAuth }) => {
     { label: 'Happy Customers', value: '5,000+', icon: Users }
   ];
 
-  const scannerBenefits = [
-    {
-      icon: Search,
-      title: 'Deep Website Analysis',
-      description: 'Comprehensive scan of all pages, cookies, and tracking technologies'
-    },
-    {
-      icon: Shield,
-      title: 'Multi-Regulation Compliance',
-      description: 'GDPR, CCPA, and LGPD compliance assessment with detailed breakdown'
-    },
-    {
-      icon: DollarSign,
-      title: 'Revenue Potential',
-      description: 'Calculate potential earnings from privacy compliance optimization'
-    },
-    {
-      icon: FileText,
-      title: 'Detailed Reports',
-      description: 'Professional compliance reports with actionable recommendations'
-    }
-  ];
-
-  const trustIndicators = [
-    { icon: Award, text: 'Industry Leading' },
-    { icon: Lock, text: 'Secure & Private' },
-    { icon: CheckCircle, text: 'Real-time Analysis' },
-    { icon: Users, text: 'Trusted by 10,000+' }
-  ];
-
-  const startQuickScan = async () => {
-    if (!scanUrl.trim()) {
-      setScanError('Please enter a website URL');
-      return;
-    }
-
-    setIsScanning(true);
-    setScanError('');
-    setScanProgress(0);
-    setScanResults(null);
-
-    try {
-      // Simulate scan progress
-      const progressInterval = setInterval(() => {
-        setScanProgress(prev => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            return 95;
-          }
-          return prev + Math.random() * 15;
-        });
-      }, 500);
-
-      // Simulate API call
-      const response = await fetch('/api/compliance/real-scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: scanUrl.trim(),
-          email: scanEmail.trim() || undefined,
-          scan_type: 'quick'
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Simulate completion
-        setTimeout(() => {
-          setScanProgress(100);
-          setScanResults({
-            domain: scanUrl.replace(/^https?:\/\//, '').split('/')[0],
-            compliance_score: Math.floor(Math.random() * 30) + 70,
-            cookies_found: Math.floor(Math.random() * 20) + 5,
-            issues_found: Math.floor(Math.random() * 8) + 1,
-            potential_earnings: Math.floor(Math.random() * 500) + 200
-          });
-          setIsScanning(false);
-        }, 2000);
-      } else {
-        throw new Error(data.error || 'Scan failed');
-      }
-    } catch (err) {
-      setScanError(err.message);
-      setIsScanning(false);
-      setScanProgress(0);
-    }
-  };
-
-  const getComplianceColor = (score) => {
-    if (score >= 85) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
@@ -388,196 +153,8 @@ const Landing = ({ onShowAuth }) => {
         </div>
       </section>
 
-      {/* Compliance Scanner Hero Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white" id="compliance-scanner">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 mr-3 text-yellow-300" />
-              <Badge className="bg-white/20 text-white border-white/30">
-                Free Compliance Scanner
-              </Badge>
-            </div>
-            
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Discover Your Website's
-              <br />
-              <span className="text-yellow-300">Compliance Score</span>
-            </h2>
-            
-            <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
-              Get an instant, comprehensive analysis of your website's GDPR, CCPA, and LGPD compliance. 
-              Discover potential revenue opportunities and receive actionable recommendations in under 60 seconds.
-            </p>
-          </div>
-
-          {/* Scanner Form */}
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-              <CardContent className="p-8">
-                {!scanResults && !isScanning && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-white/90 mb-2">
-                          Website URL *
-                        </label>
-                        <Input
-                          type="url"
-                          placeholder="https://example.com"
-                          value={scanUrl}
-                          onChange={(e) => setScanUrl(e.target.value)}
-                          className="bg-white/20 border-white/30 text-white placeholder:text-white/60"
-                          aria-label="Website URL for compliance scan"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white/90 mb-2">
-                          Email (Optional)
-                        </label>
-                        <Input
-                          type="email"
-                          placeholder="your@email.com"
-                          value={scanEmail}
-                          onChange={(e) => setScanEmail(e.target.value)}
-                          className="bg-white/20 border-white/30 text-white placeholder:text-white/60"
-                          aria-label="Email for scan results"
-                        />
-                      </div>
-                    </div>
-
-                    {scanError && (
-                      <Alert className="bg-red-500/20 border-red-400/50 text-white">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>{scanError}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <div className="text-center">
-                      <Button
-                        onClick={startQuickScan}
-                        disabled={!scanUrl.trim()}
-                        size="lg"
-                        className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-8"
-                        aria-label="Start free compliance scan"
-                      >
-                        <Search className="mr-2 h-5 w-5" />
-                        Start Free Compliance Scan
-                      </Button>
-                      <p className="text-sm text-white/70 mt-2">
-                        ⚡ Results in 30-60 seconds • No signup required • 100% Free
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Scanning Progress */}
-                {isScanning && (
-                  <div className="space-y-6 text-center">
-                    <div className="space-y-4">
-                      <Clock className="w-12 h-12 mx-auto text-yellow-300 animate-spin" />
-                      <h3 className="text-2xl font-semibold">Analyzing Your Website</h3>
-                      <p className="text-white/80">
-                        {scanProgress < 30 ? 'Initializing compliance scan...' :
-                         scanProgress < 60 ? 'Analyzing cookies and tracking technologies...' :
-                         scanProgress < 90 ? 'Evaluating GDPR, CCPA, and LGPD compliance...' :
-                         'Calculating revenue potential and finalizing results...'}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Progress value={scanProgress} className="h-3 bg-white/20" />
-                      <p className="text-sm text-white/70">{Math.round(scanProgress)}% Complete</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Results */}
-                {scanResults && (
-                  <div className="space-y-6">
-                    <div className="text-center">
-                      <CheckCircle className="w-16 h-16 mx-auto text-green-400 mb-4" />
-                      <h3 className="text-2xl font-semibold mb-2">Compliance Scan Complete!</h3>
-                      <p className="text-white/80">Here's your website's compliance overview for {scanResults.domain}</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center bg-white/10 rounded-lg p-4">
-                        <div className={`text-2xl font-bold ${getComplianceColor(scanResults.compliance_score)}`}>
-                          {scanResults.compliance_score}%
-                        </div>
-                        <div className="text-sm text-white/70">Overall Compliance</div>
-                      </div>
-                      <div className="text-center bg-white/10 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-blue-300">
-                          {scanResults.cookies_found}
-                        </div>
-                        <div className="text-sm text-white/70">Cookies Detected</div>
-                      </div>
-                      <div className="text-center bg-white/10 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-orange-300">
-                          {scanResults.issues_found}
-                        </div>
-                        <div className="text-sm text-white/70">Issues Identified</div>
-                      </div>
-                      <div className="text-center bg-white/10 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-green-300">
-                          ${scanResults.potential_earnings}
-                        </div>
-                        <div className="text-sm text-white/70">Monthly Revenue Potential</div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button
-                        asChild
-                        size="lg"
-                        className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
-                      >
-                        <Link to={`/scan?url=${encodeURIComponent(scanUrl)}`}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Detailed Report
-                        </Link>
-                      </Button>
-                      <Button
-                        onClick={onShowAuth}
-                        size="lg"
-                        variant="outline"
-                        className="border-white/30 text-white hover:bg-white/10"
-                      >
-                        Start Free Trial
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Scanner Benefits */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
-              {scannerBenefits.map((benefit, index) => (
-                <div key={index} className="text-center">
-                  <benefit.icon className="w-12 h-12 mx-auto mb-3 text-yellow-300" />
-                  <h3 className="font-semibold mb-2">{benefit.title}</h3>
-                  <p className="text-sm text-white/80">{benefit.description}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-6 mt-12 pt-8 border-t border-white/20">
-              {trustIndicators.map((indicator, index) => (
-                <div key={index} className="flex items-center space-x-2 text-white/80">
-                  <indicator.icon className="w-5 h-5" />
-                  <span className="text-sm">{indicator.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
-      <section className="py-20 px-4 bg-white" id="features">
+      <section className="py-20 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -652,7 +229,7 @@ const Landing = ({ onShowAuth }) => {
               Simple, Transparent Pricing
             </h2>
             <p className="text-xl text-gray-600">
-              Choose the plan that fits your needs. All plans include our core compliance features and revenue sharing.
+              Choose the plan that fits your needs. All plans include our core compliance features.
             </p>
           </div>
 
@@ -702,7 +279,7 @@ const Landing = ({ onShowAuth }) => {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of websites already using CookieBot.ai for their privacy compliance needs and revenue generation.
+            Join thousands of websites already using CookieBot.ai for their privacy compliance needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" onClick={onShowAuth}>
@@ -725,4 +302,3 @@ const Landing = ({ onShowAuth }) => {
 };
 
 export default Landing;
-
