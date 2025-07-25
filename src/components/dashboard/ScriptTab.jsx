@@ -152,6 +152,44 @@ const ScriptTab = () => {
   };
 
   const generateEnhancedScript = () => {
+    const monetizationSection = config.privacyInsightsEnabled ? `
+                            <div class="cb-enhanced-monetization">
+                                <div class="cb-enhanced-monetization-title">
+                                    💰 Privacy Insights Program
+                                </div>
+                                <div>
+                                    Opt-in to share anonymized insights and earn ${config.revenueShare}% revenue share. 
+                                    Your privacy is protected while supporting website sustainability.
+                                </div>
+                            </div>` : '';
+
+    const monetizationConfig = config.privacyInsightsEnabled ? `,
+            monetization: {
+                enabled: true,
+                revenueShare: ${config.revenueShare / 100},
+                dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])}
+            }` : '';
+
+    const monetizationData = config.privacyInsightsEnabled ? `
+                consentData.monetization = {
+                    enabled: true,
+                    revenueShare: ${config.revenueShare / 100},
+                    dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])},
+                    userOptIn: consentState.analytics || consentState.marketing
+                };` : '';
+
+    const keyboardNavigation = config.enableKeyboardNavigation ? `
+            document.addEventListener('keydown', function(e) {
+                const modal = document.querySelector('.cb-enhanced-modal');
+                if (!modal) return;
+                
+                if (e.key === 'Escape') {
+                    acceptNecessary();
+                } else if (e.key === 'Enter' && e.target.classList.contains('cb-enhanced-details-toggle')) {
+                    toggleDetails();
+                }
+            });` : '';
+
     return `<!-- CookieBot.ai Enhanced Script with System Integration -->
 <script>
 (function() {
@@ -189,12 +227,7 @@ const ScriptTab = () => {
                 multiLanguage: ${config.multiLanguage},
                 defaultLanguage: '${config.defaultLanguage}'
             },
-            categories: ${JSON.stringify(config.cookieCategories)}${config.privacyInsightsEnabled ? `,
-            monetization: {
-                enabled: true,
-                revenueShare: ${config.revenueShare / 100},
-                dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])}
-            }` : ''}
+            categories: ${JSON.stringify(config.cookieCategories)}${monetizationConfig}
         }
     };
     
@@ -479,6 +512,28 @@ const ScriptTab = () => {
         function createModal() {
             const overlay = document.createElement('div');
             overlay.className = 'cb-enhanced-overlay';
+            
+            const categoriesHTML = Object.entries(window.CookieBot.config.categories)
+                .filter(([key, cat]) => cat.enabled)
+                .map(([key, category]) => \`
+                    <div class="cb-enhanced-category">
+                        <div class="cb-enhanced-category-info">
+                            <div class="cb-enhanced-category-label">
+                                \${category.label}
+                                \${window.CookieBot.config.features.showCookieCount ? \` (\${cookieData[key]?.length || 0})\` : ''}
+                            </div>
+                            <div class="cb-enhanced-category-desc">
+                                \${getCategoryDescription(key)}
+                            </div>
+                        </div>
+                        <div class="cb-enhanced-toggle \${category.required ? 'active disabled' : (consentState[key] ? 'active' : '')}" 
+                             data-category="\${key}" 
+                             \${category.required ? '' : 'onclick="toggleCategory(this)"'}>
+                            <div class="cb-enhanced-toggle-thumb"></div>
+                        </div>
+                    </div>
+                \`).join('');
+
             overlay.innerHTML = styles + \`
                 <div class="cb-enhanced-modal" role="dialog" aria-labelledby="cb-title" aria-describedby="cb-desc">
                     <div class="cb-enhanced-header">
@@ -493,24 +548,7 @@ const ScriptTab = () => {
                     
                     <div class="cb-enhanced-content">
                         <div id="cb-categories">
-                            \${Object.entries(window.CookieBot.config.categories).filter(([key, cat]) => cat.enabled).map(([key, category]) => \`
-                                <div class="cb-enhanced-category">
-                                    <div class="cb-enhanced-category-info">
-                                        <div class="cb-enhanced-category-label">
-                                            \${category.label}
-                                            \${window.CookieBot.config.features.showCookieCount ? \` (\${cookieData[key]?.length || 0})\` : ''}
-                                        </div>
-                                        <div class="cb-enhanced-category-desc">
-                                            \${getCategoryDescription(key)}
-                                        </div>
-                                    </div>
-                                    <div class="cb-enhanced-toggle \${category.required ? 'active disabled' : (consentState[key] ? 'active' : '')}" 
-                                         data-category="\${key}" 
-                                         \${category.required ? '' : 'onclick="toggleCategory(this)"'}>
-                                        <div class="cb-enhanced-toggle-thumb"></div>
-                                    </div>
-                                </div>
-                            \`).join('')}
+                            \${categoriesHTML}
                         </div>
                         
                         <div class="cb-enhanced-details">
@@ -521,18 +559,7 @@ const ScriptTab = () => {
                                 \${generateCookieDetails()}
                             </div>
                         </div>
-                        
-                        ${config.privacyInsightsEnabled ? \`
-                            <div class="cb-enhanced-monetization">
-                                <div class="cb-enhanced-monetization-title">
-                                    💰 Privacy Insights Program
-                                </div>
-                                <div>
-                                    Opt-in to share anonymized insights and earn ${config.revenueShare}% revenue share. 
-                                    Your privacy is protected while supporting website sustainability.
-                                </div>
-                            </div>
-                        \` : ''}
+                        ${monetizationSection}
                     </div>
                     
                     <div class="cb-enhanced-actions">
@@ -642,15 +669,7 @@ const ScriptTab = () => {
                 categories: Object.keys(consentState).filter(key => consentState[key])
             };
             
-            // Add monetization data if enabled (PRESERVED EXACT STRUCTURE)
-            ${config.privacyInsightsEnabled ? \`
-                consentData.monetization = {
-                    enabled: true,
-                    revenueShare: ${config.revenueShare / 100},
-                    dataTypes: ${JSON.stringify(config.dataTypes || ['analytics', 'preferences', 'marketing'])},
-                    userOptIn: consentState.analytics || consentState.marketing
-                };
-            \` : ''}
+            // Add monetization data if enabled (PRESERVED EXACT STRUCTURE)${monetizationData}
             
             // SYSTEM COMPATIBLE: Use exact same API endpoint and structure
             fetch(window.CookieBot.apiUrl + '/consent', {
@@ -698,19 +717,7 @@ const ScriptTab = () => {
             document.body.appendChild(createModal());
         }
         
-        // SYSTEM COMPATIBLE: Keyboard navigation
-        ${config.enableKeyboardNavigation ? \`
-            document.addEventListener('keydown', function(e) {
-                const modal = document.querySelector('.cb-enhanced-modal');
-                if (!modal) return;
-                
-                if (e.key === 'Escape') {
-                    acceptNecessary();
-                } else if (e.key === 'Enter' && e.target.classList.contains('cb-enhanced-details-toggle')) {
-                    toggleDetails();
-                }
-            });
-        \` : ''}
+        // SYSTEM COMPATIBLE: Keyboard navigation${keyboardNavigation}
     };
     
     // Auto-initialize when DOM is ready (SYSTEM COMPATIBLE)
@@ -1119,126 +1126,6 @@ const ScriptTab = () => {
               <p className="text-gray-700 text-xs">
                 Websites automatically appear in your dashboard with enhanced metadata
               </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* System Integration Details */}
-      <Card className="border-green-200 bg-green-50">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Shield className="w-5 h-5 text-green-600" />
-            🔗 System Integration Features
-          </CardTitle>
-          <CardDescription>How the enhanced script integrates with your existing system</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-green-900 mb-3">Backend Integration</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Same API endpoints and authentication</span>
-                </div>
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Enhanced consent data with backward compatibility</span>
-                </div>
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Automatic website registration with metadata</span>
-                </div>
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Privacy insights revenue tracking preserved</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-green-900 mb-3">Dashboard Integration</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Configuration loading from localStorage</span>
-                </div>
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Enhanced analytics with category breakdown</span>
-                </div>
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Real-time consent tracking</span>
-                </div>
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Legacy event compatibility</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Implementation Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Info className="w-5 h-5 text-blue-600" />
-            🔄 System-Compatible Implementation
-          </CardTitle>
-          <CardDescription>How to deploy your system-compatible {scriptVersion} script</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 text-sm font-semibold">1</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">Replace Your Current Script</h4>
-                <p className="text-gray-600 text-sm">
-                  Copy the {scriptVersion} script above and replace your existing CookieBot script
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 text-sm font-semibold">2</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">Test System Integration</h4>
-                <p className="text-gray-600 text-sm">
-                  Verify that the enhanced popup works and data appears correctly in your dashboard
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 text-sm font-semibold">3</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">Monitor Enhanced Analytics</h4>
-                <p className="text-gray-600 text-sm">
-                  Check your dashboard for enhanced consent data with category breakdowns
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 text-sm font-semibold">4</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">Verify Revenue Tracking</h4>
-                <p className="text-gray-600 text-sm">
-                  Ensure privacy insights monetization continues to work with enhanced transparency
-                </p>
-              </div>
             </div>
           </div>
         </CardContent>
