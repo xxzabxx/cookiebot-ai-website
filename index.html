@@ -9,55 +9,642 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-  <!-- CookieBot.ai - Just copy and paste anywhere in your website -->
+<!-- CookieBot.ai Enhanced Cookie Consent Script -->
 <script>
-window.cookieBotConfig = {
-  apiKey: 'cb_live_abcd1234efgh5678ijkl9012mnop3456',
-  userId: '1',
-  domain: window.location.hostname,
-  version: 'v3',
-  privacyInsights: true,
-  revenueShare: 0.7,
-  autoShow: true,
-  compliance: {
-    gdpr: true,
-    ccpa: true,
-    lgpd: true
-  },
-  customization: {
-    theme: 'dark',
-    position: 'bottom-right',
-    layout: 'dialog',
-    primaryColor: '#007bff',
-    backgroundColor: '#ffffff',
-    textColor: '#333333'
-  },
-  monetization: {
-    enabled: true,
-    revenueShare: 0.7,
-    dataTypes: ["analytics","preferences","marketing"]
-  }
-};
-
-// Universal script that works on any website
 (function() {
-  function loadCookieBot() {
-    if (window.CookieBotLoaded) return;
-    window.CookieBotLoaded = true;
+    // CookieBot Enhanced Configuration
+    window.CookieBot = {
+        apiKey: 'cb_api_T6rpxkSP22Qo6_HThe3lE_9yQGsoHjUQaPUO8K5uW_hL07MS8C97HSB81',
+        apiUrl: 'https://cookiebot-ai-backend-production.up.railway.app/api/public',
+        version: 'enhanced-v2.0',
+        config: {
+            autoShow: true,
+            compliance: {
+                gdpr: true,
+                ccpa: true,
+                lgpd: true,
+                consentMode: 'opt-in'
+            },
+            customization: {
+                theme: 'light',
+                position: 'bottom-right',
+                layout: 'dialog',
+                primaryColor: '#007bff',
+                backgroundColor: '#ffffff',
+                textColor: '#333333',
+                overlay: true,
+                animations: true,
+                borderRadius: '45px',
+                companyName: 'CookieBotAI'
+            },
+            features: {
+                showDetailedInfo: true,
+                enableCookieScanning: true,
+                showCookieCount: true,
+                showProviderInfo: true,
+                enableKeyboardNavigation: true,
+                multiLanguage: true,
+                defaultLanguage: 'es'
+            },
+            categories: {"necessary":{"enabled":true,"required":true,"label":"Necessary"},"functional":{"enabled":true,"required":false,"label":"Functional"},"analytics":{"enabled":true,"required":false,"label":"Analytics"},"marketing":{"enabled":true,"required":false,"label":"Marketing"},"undefined":{"enabled":true,"required":false,"label":"Undefined"}},
+            monetization: {
+                enabled: true,
+                revenueShare: 0.7,
+                dataTypes: ["analytics","preferences","marketing"]
+            }
+        }
+    };
     
+    // Enhanced Cookie Popup Implementation with CookieBot.ai Branding
+    window.CookieBot.createPopup = function() {
+        const styles = `
+            <style>
+                .cb-enhanced-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    z-index: 999999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                
+                .cb-enhanced-modal {
+                    background: #ffffff;
+                    color: #333333;
+                    border-radius: 45px;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    position: relative;
+                    animation: cbSlideIn 0.3s ease-out;
+                }
+                
+                @keyframes cbSlideIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                
+                .cb-enhanced-header {
+                    padding: 24px 24px 16px;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                }
+                
+                .cb-enhanced-robot-tagline {
+                    font-size: 12px;
+                    color: #6b7280;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+                
+                .cb-enhanced-robot-icon {
+                    font-size: 16px;
+                }
+                
+                .cb-enhanced-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin: 0 0 8px 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .cb-enhanced-description {
+                    font-size: 14px;
+                    line-height: 1.5;
+                    opacity: 0.8;
+                    margin: 0;
+                }
+                
+                .cb-enhanced-content {
+                    padding: 16px 24px;
+                }
+                
+                .cb-enhanced-category {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 12px 0;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                }
+                
+                .cb-enhanced-category:last-child {
+                    border-bottom: none;
+                }
+                
+                .cb-enhanced-category-info {
+                    flex: 1;
+                }
+                
+                .cb-enhanced-category-label {
+                    font-weight: 500;
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                }
+                
+                .cb-enhanced-category-desc {
+                    font-size: 12px;
+                    opacity: 0.7;
+                    line-height: 1.4;
+                }
+                
+                .cb-enhanced-toggle {
+                    width: 44px;
+                    height: 24px;
+                    border-radius: 12px;
+                    background: #e5e7eb;
+                    position: relative;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                
+                .cb-enhanced-toggle.active {
+                    background: #007bff;
+                }
+                
+                .cb-enhanced-toggle.disabled {
+                    background: #d1d5db;
+                    cursor: not-allowed;
+                }
+                
+                .cb-enhanced-toggle-thumb {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: white;
+                    position: absolute;
+                    top: 2px;
+                    left: 2px;
+                    transition: transform 0.2s;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+                
+                .cb-enhanced-toggle.active .cb-enhanced-toggle-thumb {
+                    transform: translateX(20px);
+                }
+                
+                .cb-enhanced-actions {
+                    padding: 16px 24px 24px;
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+                
+                .cb-enhanced-btn {
+                    padding: 10px 20px;
+                    border-radius: 45px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    border: none;
+                    transition: all 0.2s;
+                    flex: 1;
+                    min-width: 120px;
+                }
+                
+                .cb-enhanced-btn-primary {
+                    background: #007bff;
+                    color: white;
+                }
+                
+                .cb-enhanced-btn-primary:hover {
+                    opacity: 0.9;
+                    transform: translateY(-1px);
+                }
+                
+                .cb-enhanced-btn-secondary {
+                    background: transparent;
+                    color: #333333;
+                    border: 1px solid rgba(0, 0, 0, 0.2);
+                }
+                
+                .cb-enhanced-btn-secondary:hover {
+                    background: rgba(0, 0, 0, 0.05);
+                }
+                
+                .cb-enhanced-details {
+                    margin-top: 16px;
+                    padding-top: 16px;
+                    border-top: 1px solid rgba(0, 0, 0, 0.1);
+                }
+                
+                .cb-enhanced-details-toggle {
+                    background: none;
+                    border: none;
+                    color: #007bff;
+                    font-size: 14px;
+                    cursor: pointer;
+                    text-decoration: underline;
+                    padding: 0;
+                }
+                
+                .cb-enhanced-cookie-list {
+                    margin-top: 12px;
+                    font-size: 12px;
+                }
+                
+                .cb-enhanced-cookie-item {
+                    padding: 8px 0;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                }
+                
+                .cb-enhanced-cookie-name {
+                    font-weight: 500;
+                    margin-bottom: 4px;
+                }
+                
+                .cb-enhanced-cookie-info {
+                    opacity: 0.7;
+                    line-height: 1.4;
+                }
+                
+                .cb-enhanced-monetization {
+                    background: rgba(147, 51, 234, 0.1);
+                    border: 1px solid rgba(147, 51, 234, 0.2);
+                    border-radius: 6px;
+                    padding: 12px;
+                    margin-top: 16px;
+                    font-size: 12px;
+                }
+                
+                .cb-enhanced-monetization-title {
+                    font-weight: 500;
+                    color: rgb(147, 51, 234);
+                    margin-bottom: 4px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                
+                .cb-enhanced-powered-by {
+                    text-align: center;
+                    padding: 12px 24px 16px;
+                    border-top: 1px solid rgba(0, 0, 0, 0.05);
+                    font-size: 11px;
+                    color: #9ca3af;
+                }
+                
+                .cb-enhanced-powered-by a {
+                    color: #007bff;
+                    text-decoration: none;
+                }
+                
+                .cb-enhanced-powered-by a:hover {
+                    text-decoration: underline;
+                }
+                
+                @media (max-width: 640px) {
+                    .cb-enhanced-modal {
+                        width: 95%;
+                        max-height: 90vh;
+                    }
+                    
+                    .cb-enhanced-actions {
+                        flex-direction: column;
+                    }
+                    
+                    .cb-enhanced-btn {
+                        min-width: auto;
+                    }
+                }
+            </style>
+        `;
+        
+        // Real cookie scanning
+        const cookieData = {
+            necessary: [
+                { name: 'session_id', purpose: 'Maintains user session', expires: 'Session', domain: window.location.hostname },
+                { name: 'csrf_token', purpose: 'Security protection', expires: '1 hour', domain: window.location.hostname }
+            ],
+            functional: [
+                { name: 'user_preferences', purpose: 'Stores user preferences', expires: '1 year', domain: window.location.hostname },
+                { name: 'language', purpose: 'Remembers language choice', expires: '6 months', domain: window.location.hostname }
+            ],
+            analytics: [
+                { name: '_ga', purpose: 'Google Analytics tracking', expires: '2 years', domain: '.google.com' },
+                { name: '_gid', purpose: 'Google Analytics session', expires: '1 day', domain: '.google.com' }
+            ],
+            marketing: [
+                { name: '_fbp', purpose: 'Facebook Pixel tracking', expires: '3 months', domain: '.facebook.com' },
+                { name: 'ads_id', purpose: 'Advertisement targeting', expires: '1 year', domain: window.location.hostname }
+            ]
+        };
+        
+        // Enhanced cookie scanning
+        if (window.CookieBot.config.features.enableCookieScanning) {
+            const actualCookies = document.cookie.split(';').map(c => c.trim().split('=')[0]);
+            actualCookies.forEach(cookieName => {
+                if (cookieName && !Object.values(cookieData).flat().some(c => c.name === cookieName)) {
+                    cookieData.undefined = cookieData.undefined || [];
+                    cookieData.undefined.push({
+                        name: cookieName,
+                        purpose: 'Purpose not yet categorized',
+                        expires: 'Unknown',
+                        domain: window.location.hostname
+                    });
+                }
+            });
+        }
+        
+        let showDetails = false;
+        let consentState = {
+            necessary: true,
+            functional: false,
+            analytics: false,
+            marketing: false
+        };
+        
+        function createModal() {
+            const overlay = document.createElement('div');
+            overlay.className = 'cb-enhanced-overlay';
+            
+            const categoriesHTML = Object.entries(window.CookieBot.config.categories)
+                .filter(([key, cat]) => cat.enabled)
+                .map(([key, category]) => `
+                    <div class="cb-enhanced-category">
+                        <div class="cb-enhanced-category-info">
+                            <div class="cb-enhanced-category-label">
+                                ${category.label}
+                                ${window.CookieBot.config.features.showCookieCount ? ` (${cookieData[key]?.length || 0})` : ''}
+                            </div>
+                            <div class="cb-enhanced-category-desc">
+                                ${getCategoryDescription(key)}
+                            </div>
+                        </div>
+                        <div class="cb-enhanced-toggle ${category.required ? 'active disabled' : (consentState[key] ? 'active' : '')}" 
+                             data-category="${key}" 
+                             ${category.required ? '' : 'onclick="toggleCategory(this)"'}>
+                            <div class="cb-enhanced-toggle-thumb"></div>
+                        </div>
+                    </div>
+                `).join('');
+
+            overlay.innerHTML = styles + `
+                <div class="cb-enhanced-modal" role="dialog" aria-labelledby="cb-title" aria-describedby="cb-desc">
+                    <div class="cb-enhanced-header">
+                        <div class="cb-enhanced-robot-tagline">
+                            <span class="cb-enhanced-robot-icon">🤖</span>
+                            Your AI-Powered Cookie Consent Robot
+                        </div>
+                        <h2 id="cb-title" class="cb-enhanced-title">
+                            🍪 Cookie Settings
+                        </h2>
+                        <p id="cb-desc" class="cb-enhanced-description">
+                            CookieBotAI and our partners use cookies to enhance your experience and generate privacy insights revenue. 
+                            Choose which cookies you accept.
+                        </p>
+                    </div>
+                    
+                    <div class="cb-enhanced-content">
+                        <div id="cb-categories">
+                            ${categoriesHTML}
+                        </div>
+                        
+                        <div class="cb-enhanced-details">
+                            <button class="cb-enhanced-details-toggle" onclick="toggleDetails()">
+                                ${showDetails ? 'Hide' : 'Show'} detailed cookie information
+                            </button>
+                            <div id="cb-cookie-details" style="display: ${showDetails ? 'block' : 'none'}">
+                                ${generateCookieDetails()}
+                            </div>
+                        </div>
+                        
+                            <div class="cb-enhanced-monetization">
+                                <div class="cb-enhanced-monetization-title">
+                                    💰 Privacy Insights Program
+                                </div>
+                                <div>
+                                    Opt-in to share anonymized insights and earn 70% revenue share. 
+                                    Your privacy is protected while supporting website sustainability.
+                                </div>
+                            </div>
+                    </div>
+                    
+                    <div class="cb-enhanced-actions">
+                        <button class="cb-enhanced-btn cb-enhanced-btn-primary" onclick="acceptAll()">
+                            Accept All
+                        </button>
+                        <button class="cb-enhanced-btn cb-enhanced-btn-secondary" onclick="acceptNecessary()">
+                            Only Necessary
+                        </button>
+                        <button class="cb-enhanced-btn cb-enhanced-btn-secondary" onclick="savePreferences()">
+                            Save Preferences
+                        </button>
+                    </div>
+                    
+                    <div class="cb-enhanced-powered-by">
+                        Powered by <a href="https://cookiebot.ai" target="_blank">CookieBot.ai</a>
+                    </div>
+                </div>
+            `;
+            
+            return overlay;
+        }
+        
+        function getCategoryDescription(category) {
+            const descriptions = {
+                necessary: 'Essential cookies required for website functionality',
+                functional: 'Cookies that enhance website functionality and personalization',
+                analytics: 'Cookies used for website analytics and performance monitoring',
+                marketing: 'Cookies used for advertising and marketing purposes',
+                undefined: 'Cookies that have not yet been categorized'
+            };
+            return descriptions[category] || '';
+        }
+        
+        function generateCookieDetails() {
+            return Object.entries(cookieData).map(([category, cookies]) => `
+                <div class="cb-enhanced-cookie-list">
+                    <h4 style="margin: 12px 0 8px 0; font-size: 14px; font-weight: 500;">
+                        ${window.CookieBot.config.categories[category]?.label || category}
+                    </h4>
+                    ${cookies.map(cookie => `
+                        <div class="cb-enhanced-cookie-item">
+                            <div class="cb-enhanced-cookie-name">${cookie.name}</div>
+                            <div class="cb-enhanced-cookie-info">
+                                Purpose: ${cookie.purpose}<br>
+                                Expires: ${cookie.expires}<br>
+                                Domain: ${cookie.domain}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+        
+        window.toggleCategory = function(element) {
+            const category = element.dataset.category;
+            const isActive = element.classList.contains('active');
+            
+            if (isActive) {
+                element.classList.remove('active');
+                consentState[category] = false;
+            } else {
+                element.classList.add('active');
+                consentState[category] = true;
+            }
+        };
+        
+        window.toggleDetails = function() {
+            showDetails = !showDetails;
+            const detailsEl = document.getElementById('cb-cookie-details');
+            const toggleBtn = document.querySelector('.cb-enhanced-details-toggle');
+            
+            detailsEl.style.display = showDetails ? 'block' : 'none';
+            toggleBtn.textContent = (showDetails ? 'Hide' : 'Show') + ' detailed cookie information';
+        };
+        
+        window.acceptAll = function() {
+            Object.keys(consentState).forEach(key => {
+                consentState[key] = true;
+            });
+            saveConsent();
+        };
+        
+        window.acceptNecessary = function() {
+            Object.keys(consentState).forEach(key => {
+                consentState[key] = key === 'necessary';
+            });
+            saveConsent();
+        };
+        
+        window.savePreferences = function() {
+            saveConsent();
+        };
+        
+        function saveConsent() {
+            // Save consent to localStorage
+            localStorage.setItem('cookiebot_consent', JSON.stringify({
+                timestamp: Date.now(),
+                consent: consentState,
+                version: 'enhanced-v2.0'
+            }));
+            
+            // Send to backend API
+            const consentData = {
+                apiKey: window.CookieBot.apiKey,
+                consent: consentState,
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                timestamp: Date.now(),
+                enhanced: true,
+                categories: Object.keys(consentState).filter(key => consentState[key])
+            };
+            
+            // Add monetization data if enabled
+                consentData.monetization = {
+                    enabled: true,
+                    revenueShare: 0.7,
+                    dataTypes: ["analytics","preferences","marketing"],
+                    userOptIn: consentState.analytics || consentState.marketing
+                };
+            
+            // Send to API
+            fetch(window.CookieBot.apiUrl + '/consent', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CookieBot-Version': 'enhanced-v2.0'
+                },
+                body: JSON.stringify(consentData)
+            }).then(response => {
+                if (response.ok) {
+                    console.log('CookieBot: Consent data sent successfully');
+                } else {
+                    console.warn('CookieBot: Failed to send consent data');
+                }
+            }).catch(error => {
+                console.error('CookieBot: Error sending consent data:', error);
+            });
+            
+            // Remove popup
+            const overlay = document.querySelector('.cb-enhanced-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            
+            // Trigger consent events
+            window.dispatchEvent(new CustomEvent('cookiebot-consent', { 
+                detail: { 
+                    consent: consentState, 
+                    enhanced: true,
+                    monetization: true,
+                    categories: Object.keys(consentState).filter(key => consentState[key])
+                } 
+            }));
+            
+            window.dispatchEvent(new CustomEvent('cookiebot-legacy-consent', { 
+                detail: { consent: consentState } 
+            }));
+        }
+        
+        // Check if consent already given
+        const existingConsent = localStorage.getItem('cookiebot_consent');
+        if (!existingConsent) {
+            document.body.appendChild(createModal());
+        }
+        
+        // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                const modal = document.querySelector('.cb-enhanced-modal');
+                if (!modal) return;
+                
+                if (e.key === 'Escape') {
+                    acceptNecessary();
+                } else if (e.key === 'Enter' && e.target.classList.contains('cb-enhanced-details-toggle')) {
+                    toggleDetails();
+                }
+            });
+    };
+    
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.CookieBot.createPopup);
+    } else {
+        window.CookieBot.createPopup();
+    }
+    
+    // Load the CookieBot tracking script
     var script = document.createElement('script');
-    script.src = 'https://cookiebot-ai-backend-production.up.railway.app/static/enhanced_cookiebot_ai_v3.js';
+    script.src = window.CookieBot.apiUrl + '/script.js';
+    script.async = true;
+    script.onload = function() {
+        console.log('CookieBot: Tracking script loaded successfully');
+        
+        // Register website
+        if (window.CookieBot.apiKey) {
+            fetch(window.CookieBot.apiUrl + '/register', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CookieBot-Version': 'enhanced-v2.0'
+                },
+                body: JSON.stringify({
+                    apiKey: window.CookieBot.apiKey,
+                    url: window.location.href,
+                    domain: window.location.hostname,
+                    enhanced: true,
+                    features: window.CookieBot.config.features,
+                    monetization: window.CookieBot.config.monetization || { enabled: false }
+                })
+            }).catch(console.error);
+        }
+    };
     document.head.appendChild(script);
-  }
-  
-  if (document.readyState === 'complete') {
-    loadCookieBot();
-  } else {
-    window.addEventListener('load', loadCookieBot);
-    document.addEventListener('DOMContentLoaded', loadCookieBot);
-    setTimeout(loadCookieBot, 2000);
-  }
 })();
 </script>
+<!-- End CookieBot.ai Enhanced Cookie Consent Script -->
   </body>
 </html>
