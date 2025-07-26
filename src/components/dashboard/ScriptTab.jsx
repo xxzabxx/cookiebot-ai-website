@@ -37,7 +37,6 @@ const ScriptTab = () => {
     primaryColor: '#007bff',
     backgroundColor: '#ffffff',
     textColor: '#333333',
-    // Enhanced features (NEW - Compatible with existing system)
     showDetailedInfo: true,
     enableCookieScanning: true,
     multiLanguage: false,
@@ -59,10 +58,8 @@ const ScriptTab = () => {
   const [configLoaded, setConfigLoaded] = useState(false);
   const [scriptVersion, setScriptVersion] = useState('enhanced');
 
-  // PRESERVED EXACT API KEY LOGIC for system compatibility
   const apiKey = user?.api_key || `cb_api_${Math.random().toString(36).substr(2, 32)}`;
 
-  // PRESERVED EXACT configuration loading logic for system compatibility
   useEffect(() => {
     const loadConfiguration = () => {
       try {
@@ -105,7 +102,6 @@ const ScriptTab = () => {
     loadConfiguration();
   }, []);
 
-  // PRESERVED EXACT refresh logic for system compatibility
   const refreshConfiguration = () => {
     setConfigLoaded(false);
     setTimeout(() => {
@@ -190,14 +186,14 @@ const ScriptTab = () => {
                 }
             });` : '';
 
-    return `<!-- CookieBot.ai Enhanced Script with System Integration -->
+    return `<!-- CookieBot.ai Enhanced Cookie Consent Script -->
 <script>
 (function() {
-    // Enhanced CookieBot Configuration - SYSTEM COMPATIBLE
+    // CookieBot Enhanced Configuration
     window.CookieBot = {
         apiKey: '${apiKey}',
         apiUrl: 'https://cookiebot-ai-backend-production.up.railway.app/api/public',
-        version: 'enhanced-v2.0-system-compatible',
+        version: 'enhanced-v2.0',
         config: {
             autoShow: true,
             compliance: {
@@ -231,7 +227,7 @@ const ScriptTab = () => {
         }
     };
     
-    // Enhanced Cookie Popup Implementation - SYSTEM INTEGRATED
+    // Enhanced Cookie Popup Implementation
     window.CookieBot.createPopup = function() {
         const styles = \`
             <style>
@@ -465,7 +461,7 @@ const ScriptTab = () => {
             </style>
         \`;
         
-        // SYSTEM COMPATIBLE: Real cookie scanning using existing tracking system
+        // Real cookie scanning
         const cookieData = {
             necessary: [
                 { name: 'session_id', purpose: 'Maintains user session', expires: 'Session', domain: window.location.hostname },
@@ -485,7 +481,7 @@ const ScriptTab = () => {
             ]
         };
         
-        // SYSTEM COMPATIBLE: Enhanced cookie scanning
+        // Enhanced cookie scanning
         if (window.CookieBot.config.features.enableCookieScanning) {
             const actualCookies = document.cookie.split(';').map(c => c.trim().split('=')[0]);
             actualCookies.forEach(cookieName => {
@@ -651,14 +647,14 @@ const ScriptTab = () => {
         };
         
         function saveConsent() {
-            // SYSTEM COMPATIBLE: Save consent to localStorage with exact same structure
+            // Save consent to localStorage
             localStorage.setItem('cookiebot_consent', JSON.stringify({
                 timestamp: Date.now(),
                 consent: consentState,
-                version: 'enhanced-v2.0-system-compatible'
+                version: 'enhanced-v2.0'
             }));
             
-            // SYSTEM COMPATIBLE: Send to existing backend API with enhanced data
+            // Send to backend API
             const consentData = {
                 apiKey: window.CookieBot.apiKey,
                 consent: consentState,
@@ -669,21 +665,21 @@ const ScriptTab = () => {
                 categories: Object.keys(consentState).filter(key => consentState[key])
             };
             
-            // Add monetization data if enabled (PRESERVED EXACT STRUCTURE)${monetizationData}
+            // Add monetization data if enabled${monetizationData}
             
-            // SYSTEM COMPATIBLE: Use exact same API endpoint and structure
+            // Send to API
             fetch(window.CookieBot.apiUrl + '/consent', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-CookieBot-Version': 'enhanced-v2.0-system-compatible'
+                    'X-CookieBot-Version': 'enhanced-v2.0'
                 },
                 body: JSON.stringify(consentData)
             }).then(response => {
                 if (response.ok) {
-                    console.log('CookieBot: Enhanced consent data sent to backend successfully');
+                    console.log('CookieBot: Consent data sent successfully');
                 } else {
-                    console.warn('CookieBot: Failed to send consent data to backend');
+                    console.warn('CookieBot: Failed to send consent data');
                 }
             }).catch(error => {
                 console.error('CookieBot: Error sending consent data:', error);
@@ -695,7 +691,7 @@ const ScriptTab = () => {
                 overlay.remove();
             }
             
-            // SYSTEM COMPATIBLE: Trigger consent event for existing integrations
+            // Trigger consent events
             window.dispatchEvent(new CustomEvent('cookiebot-consent', { 
                 detail: { 
                     consent: consentState, 
@@ -705,42 +701,41 @@ const ScriptTab = () => {
                 } 
             }));
             
-            // SYSTEM COMPATIBLE: Also trigger legacy event for backward compatibility
             window.dispatchEvent(new CustomEvent('cookiebot-legacy-consent', { 
                 detail: { consent: consentState } 
             }));
         }
         
-        // Check if consent already given (SYSTEM COMPATIBLE)
+        // Check if consent already given
         const existingConsent = localStorage.getItem('cookiebot_consent');
         if (!existingConsent) {
             document.body.appendChild(createModal());
         }
         
-        // SYSTEM COMPATIBLE: Keyboard navigation${keyboardNavigation}
+        // Keyboard navigation${keyboardNavigation}
     };
     
-    // Auto-initialize when DOM is ready (SYSTEM COMPATIBLE)
+    // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', window.CookieBot.createPopup);
     } else {
         window.CookieBot.createPopup();
     }
     
-    // SYSTEM COMPATIBLE: Load the existing CookieBot tracking script
+    // Load the CookieBot tracking script
     var script = document.createElement('script');
     script.src = window.CookieBot.apiUrl + '/script.js';
     script.async = true;
     script.onload = function() {
-        console.log('CookieBot: Enhanced tracking script loaded successfully');
+        console.log('CookieBot: Tracking script loaded successfully');
         
-        // SYSTEM COMPATIBLE: Register website with enhanced metadata
+        // Register website
         if (window.CookieBot.apiKey) {
             fetch(window.CookieBot.apiUrl + '/register', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-CookieBot-Version': 'enhanced-v2.0-system-compatible'
+                    'X-CookieBot-Version': 'enhanced-v2.0'
                 },
                 body: JSON.stringify({
                     apiKey: window.CookieBot.apiKey,
@@ -756,14 +751,14 @@ const ScriptTab = () => {
     document.head.appendChild(script);
 })();
 </script>
-<!-- End CookieBot.ai Enhanced Script -->`;
+<!-- End CookieBot.ai Enhanced Cookie Consent Script -->`;
   };
 
   const generateLegacyScript = () => {
-    return `<!-- CookieBot.ai Legacy Script - System Compatible -->
+    return `<!-- CookieBot.ai Cookie Consent Script -->
 <script>
 (function() {
-    // PRESERVED EXACT: Configure CookieBot with your unified API key
+    // Configure CookieBot with your API key
     window.CookieBot = {
         apiKey: '${apiKey}',
         apiUrl: 'https://cookiebot-ai-backend-production.up.railway.app/api/public',
@@ -790,17 +785,17 @@ const ScriptTab = () => {
         }
     };
     
-    // PRESERVED EXACT: Load the CookieBot tracking script
+    // Load the CookieBot tracking script
     var script = document.createElement('script');
     script.src = window.CookieBot.apiUrl + '/script.js';
     script.async = true;
     script.onload = function() {
-        console.log('CookieBot: Legacy tracking script loaded successfully');
+        console.log('CookieBot: Tracking script loaded successfully');
     };
     document.head.appendChild(script);
 })();
 </script>
-<!-- End CookieBot.ai Legacy Script -->`;
+<!-- End CookieBot.ai Cookie Consent Script -->`;
   };
 
   const getCurrentScript = () => {
@@ -820,7 +815,7 @@ const ScriptTab = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `cookiebot-${scriptVersion}-system-compatible.html`;
+    a.download = `cookiebot-${scriptVersion}-script.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -839,192 +834,156 @@ const ScriptTab = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Rocket className="w-6 h-6 text-blue-600" />
-            System-Compatible Enhanced Script
+            Cookie Consent Script
           </h2>
-          <p className="text-gray-600">Enhanced CookieTractor-inspired features with full system integration</p>
+          <p className="text-gray-600">Generate and deploy your cookie consent solution</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={refreshConfiguration}>
+          <Button variant="outline" onClick={refreshConfiguration} size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh Config
+            Refresh
           </Button>
-          <Button variant="outline" onClick={downloadScript}>
+          <Button variant="outline" onClick={downloadScript} size="sm">
             <Download className="w-4 h-4 mr-2" />
-            Download Script
+            Download
           </Button>
         </div>
       </div>
 
-      {/* System Integration Alert */}
-      <Alert className="border-green-200 bg-green-50">
-        <Shield className="h-4 w-4" />
-        <AlertDescription className="text-green-800">
-          <strong>🔗 System Integration Active!</strong> This enhanced script maintains full compatibility with your existing dashboard, backend API, tracking system, and privacy insights monetization while adding CookieTractor-inspired features.
-        </AlertDescription>
-      </Alert>
-
       {/* Script Version Selector */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Settings className="w-5 h-5 text-blue-600" />
-            Script Version - System Compatible
-          </CardTitle>
-          <CardDescription>Choose the script version that best fits your needs (both maintain system integration)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div 
-              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                scriptVersion === 'enhanced' 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setScriptVersion('enhanced')}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-blue-900">Enhanced Script (Recommended)</h3>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card 
+          className={`cursor-pointer transition-all ${
+            scriptVersion === 'enhanced' 
+              ? 'border-blue-500 bg-blue-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => setScriptVersion('enhanced')}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              <h3 className="font-semibold text-blue-900">Enhanced Script</h3>
+              <Badge variant="secondary">Recommended</Badge>
+            </div>
+            <p className="text-sm text-blue-700 mb-3">
+              Advanced cookie consent with detailed information and granular controls
+            </p>
+            <div className="space-y-1 text-xs text-blue-600">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Detailed cookie categories</span>
               </div>
-              <p className="text-sm text-blue-700 mb-3">
-                CookieTractor-inspired features with full system integration and advanced functionality
-              </p>
-              <div className="space-y-1 text-xs text-blue-600">
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Detailed cookie categories and information</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Granular toggle controls</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Professional modal design</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Real-time cookie scanning</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  <span>Full system integration maintained</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" />
-                  <span>Privacy insights monetization preserved</span>
-                </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Professional modal design</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Real-time cookie scanning</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Enhanced analytics tracking</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div 
-              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                scriptVersion === 'legacy' 
-                  ? 'border-gray-500 bg-gray-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setScriptVersion('legacy')}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Code className="w-5 h-5 text-gray-600" />
-                <h3 className="font-semibold text-gray-900">Legacy Script</h3>
+        <Card 
+          className={`cursor-pointer transition-all ${
+            scriptVersion === 'legacy' 
+              ? 'border-gray-500 bg-gray-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => setScriptVersion('legacy')}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Code className="w-5 h-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Standard Script</h3>
+            </div>
+            <p className="text-sm text-gray-700 mb-3">
+              Lightweight implementation for maximum compatibility
+            </p>
+            <div className="space-y-1 text-xs text-gray-600">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Simple, fast loading</span>
               </div>
-              <p className="text-sm text-gray-700 mb-3">
-                Original unified script with system integration for maximum compatibility
-              </p>
-              <div className="space-y-1 text-xs text-gray-600">
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Simple, lightweight implementation</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Maximum browser compatibility</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Faster loading times</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  <span>Full system integration maintained</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" />
-                  <span>Privacy insights monetization preserved</span>
-                </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Maximum browser support</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Minimal resource usage</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                <span>Essential compliance features</span>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Status Cards */}
+      {/* Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Globe className="w-6 h-6 text-green-600" />
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Globe className="w-5 h-5 text-green-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-green-900">Auto-Registration</h3>
-                <p className="text-sm text-green-700">System integrated</p>
+                <p className="text-sm text-green-700">Active</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-blue-600" />
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-blue-900">API Integration</h3>
-                <p className="text-sm text-blue-700 font-mono">{apiKey.substring(0, 15)}...</p>
+                <p className="text-sm text-blue-700 font-mono">{apiKey.substring(0, 12)}...</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={`${config.privacyInsightsEnabled ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-          <CardContent className="p-6">
+        <Card className={`${config.privacyInsightsEnabled ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                config.privacyInsightsEnabled 
-                  ? 'bg-green-100' 
-                  : 'bg-gray-100'
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                config.privacyInsightsEnabled ? 'bg-purple-100' : 'bg-gray-100'
               }`}>
-                <DollarSign className={`w-6 h-6 ${
-                  config.privacyInsightsEnabled 
-                    ? 'text-green-600' 
-                    : 'text-gray-400'
+                <DollarSign className={`w-5 h-5 ${
+                  config.privacyInsightsEnabled ? 'text-purple-600' : 'text-gray-400'
                 }`} />
               </div>
               <div>
                 <h3 className={`font-semibold ${
-                  config.privacyInsightsEnabled 
-                    ? 'text-green-900' 
-                    : 'text-gray-900'
+                  config.privacyInsightsEnabled ? 'text-purple-900' : 'text-gray-900'
                 }`}>
-                  {config.privacyInsightsEnabled ? 'Monetization Active' : 'Monetization Off'}
+                  Privacy Insights
                 </h3>
                 <p className={`text-sm ${
-                  config.privacyInsightsEnabled 
-                    ? 'text-green-700' 
-                    : 'text-gray-600'
+                  config.privacyInsightsEnabled ? 'text-purple-700' : 'text-gray-600'
                 }`}>
-                  {config.privacyInsightsEnabled 
-                    ? `${config.revenueShare}% Revenue Share` 
-                    : 'Configure in Customization'
-                  }
+                  {config.privacyInsightsEnabled ? `${config.revenueShare}% Revenue` : 'Disabled'}
                 </p>
               </div>
             </div>
@@ -1039,27 +998,24 @@ const ScriptTab = () => {
             {scriptVersion === 'enhanced' ? (
               <>
                 <Sparkles className="w-5 h-5 text-blue-600" />
-                🚀 Your Enhanced System-Compatible Script
+                Enhanced Cookie Consent Script
               </>
             ) : (
               <>
                 <Code className="w-5 h-5 text-gray-600" />
-                📜 Your Legacy System-Compatible Script
+                Standard Cookie Consent Script
               </>
             )}
           </CardTitle>
           <CardDescription>
-            {scriptVersion === 'enhanced' 
-              ? 'Enhanced script with CookieTractor-inspired features and full system integration'
-              : 'Original unified script with maintained system compatibility'
-            }
+            Copy this script and paste it into your website's HTML head section
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-gray-900 rounded-lg p-4 relative">
             <div className="flex items-center justify-between mb-2">
               <span className="text-green-400 text-sm font-mono">
-                {scriptVersion === 'enhanced' ? 'Enhanced System-Compatible v2.0' : 'Legacy System-Compatible v1.0'}
+                {scriptVersion === 'enhanced' ? 'Enhanced v2.0' : 'Standard v1.0'}
               </span>
               <Button
                 size="sm"
@@ -1079,53 +1035,72 @@ const ScriptTab = () => {
             </pre>
           </div>
 
+          {/* Implementation Guide */}
           <div className="grid md:grid-cols-2 gap-4">
-            {/* System Integration Info */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-green-800 mb-1">
-                <Shield className="w-4 h-4" />
-                <span className="text-sm font-medium">System Integration Active</span>
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-900">Implementation Steps</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-semibold">1</span>
+                  </div>
+                  <span className="text-gray-600">Copy the script above</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-semibold">2</span>
+                  </div>
+                  <span className="text-gray-600">Paste it in your website's &lt;head&gt; section</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-semibold">3</span>
+                  </div>
+                  <span className="text-gray-600">Test the cookie popup on your website</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-semibold">4</span>
+                  </div>
+                  <span className="text-gray-600">Monitor analytics in your dashboard</span>
+                </div>
               </div>
-              <p className="text-green-700 text-xs">
-                Full compatibility with your dashboard, backend API, and tracking system
-              </p>
             </div>
 
-            {/* Enhanced Features Info */}
-            {scriptVersion === 'enhanced' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-blue-800 mb-1">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm font-medium">Enhanced Features Active</span>
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-900">Features Active</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>GDPR, CCPA, LGPD compliance</span>
                 </div>
-                <p className="text-blue-700 text-xs">
-                  Professional modal design, detailed cookie info, granular controls, and real-time scanning
-                </p>
-              </div>
-            )}
-
-            {/* Monetization Info */}
-            {config.privacyInsightsEnabled && (
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-purple-800 mb-1">
-                  <DollarSign className="w-4 h-4" />
-                  <span className="text-sm font-medium">Privacy Insights Enabled</span>
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Automatic website registration</span>
                 </div>
-                <p className="text-purple-700 text-xs">
-                  Monetization active with {config.revenueShare}% revenue share
-                </p>
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Real-time analytics tracking</span>
+                </div>
+                {config.privacyInsightsEnabled && (
+                  <div className="flex items-center gap-2 text-purple-700">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Privacy insights monetization</span>
+                  </div>
+                )}
+                {scriptVersion === 'enhanced' && (
+                  <>
+                    <div className="flex items-center gap-2 text-blue-700">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Enhanced cookie categorization</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-700">
+                      <Eye className="w-4 h-4" />
+                      <span>Detailed cookie information</span>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
-
-            {/* Auto-Registration Info */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-gray-800 mb-1">
-                <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium">Auto-Registration Enabled</span>
-              </div>
-              <p className="text-gray-700 text-xs">
-                Websites automatically appear in your dashboard with enhanced metadata
-              </p>
             </div>
           </div>
         </CardContent>
