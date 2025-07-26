@@ -227,7 +227,7 @@ const ScriptTab = () => {
         }
     };
     
-    // Enhanced Cookie Popup Implementation
+    // Enhanced Cookie Popup Implementation with CookieBot.ai Branding
     window.CookieBot.createPopup = function() {
         const styles = \`
             <style>
@@ -266,6 +266,21 @@ const ScriptTab = () => {
                 .cb-enhanced-header {
                     padding: 24px 24px 16px;
                     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                }
+                
+                .cb-enhanced-robot-tagline {
+                    font-size: 12px;
+                    color: #6b7280;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+                
+                .cb-enhanced-robot-icon {
+                    font-size: 16px;
                 }
                 
                 .cb-enhanced-title {
@@ -274,6 +289,7 @@ const ScriptTab = () => {
                     margin: 0 0 8px 0;
                     display: flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 8px;
                 }
                 
@@ -444,6 +460,23 @@ const ScriptTab = () => {
                     gap: 4px;
                 }
                 
+                .cb-enhanced-powered-by {
+                    text-align: center;
+                    padding: 12px 24px 16px;
+                    border-top: 1px solid rgba(0, 0, 0, 0.05);
+                    font-size: 11px;
+                    color: #9ca3af;
+                }
+                
+                .cb-enhanced-powered-by a {
+                    color: ${config.primaryColor};
+                    text-decoration: none;
+                }
+                
+                .cb-enhanced-powered-by a:hover {
+                    text-decoration: underline;
+                }
+                
                 @media (max-width: 640px) {
                     .cb-enhanced-modal {
                         width: 95%;
@@ -533,6 +566,10 @@ const ScriptTab = () => {
             overlay.innerHTML = styles + \`
                 <div class="cb-enhanced-modal" role="dialog" aria-labelledby="cb-title" aria-describedby="cb-desc">
                     <div class="cb-enhanced-header">
+                        <div class="cb-enhanced-robot-tagline">
+                            <span class="cb-enhanced-robot-icon">🤖</span>
+                            Your AI-Powered Cookie Consent Robot
+                        </div>
                         <h2 id="cb-title" class="cb-enhanced-title">
                             🍪 Cookie Settings
                         </h2>
@@ -568,6 +605,10 @@ const ScriptTab = () => {
                         <button class="cb-enhanced-btn cb-enhanced-btn-secondary" onclick="savePreferences()">
                             Save Preferences
                         </button>
+                    </div>
+                    
+                    <div class="cb-enhanced-powered-by">
+                        Powered by <a href="https://cookiebot.ai" target="_blank">CookieBot.ai</a>
                     </div>
                 </div>
             \`;
@@ -839,10 +880,10 @@ const ScriptTab = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Rocket className="w-6 h-6 text-blue-600" />
+            <span className="text-2xl">🤖</span>
             Cookie Consent Script
           </h2>
-          <p className="text-gray-600">Generate and deploy your cookie consent solution</p>
+          <p className="text-gray-600">Your AI-Powered Cookie Consent Robot</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={refreshConfiguration} size="sm">
@@ -868,21 +909,21 @@ const ScriptTab = () => {
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-blue-900">Enhanced Script</h3>
+              <span className="text-lg">🤖</span>
+              <h3 className="font-semibold text-blue-900">Enhanced AI Script</h3>
               <Badge variant="secondary">Recommended</Badge>
             </div>
             <p className="text-sm text-blue-700 mb-3">
-              Advanced cookie consent with detailed information and granular controls
+              Advanced AI-powered cookie consent with detailed information and smart controls
             </p>
             <div className="space-y-1 text-xs text-blue-600">
               <div className="flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" />
-                <span>Detailed cookie categories</span>
+                <span>AI-powered cookie categorization</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" />
-                <span>Professional modal design</span>
+                <span>Professional branded design</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" />
@@ -997,8 +1038,8 @@ const ScriptTab = () => {
           <CardTitle className="text-lg flex items-center gap-2">
             {scriptVersion === 'enhanced' ? (
               <>
-                <Sparkles className="w-5 h-5 text-blue-600" />
-                Enhanced Cookie Consent Script
+                <span className="text-lg">🤖</span>
+                Enhanced AI Cookie Consent Script
               </>
             ) : (
               <>
@@ -1015,7 +1056,7 @@ const ScriptTab = () => {
           <div className="bg-gray-900 rounded-lg p-4 relative">
             <div className="flex items-center justify-between mb-2">
               <span className="text-green-400 text-sm font-mono">
-                {scriptVersion === 'enhanced' ? 'Enhanced v2.0' : 'Standard v1.0'}
+                {scriptVersion === 'enhanced' ? 'Enhanced AI v2.0' : 'Standard v1.0'}
               </span>
               <Button
                 size="sm"
@@ -1082,6 +1123,10 @@ const ScriptTab = () => {
                   <CheckCircle className="w-4 h-4" />
                   <span>Real-time analytics tracking</span>
                 </div>
+                <div className="flex items-center gap-2 text-blue-700">
+                  <span className="text-sm">🤖</span>
+                  <span>CookieBot.ai branding</span>
+                </div>
                 {config.privacyInsightsEnabled && (
                   <div className="flex items-center gap-2 text-purple-700">
                     <DollarSign className="w-4 h-4" />
@@ -1092,7 +1137,7 @@ const ScriptTab = () => {
                   <>
                     <div className="flex items-center gap-2 text-blue-700">
                       <Sparkles className="w-4 h-4" />
-                      <span>Enhanced cookie categorization</span>
+                      <span>AI-powered cookie categorization</span>
                     </div>
                     <div className="flex items-center gap-2 text-blue-700">
                       <Eye className="w-4 h-4" />
